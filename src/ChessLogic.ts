@@ -70,40 +70,25 @@ const QUEEN_ATTACKS: (0 | 1)[] = [
 ]
 
 /**
- * Returns true if the given knight move is valid.
- *
- * @param orig Starting square
- * @param dest Ending square
- * @returns 0x88Diff offset
- */
-export function validateKnightMove(orig: Square, dest: Square): boolean {
-  const x88Diff = SQUARES_MAP[dest] - SQUARES_MAP[orig]
-  return KNIGHT_OFFSETS.includes(x88Diff)
-}
-
-/**
  * Returns potential target squares for a knight from the current square.
  *
  * Note that the Queen square is not available for the knight to move to.
  *
  * @param startingSquare square where knight starts
  * @param offLimitsSquares squares that are off-limits from the knight
- * @returns a Chessground "dests"-compatible map containing target squares
+ * @returns an array of potential squares the knight can move to
  */
 export function getKnightDests(
   startingSquare: Square,
   offLimitsSquares?: Square[]
-): Map<Square, Square[]> {
-  const isSquare = (s: Square | undefined): s is Square => s !== undefined
+): Square[] {
   const dests = KNIGHT_OFFSETS.map(
     (offset) => SQUARES_MAP[startingSquare] + offset
   )
     .map((x88Idx) => SQUARES.find((key) => SQUARES_MAP[key] === x88Idx))
-    .filter(isSquare)
-    .filter(
-      (v) => offLimitsSquares === undefined || !offLimitsSquares.includes(v)
-    )
-  return new Map([[startingSquare, dests]])
+    .filter((s: Square | undefined): s is Square => !!s)
+    .filter((v) => !offLimitsSquares || !offLimitsSquares.includes(v))
+  return dests
 }
 
 /**

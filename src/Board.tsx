@@ -4,12 +4,7 @@ import "./Board.css"
 import { Api as ChessgroundApi } from "chessground/api"
 import * as cg from "chessground/types"
 import { Config } from "chessground/config"
-import {
-  getPuzzleFen,
-  getKnightDests,
-  Square,
-  validateKnightMove,
-} from "./ChessLogic"
+import { getPuzzleFen, getKnightDests, Square } from "./ChessLogic"
 
 type BoardProps = {
   initialKnightSquare: Square
@@ -29,14 +24,19 @@ const Board: React.FC<BoardProps> = ({
     [knightSquare, queenSquare]
   )
   const dests = useMemo<Map<cg.Key, cg.Key[]>>(
-    () => getKnightDests(knightSquare, [queenSquare]),
+    () =>
+      new Map([[knightSquare, getKnightDests(knightSquare, [queenSquare])]]),
     [knightSquare, queenSquare]
   )
-  const handleMove = useCallback((orig: cg.Key, dest: cg.Key) => {
-    if (validateKnightMove(orig as Square, dest as Square)) {
-      setKnightSquare(dest as Square)
-    }
-  }, [])
+  const handleMove = useCallback(
+    (orig: cg.Key, dest: cg.Key) => {
+      const validDests = dests.get(orig)
+      if (validDests && validDests.includes(dest) && dest !== "a0") {
+        setKnightSquare(dest)
+      }
+    },
+    [dests]
+  )
   const config: Config = useMemo(
     () => ({
       fen: fen,
