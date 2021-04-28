@@ -16,9 +16,10 @@ const App: React.FC = () => {
   const [knightSquare, setKnightSquare] = useState<Square>(
     STARTING_KNIGHT_SQUARE
   )
-  const fen = useMemo<string>(() => getPuzzleFen(knightSquare, QUEEN_SQUARE), [
-    knightSquare,
-  ])
+  const fen = useMemo<string | undefined>(
+    () => getPuzzleFen(knightSquare, QUEEN_SQUARE),
+    [knightSquare]
+  )
 
   const handleMove: (orig: cg.Key, dest: cg.Key) => void = (orig, dest) => {
     if (validateKnightMove(orig as Square, dest as Square)) {

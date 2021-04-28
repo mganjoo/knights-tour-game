@@ -1,5 +1,3 @@
-const ChessReq = require("chess.js")
-
 /**
  * The 0x88 representation of the board.
  *
@@ -21,6 +19,16 @@ const SQUARES = {
  * Type alias for all chess squares.
  */
 export type Square = keyof typeof SQUARES
+
+/**
+ * Type guard to check that a string corresponds to a fixed chess square.
+ *
+ * @param square A string that might be a square
+ * @returns a type predicate confirming that the string is of type Square.
+ */
+export function isSquare(square: string): square is Square {
+  return Object.keys(SQUARES).includes(square)
+}
 
 /**
  * 0x88Diff offsets that knight can move to.
@@ -84,17 +92,16 @@ export function getKnightDests(
   startingSquare: Square,
   offLimitsSquares?: Square[]
 ): Map<Square, Square[]> {
+  const isSquare = (s: Square | undefined): s is Square => s !== undefined
   const dests = KNIGHT_OFFSETS.map((offset) => SQUARES[startingSquare] + offset)
     .map((x88Idx) =>
-      Object.keys(SQUARES).find((key) => SQUARES[key as Square] === x88Idx)
+      (Object.keys(SQUARES) as Square[]).find((key) => SQUARES[key] === x88Idx)
     )
+    .filter(isSquare)
     .filter(
-      (v) =>
-        v !== undefined &&
-        (offLimitsSquares === undefined ||
-          !offLimitsSquares.includes(v as Square))
+      (v) => offLimitsSquares === undefined || !offLimitsSquares.includes(v)
     )
-  return new Map([[startingSquare, dests as Square[]]])
+  return new Map([[startingSquare, dests]])
 }
 
 /**
@@ -102,17 +109,48 @@ export function getKnightDests(
  *
  * @param knightSquare square knight is currently on
  * @param queenSquare square that queen is currently on
- * @returns FEN representation of board
+ * @returns FEN representation of board, or null if position is invalid
  */
 export function getPuzzleFen(
   knightSquare: Square,
   queenSquare: Square
-): string {
-  const board = new ChessReq()
-  board.clear()
-  board.put({ type: "q", color: "b" }, queenSquare)
-  board.put({ type: "n", color: "w" }, knightSquare)
-  return board.fen()
+): string | undefined {
+  // Knight and queen can't be on same square
+  if (knightSquare === queenSquare) {
+    return undefined
+  }
+
+  const lookup: { [idx: number]: "N" | "q" } = {}
+  lookup[SQUARES[knightSquare]] = "N" // White knight
+  lookup[SQUARES[queenSquare]] = "q" // Black queen
+
+  let empty = 0
+  let piecesRep = ""
+  for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
+    if (!(i in lookup)) {
+      empty++
+    } else {
+      let piece = lookup[i]
+      if (empty) {
+        piecesRep += empty
+        empty = 0
+      }
+      piecesRep += piece
+    }
+
+    if ((i + 1) & 0x88) {
+      if (empty > 0) {
+        piecesRep += empty
+      }
+      if (i !== SQUARES.h1) {
+        piecesRep += "/"
+      }
+      empty = 0
+      i += 8
+    }
+  }
+
+  return `${piecesRep} w - - 0 1`
 }
 
 /**

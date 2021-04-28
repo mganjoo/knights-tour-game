@@ -6,7 +6,7 @@ import * as cg from "chessground/types"
 import { Config } from "chessground/config"
 
 type BoardProps = {
-  fen: cg.FEN
+  fen?: cg.FEN
   validDests?: Map<cg.Key, cg.Key[]>
   handleMove: (orig: cg.Key, dest: cg.Key) => void
 }
