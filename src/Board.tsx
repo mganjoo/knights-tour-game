@@ -1,24 +1,42 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Chessground } from "chessground"
 import "./Board.css"
 import { Api as ChessgroundApi } from "chessground/api"
 import * as cg from "chessground/types"
 import { Config } from "chessground/config"
+import {
+  getPuzzleFen,
+  getKnightDests,
+  Square,
+  validateKnightMove,
+} from "./ChessLogic"
 
 type BoardProps = {
-  fen?: cg.FEN
-  validDests?: Map<cg.Key, cg.Key[]>
-  handleMove: (orig: cg.Key, dest: cg.Key) => void
+  initialKnightSquare: Square
+  queenSquare: Square
 }
 
 const Board: React.FC<BoardProps> = ({
-  fen,
-  validDests,
-  handleMove,
+  initialKnightSquare,
+  queenSquare,
   children,
 }) => {
   const el = useRef<HTMLDivElement>(null)
+  const [knightSquare, setKnightSquare] = useState<Square>(initialKnightSquare)
   const [ground, setGround] = useState<ChessgroundApi>()
+  const fen = useMemo<string | undefined>(
+    () => getPuzzleFen(knightSquare, queenSquare),
+    [knightSquare, queenSquare]
+  )
+  const dests = useMemo<Map<cg.Key, cg.Key[]>>(
+    () => getKnightDests(knightSquare, [queenSquare]),
+    [knightSquare, queenSquare]
+  )
+  const handleMove = useCallback((orig: cg.Key, dest: cg.Key) => {
+    if (validateKnightMove(orig as Square, dest as Square)) {
+      setKnightSquare(dest as Square)
+    }
+  }, [])
   const config: Config = useMemo(
     () => ({
       fen: fen,
@@ -33,7 +51,7 @@ const Board: React.FC<BoardProps> = ({
       movable: {
         free: false,
         color: "white",
-        dests: validDests,
+        dests: dests,
         events: { after: handleMove },
       },
       premovable: {
@@ -46,7 +64,7 @@ const Board: React.FC<BoardProps> = ({
         enabled: false,
       },
     }),
-    [fen, validDests, handleMove]
+    [fen, dests, handleMove]
   )
 
   useEffect(() => {
