@@ -31,7 +31,7 @@ const Board: React.FC<BoardProps> = ({
         enabled: false,
       },
       movable: {
-        free: true,
+        free: false,
         color: "white",
         dests: validDests,
         events: { after: handleMove },
