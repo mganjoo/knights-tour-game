@@ -4,7 +4,7 @@
  * See https://www.chessprogramming.org/0x88 for details.
  */
 // prettier-ignore
-const SQUARES = {
+const SQUARES_MAP = {
   a8:   0, b8:   1, c8:   2, d8:   3, e8:   4, f8:   5, g8:   6, h8:   7,
   a7:  16, b7:  17, c7:  18, d7:  19, e7:  20, f7:  21, g7:  22, h7:  23,
   a6:  32, b6:  33, c6:  34, d6:  35, e6:  36, f6:  37, g6:  38, h6:  39,
@@ -18,7 +18,9 @@ const SQUARES = {
 /**
  * Type alias for all chess squares.
  */
-export type Square = keyof typeof SQUARES
+export type Square = keyof typeof SQUARES_MAP
+
+export const SQUARES = Object.keys(SQUARES_MAP) as Square[]
 
 /**
  * Type guard to check that a string corresponds to a fixed chess square.
@@ -27,7 +29,7 @@ export type Square = keyof typeof SQUARES
  * @returns a type predicate confirming that the string is of type Square.
  */
 export function isSquare(square: string): square is Square {
-  return Object.keys(SQUARES).includes(square)
+  return Object.keys(SQUARES_MAP).includes(square)
 }
 
 /**
@@ -75,7 +77,7 @@ const QUEEN_ATTACKS: (0 | 1)[] = [
  * @returns 0x88Diff offset
  */
 export function validateKnightMove(orig: Square, dest: Square): boolean {
-  const x88Diff = SQUARES[dest] - SQUARES[orig]
+  const x88Diff = SQUARES_MAP[dest] - SQUARES_MAP[orig]
   return KNIGHT_OFFSETS.includes(x88Diff)
 }
 
@@ -93,10 +95,10 @@ export function getKnightDests(
   offLimitsSquares?: Square[]
 ): Map<Square, Square[]> {
   const isSquare = (s: Square | undefined): s is Square => s !== undefined
-  const dests = KNIGHT_OFFSETS.map((offset) => SQUARES[startingSquare] + offset)
-    .map((x88Idx) =>
-      (Object.keys(SQUARES) as Square[]).find((key) => SQUARES[key] === x88Idx)
-    )
+  const dests = KNIGHT_OFFSETS.map(
+    (offset) => SQUARES_MAP[startingSquare] + offset
+  )
+    .map((x88Idx) => SQUARES.find((key) => SQUARES_MAP[key] === x88Idx))
     .filter(isSquare)
     .filter(
       (v) => offLimitsSquares === undefined || !offLimitsSquares.includes(v)
@@ -121,12 +123,12 @@ export function getPuzzleFen(
   }
 
   const lookup: { [idx: number]: "N" | "q" } = {}
-  lookup[SQUARES[knightSquare]] = "N" // White knight
-  lookup[SQUARES[queenSquare]] = "q" // Black queen
+  lookup[SQUARES_MAP[knightSquare]] = "N" // White knight
+  lookup[SQUARES_MAP[queenSquare]] = "q" // Black queen
 
   let empty = 0
   let piecesRep = ""
-  for (let i = SQUARES.a8; i <= SQUARES.h1; i++) {
+  for (let i = SQUARES_MAP.a8; i <= SQUARES_MAP.h1; i++) {
     if (!(i in lookup)) {
       empty++
     } else {
@@ -142,7 +144,7 @@ export function getPuzzleFen(
       if (empty > 0) {
         piecesRep += empty
       }
-      if (i !== SQUARES.h1) {
+      if (i !== SQUARES_MAP.h1) {
         piecesRep += "/"
       }
       empty = 0
@@ -161,6 +163,7 @@ export function getPuzzleFen(
  * @returns true if queen attacks knight
  */
 export function attackedByQueen(square: Square, queenSquare: Square): boolean {
-  const x88DiffNormalized = SQUARES[square] - SQUARES[queenSquare] + 0x77
+  const x88DiffNormalized =
+    SQUARES_MAP[square] - SQUARES_MAP[queenSquare] + 0x77
   return QUEEN_ATTACKS[x88DiffNormalized] === 1
 }
