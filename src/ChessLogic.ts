@@ -166,3 +166,50 @@ export function attackedByQueen(square: Square, queenSquare: Square): boolean {
     SQUARES_MAP[square] - SQUARES_MAP[queenSquare] + 0x77
   return QUEEN_ATTACKS[x88DiffNormalized] === 1
 }
+
+/**
+ * Generate a sequence of moves that completes a *unique* Knights' tour of
+ * the board by visiting each square exactly once.
+ *
+ * @param square Starting square
+ * @returns an Array of moves that correspond to a unique Knights' tour.
+ */
+export function generateKnightsTour(square: Square) {
+  function generateKnightsTourHelper(
+    square: Square,
+    moves: Array<Square>,
+    numSquaresVisited: number
+  ): boolean {
+    if (numSquaresVisited === 64) {
+      return true
+    }
+
+    // Sort next candidates by Warnsdorff’s heuristic
+    const nextSquares = getKnightDests(square).sort(
+      (a, b) => getKnightDests(a).length - getKnightDests(b).length
+    )
+
+    for (const next of nextSquares) {
+      if (!moves.includes(next)) {
+        moves.push(next)
+        const finished = generateKnightsTourHelper(
+          next,
+          moves,
+          numSquaresVisited + 1
+        )
+        if (finished) {
+          return true
+        }
+        moves.pop()
+      }
+    }
+
+    return false
+  }
+
+  // Modify 'moves' in place
+  const moves = [square]
+  const finished = generateKnightsTourHelper(square, moves, 1)
+
+  return finished ? moves : undefined
+}
