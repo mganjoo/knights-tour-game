@@ -62,6 +62,14 @@ const Board: React.FC<BoardProps> = ({
       },
       drawable: {
         enabled: false,
+        autoShapes: [
+          {
+            orig: "e4",
+            customSvg:
+              // "check" from https://heroicons.com/
+              '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#D97706"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 13 4 4L19 7"/></svg><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#D97706"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 13 4 4L19 7"/></svg>',
+          },
+        ],
       },
     }),
     [fen, dests, handleMove]
