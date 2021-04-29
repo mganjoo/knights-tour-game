@@ -68,34 +68,6 @@ function toSquare(rank: number, file: number): Square | undefined {
   }
 }
 
-test("getKnightDests() returns a correct set of knight moves", () => {
-  fc.assert(
-    fc.property(fc.constantFrom(...SQUARES), (square) => {
-      const [rank, file] = toRankFile(square)
-      const offsets = [
-        [-2, -1],
-        [-2, 1],
-        [-1, 2],
-        [1, 2],
-        [2, 1],
-        [2, -1],
-        [1, -2],
-        [-1, -2],
-      ]
-      const expected = offsets
-        .map(([rankOff, fileOff]) => {
-          const newRank = rank + rankOff
-          const newFile = file + fileOff
-          return toSquare(newRank, newFile)
-        })
-        .filter((s) => s !== undefined)
-        .sort()
-
-      expect(getKnightDests(square).sort()).toEqual(expected)
-    })
-  )
-})
-
 test("attackedByQueen() works for squares vert, diagonally, or horizontally away", () => {
   fc.assert(
     fc.property(
@@ -114,6 +86,51 @@ test("attackedByQueen() works for squares vert, diagonally, or horizontally away
             Math.abs(rank - queenRank) === Math.abs(file - queenFile))
 
         expect(attackedByQueen(square, queenSquare)).toEqual(expected)
+      }
+    )
+  )
+})
+
+test("getKnightDests() returns a correct set of knight moves", () => {
+  fc.assert(
+    fc.property(
+      fc
+        .tuple(
+          fc.constantFrom(...SQUARES),
+          fc.option(fc.constantFrom(...SQUARES), { nil: undefined })
+        )
+        .filter((t) => t[0] !== t[1]),
+      fc.option(fc.boolean(), { nil: undefined }),
+      ([square, queenSquare], excludeAttackedSquares) => {
+        const [rank, file] = toRankFile(square)
+        const offsets = [
+          [-2, -1],
+          [-2, 1],
+          [-1, 2],
+          [1, 2],
+          [2, 1],
+          [2, -1],
+          [1, -2],
+          [-1, -2],
+        ]
+        const expected = offsets
+          .map(([rankOff, fileOff]) => {
+            const newRank = rank + rankOff
+            const newFile = file + fileOff
+            return toSquare(newRank, newFile)
+          })
+          .filter(
+            (s) =>
+              s !== undefined &&
+              s !== queenSquare &&
+              (!queenSquare ||
+                !excludeAttackedSquares ||
+                !attackedByQueen(s, queenSquare))
+          )
+
+        expect(
+          getKnightDests(square, { queenSquare, excludeAttackedSquares }).sort()
+        ).toEqual(expected.sort())
       }
     )
   )

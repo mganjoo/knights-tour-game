@@ -78,19 +78,30 @@ const QUEEN_ATTACKS: (0 | 1)[] = [
  * Note that the Queen square is not available for the knight to move to.
  *
  * @param startingSquare square where knight starts
- * @param offLimitsSquares squares that are off-limits from the knight
+ * @param options additional options
  * @returns an array of potential squares the knight can move to
  */
 export function getKnightDests(
   startingSquare: Square,
-  offLimitsSquares?: Square[]
+  options?: {
+    // Square that queen is on (knight will skip this square)
+    queenSquare?: Square
+    // Whether to skip squares attacked by queen
+    excludeAttackedSquares?: boolean
+  }
 ): Square[] {
   const dests = KNIGHT_OFFSETS.map(
     (offset) => SQUARES_MAP[startingSquare] + offset
   )
     .map((x88Idx) => SQUARES.find((key) => SQUARES_MAP[key] === x88Idx))
     .filter((s: Square | undefined): s is Square => !!s)
-    .filter((v) => !offLimitsSquares?.includes(v))
+    .filter(
+      (v) =>
+        v !== options?.queenSquare &&
+        (!options?.excludeAttackedSquares ||
+          !options?.queenSquare ||
+          !attackedByQueen(v, options?.queenSquare))
+    )
   return dests
 }
 

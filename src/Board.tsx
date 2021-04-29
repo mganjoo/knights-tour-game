@@ -25,7 +25,7 @@ const Board: React.FC<BoardProps> = ({
   )
   const dests = useMemo<Map<cg.Key, cg.Key[]>>(
     () =>
-      new Map([[knightSquare, getKnightDests(knightSquare, [queenSquare])]]),
+      new Map([[knightSquare, getKnightDests(knightSquare, { queenSquare })]]),
     [knightSquare, queenSquare]
   )
   const handleMove = useCallback(
