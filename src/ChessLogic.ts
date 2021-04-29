@@ -20,6 +20,9 @@ const SQUARES_MAP = {
  */
 export type Square = keyof typeof SQUARES_MAP
 
+/**
+ * List of all squares.
+ */
 export const SQUARES = Object.keys(SQUARES_MAP) as Square[]
 
 /**
@@ -87,7 +90,7 @@ export function getKnightDests(
   )
     .map((x88Idx) => SQUARES.find((key) => SQUARES_MAP[key] === x88Idx))
     .filter((s: Square | undefined): s is Square => !!s)
-    .filter((v) => !offLimitsSquares || !offLimitsSquares.includes(v))
+    .filter((v) => !offLimitsSquares?.includes(v))
   return dests
 }
 
