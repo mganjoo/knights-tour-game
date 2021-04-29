@@ -42,6 +42,7 @@ const Board: React.FC<BoardProps> = ({
       fen: fen,
       orientation: "white",
       turnColor: "white",
+      selected: knightSquare,
       highlight: {
         lastMove: false,
       },
@@ -72,7 +73,7 @@ const Board: React.FC<BoardProps> = ({
         ],
       },
     }),
-    [fen, dests, handleMove]
+    [fen, dests, handleMove, knightSquare]
   )
 
   useEffect(() => {
