@@ -52,18 +52,27 @@ const App: React.FC = () => {
     }
   }
   return (
-    <main className="max-w-xl mx-auto py-6 px-4">
-      <Board
-        initialKnightSquare={STARTING_KNIGHT_SQUARE}
-        generateKnightMoves={(knightSquare) =>
-          getKnightDests(knightSquare, { queenSquare: QUEEN_SQUARE })
-        }
-        queenSquare={QUEEN_SQUARE}
-        visitedSquares={visitedSquares}
-        targetSquare={targetSquare}
-        onKnightMove={handleMove}
-        completed={completed}
-      />
+    <main>
+      <div className="max-w-xl mx-auto py-6 px-4 bg-red-100">
+        <Board
+          initialKnightSquare={STARTING_KNIGHT_SQUARE}
+          generateKnightMoves={(knightSquare) =>
+            getKnightDests(knightSquare, { queenSquare: QUEEN_SQUARE })
+          }
+          queenSquare={QUEEN_SQUARE}
+          visitedSquares={visitedSquares}
+          targetSquare={targetSquare}
+          onKnightMove={handleMove}
+          completed={completed}
+        />
+      </div>
+      <div>
+        <div>
+          <p>Next target: h2</p>
+          <p>{0} moves</p>
+          <p>00:00</p>
+        </div>
+      </div>
     </main>
   )
 }
