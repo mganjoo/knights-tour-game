@@ -119,9 +119,10 @@ const Board: React.FC<BoardProps> = ({
     [dests, onKnightMove]
   )
   const shapes = useMemo<DrawShape[]>(() => {
-    const targetShapes: DrawShape[] = targetSquare
-      ? [{ orig: targetSquare, customSvg: TARGET_SVG }]
-      : []
+    const targetShapes: DrawShape[] =
+      targetSquare && (state === "PLAYING" || state === "KNIGHT_ATTACKED")
+        ? [{ orig: targetSquare, customSvg: TARGET_SVG }]
+        : []
     const queenShapes: DrawShape[] =
       state === "KNIGHT_ATTACKED"
         ? [
@@ -146,8 +147,8 @@ const Board: React.FC<BoardProps> = ({
   useEffect(() => {
     const config: Config = {
       fen: fen,
-      // Don't allow any moves if knight is attacked, or if puzzle is finished
-      viewOnly: state === "FINISHED" || state === "KNIGHT_ATTACKED",
+      // Allow moves only in playing state
+      viewOnly: state !== "PLAYING",
       // Always white to move
       turnColor: "white",
       // If the puzzle is ongoing, select current knight square by default

@@ -52,7 +52,6 @@ const App: React.FC = () => {
       setVisitedSquares(visitedSquares.add(to))
       if (targetSquare === ENDING_KNIGHT_SQUARE) {
         setState("FINISHED")
-        setTargetSquare(undefined)
       } else {
         setTargetSquare(
           incrementWhileAttacked(
