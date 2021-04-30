@@ -16,7 +16,10 @@ function incrementWhileAttacked(
   direction: "previous" | "next"
 ): Square {
   let finalSquare = square
-  while (attackedByQueen(finalSquare, QUEEN_SQUARE)) {
+  while (
+    attackedByQueen(finalSquare, QUEEN_SQUARE) ||
+    finalSquare === QUEEN_SQUARE
+  ) {
     finalSquare = getSquareIncrement(finalSquare, direction)
   }
   return finalSquare
