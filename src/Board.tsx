@@ -4,7 +4,7 @@ import "./Board.css"
 import { Api as ChessgroundApi } from "chessground/api"
 import * as cg from "chessground/types"
 import { Config } from "chessground/config"
-import { getPuzzleFen, Square } from "./ChessLogic"
+import { attackedByQueen, getPuzzleFen, Square } from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
 
 type BoardProps = {
@@ -24,6 +24,10 @@ type BoardProps = {
    * Callback once a knight move is made.
    */
   onKnightMove?: (to: Square) => void
+  /**
+   * Callback if a knight tries to move to a square attacked by the queen.
+   */
+  onAttackedMove?: (to: Square) => void
   /**
    * Squares to be marked as checked (already visited).
    */
@@ -77,6 +81,7 @@ const Board: React.FC<BoardProps> = ({
   queenSquare,
   generateKnightMoves,
   onKnightMove,
+  onAttackedMove,
   targetSquare,
   visitedSquares,
   completed,
@@ -93,6 +98,7 @@ const Board: React.FC<BoardProps> = ({
     () => new Map([[knightSquare, generateKnightMoves(knightSquare)]]),
     [knightSquare, generateKnightMoves]
   )
+  const [knightOnAttackedSquare, setKnightOnAttackedSquare] = useState(false)
   const handleMove = useCallback(
     (orig: cg.Key, dest: cg.Key) => {
       const validDests = dests.get(orig)
@@ -102,13 +108,20 @@ const Board: React.FC<BoardProps> = ({
         orig !== "a0" &&
         dest !== "a0"
       ) {
-        setKnightSquare(dest)
-        if (onKnightMove) {
-          onKnightMove(dest)
+        if (queenSquare && attackedByQueen(dest, queenSquare)) {
+          setKnightOnAttackedSquare(true)
+          if (onAttackedMove) {
+            onAttackedMove(dest)
+          }
+        } else {
+          setKnightSquare(dest)
+          if (onKnightMove) {
+            onKnightMove(dest)
+          }
         }
       }
     },
-    [dests, onKnightMove]
+    [dests, onKnightMove, queenSquare, onAttackedMove]
   )
   const config: Config = useMemo(
     () => ({
@@ -159,8 +172,11 @@ const Board: React.FC<BoardProps> = ({
   useEffect(() => {
     if (ground) {
       ground.set(config)
+      if (knightOnAttackedSquare) {
+        setKnightOnAttackedSquare(false)
+      }
     }
-  }, [ground, config])
+  }, [ground, config, knightOnAttackedSquare])
 
   return <div ref={el}>{children}</div>
 }
