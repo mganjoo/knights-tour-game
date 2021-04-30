@@ -16,6 +16,15 @@ const SQUARES_MAP = {
 }
 
 /**
+ * Inverser representation of the board (0x88Idx -> square name).
+ */
+const INVERSE_SQUARES_MAP: {
+  [k: number]: keyof typeof SQUARES_MAP
+} = Object.keys(SQUARES_MAP)
+  .filter(isSquare)
+  .reduce((acc, k) => Object.assign(acc, { [SQUARES_MAP[k]]: k }), {})
+
+/**
  * Type alias for all chess squares.
  */
 export type Square = keyof typeof SQUARES_MAP
@@ -93,7 +102,7 @@ export function getKnightDests(
   const dests = KNIGHT_OFFSETS.map(
     (offset) => SQUARES_MAP[startingSquare] + offset
   )
-    .map((x88Idx) => SQUARES.find((key) => SQUARES_MAP[key] === x88Idx))
+    .map((x88Idx) => INVERSE_SQUARES_MAP[x88Idx])
     .filter((s: Square | undefined): s is Square => !!s)
     .filter(
       (v) =>
@@ -214,4 +223,30 @@ export function generateKnightsTour(square: Square) {
   const finished = generateKnightsTourHelper(square, moves, 1)
 
   return finished ? moves : undefined
+}
+
+/**
+ * Get square to left or right of current square. If at the left edge of the
+ * rank, get last square from previous rank (or if at right edge, get first
+ * square from next rank). Cycles back after getting to bottom left or top
+ * right of square.
+ * @param square Current square.
+ * @param direction previous (decreasing rank/file) or next (increasing)
+ * @returns Square to left.
+ */
+export function getSquareIncrement(
+  square: Square,
+  direction: "previous" | "next"
+): Square {
+  const x88Idx = SQUARES_MAP[square]
+  const increment = direction === "previous" ? -1 : 1
+  let nextX88Idx = x88Idx + increment
+  if (nextX88Idx & 0x88) {
+    // End of previous rank
+    nextX88Idx = nextX88Idx + (direction === "previous" ? 1 : -1) * 24
+    if (nextX88Idx & 0x88) {
+      return direction === "previous" ? "h8" : "a1"
+    }
+  }
+  return INVERSE_SQUARES_MAP[nextX88Idx]
 }

@@ -1,7 +1,9 @@
 import {
   attackedByQueen,
   getKnightDests,
+  getPreviousSquare,
   getPuzzleFen,
+  getSquareIncrement,
   isSquare,
   Square,
   SQUARES,
@@ -58,15 +60,15 @@ describe("getPuzzleFen()", () => {
 
 function toRankFile(square: Square): [number, number] {
   return [
-    square.charCodeAt(0) - "a".charCodeAt(0) + 1,
     parseInt(square.charAt(1), 10),
+    square.charCodeAt(0) - "a".charCodeAt(0) + 1,
   ]
 }
 
 function toSquare(rank: number, file: number): Square | undefined {
   if (1 <= rank && rank <= 8 && 1 <= file && file <= 8) {
     const maybeSquare =
-      String.fromCharCode("a".charCodeAt(0) + rank - 1) + file.toString()
+      String.fromCharCode("a".charCodeAt(0) + file - 1) + rank.toString()
     if (maybeSquare && isSquare(maybeSquare)) {
       return maybeSquare
     } else {
@@ -143,4 +145,48 @@ test("getKnightDests() returns a correct set of knight moves", () => {
       }
     )
   )
+})
+
+describe("getSquareIncrement()", () => {
+  test("returns the correct previous square", () => {
+    fc.assert(
+      fc.property(fc.constantFrom(...SQUARES), (square) => {
+        const [rank, file] = toRankFile(square)
+        let newFile = file - 1
+        let newRank = rank
+        if (newFile === 0) {
+          newFile = 8
+          newRank = rank - 1
+          if (newRank === 0) {
+            newFile = 8
+            newRank = 8
+          }
+        }
+        expect(getSquareIncrement(square, "previous")).toEqual(
+          toSquare(newRank, newFile)
+        )
+      })
+    )
+  })
+
+  test("returns the correct next square", () => {
+    fc.assert(
+      fc.property(fc.constantFrom(...SQUARES), (square) => {
+        const [rank, file] = toRankFile(square)
+        let newFile = file + 1
+        let newRank = rank
+        if (newFile > 8) {
+          newFile = 1
+          newRank = rank + 1
+          if (newRank > 8) {
+            newFile = 1
+            newRank = 1
+          }
+        }
+        expect(getSquareIncrement(square, "next")).toEqual(
+          toSquare(newRank, newFile)
+        )
+      })
+    )
+  })
 })
