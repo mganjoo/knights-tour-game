@@ -31,7 +31,7 @@ type BoardProps = {
    */
   onKnightMove: (from: Square, to: Square) => void
   /**
-   * Squares to be marked as checked (already visited).
+   * Squares already visited (marked with check).
    */
   visitedSquares: ImmutableSet<Square>
   /**
