@@ -6,6 +6,7 @@ import * as cg from "chessground/types"
 import { Config } from "chessground/config"
 import { attackedByQueen, getPuzzleFen, Square } from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
+import { useConditionalTimeout } from "beautiful-react-hooks"
 
 type BoardProps = {
   /**
@@ -56,7 +57,7 @@ const BASE_CHESSGROUND_CONFIG: Config = {
     lastMove: false,
   },
   animation: {
-    enabled: false,
+    enabled: true,
   },
   movable: {
     free: false,
@@ -89,6 +90,7 @@ const Board: React.FC<BoardProps> = ({
 }) => {
   const el = useRef<HTMLDivElement>(null)
   const [knightSquare, setKnightSquare] = useState<Square>(initialKnightSquare)
+  const [isStarting, setIsStarting] = useState(false)
   const [ground, setGround] = useState<ChessgroundApi>()
   const fen = useMemo<string | undefined>(
     () => getPuzzleFen(knightSquare, queenSquare),
@@ -98,7 +100,8 @@ const Board: React.FC<BoardProps> = ({
     () => new Map([[knightSquare, generateKnightMoves(knightSquare)]]),
     [knightSquare, generateKnightMoves]
   )
-  const [knightOnAttackedSquare, setKnightOnAttackedSquare] = useState(false)
+  const [knightAttacked, setKnightAttacked] = useState(false)
+  const [forceBoardUpdate, setForceBoardUpdate] = useState(false)
   const handleMove = useCallback(
     (orig: cg.Key, dest: cg.Key) => {
       const validDests = dests.get(orig)
@@ -109,7 +112,7 @@ const Board: React.FC<BoardProps> = ({
         dest !== "a0"
       ) {
         if (queenSquare && attackedByQueen(dest, queenSquare)) {
-          setKnightOnAttackedSquare(true)
+          setKnightAttacked(true)
           if (onAttackedMove) {
             onAttackedMove(dest)
           }
@@ -119,6 +122,7 @@ const Board: React.FC<BoardProps> = ({
             onKnightMove(dest)
           }
         }
+        setIsStarting(false)
       }
     },
     [dests, onKnightMove, queenSquare, onAttackedMove]
@@ -128,8 +132,8 @@ const Board: React.FC<BoardProps> = ({
       fen: fen,
       viewOnly: !!completed,
       turnColor: "white",
-      // After first square, select current square by default
-      selected: knightSquare === initialKnightSquare ? undefined : knightSquare,
+      // After first move, select current square by default
+      selected: isStarting ? undefined : knightSquare,
       movable: {
         dests: dests,
         color: "white",
@@ -148,14 +152,22 @@ const Board: React.FC<BoardProps> = ({
     }),
     [
       fen,
+      completed,
+      isStarting,
+      knightSquare,
       dests,
       handleMove,
-      initialKnightSquare,
-      knightSquare,
       targetSquare,
       visitedSquares,
-      completed,
     ]
+  )
+  useConditionalTimeout(
+    () => {
+      setForceBoardUpdate(true)
+      setKnightAttacked(false)
+    },
+    300,
+    knightAttacked
   )
 
   useEffect(() => {
@@ -172,11 +184,11 @@ const Board: React.FC<BoardProps> = ({
   useEffect(() => {
     if (ground) {
       ground.set(config)
-      if (knightOnAttackedSquare) {
-        setKnightOnAttackedSquare(false)
+      if (forceBoardUpdate) {
+        setForceBoardUpdate(false)
       }
     }
-  }, [ground, config, knightOnAttackedSquare])
+  }, [ground, config, forceBoardUpdate])
 
   return <div ref={el}>{children}</div>
 }

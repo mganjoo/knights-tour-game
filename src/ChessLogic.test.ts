@@ -1,7 +1,6 @@
 import {
   attackedByQueen,
   getKnightDests,
-  getPreviousSquare,
   getPuzzleFen,
   getSquareIncrement,
   isSquare,
