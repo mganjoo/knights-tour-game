@@ -48,13 +48,15 @@ const CHECK_SVG =
 const TARGET_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#d97706"><path fill-rule="evenodd" d="M4.293 15.707a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 0 1-1.414 0zm0-6a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L10 5.414 5.707 9.707a1 1 0 0 1-1.414 0z" clip-rule="evenodd"/></svg>'
 
+const EMPTY_BOARD_FEN = "8/8/8/8/8/8/8/8 w - - 0 1"
+
 /**
  * One-time configuration is set initially. Some of this
  * configuration never needs to change.
  */
-const BASE_CHESSGROUND_CONFIG: Config = {
+const INITIAL_CHESSGROUND_CONFIG: Config = {
   // Empty board
-  fen: "8/8/8/8/8/8/8/8 w - - 0 1",
+  fen: EMPTY_BOARD_FEN,
   orientation: "white",
   highlight: {
     lastMove: false,
@@ -89,10 +91,13 @@ const Board: React.FC<BoardProps> = ({
   visitedSquares,
   children,
 }) => {
-  const { el, set } = useChessground(BASE_CHESSGROUND_CONFIG)
+  const { el, set } = useChessground(INITIAL_CHESSGROUND_CONFIG)
   const fen = useMemo<string | undefined>(
-    () => getPuzzleFen(knightSquare, queenSquare),
-    [knightSquare, queenSquare]
+    () =>
+      state !== "NOT_STARTED"
+        ? getPuzzleFen(knightSquare, queenSquare)
+        : EMPTY_BOARD_FEN,
+    [knightSquare, queenSquare, state]
   )
   const dests = useMemo<Map<cg.Key, cg.Key[]>>(
     () =>

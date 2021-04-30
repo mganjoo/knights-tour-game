@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useCallback } from "react"
 import "./App.css"
 import Board, { BoardState } from "./Board"
 import { Square, getSquareIncrement, attackedByQueen } from "./ChessLogic"
@@ -25,13 +25,13 @@ let STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked("h8", "previous")
 let ENDING_KNIGHT_SQUARE: Square = incrementWhileAttacked("a1", "next")
 
 const App: React.FC = () => {
-  const [state, setState] = useState<BoardState>("PLAYING")
+  const [state, setState] = useState<BoardState>("NOT_STARTED")
   const [knightSquare, setKnightSquare] = useState<Square>(
     STARTING_KNIGHT_SQUARE
   )
   const [preAttackKnightSquare, setPreAttackKnightSquare] = useState<Square>()
   const [visitedSquares, setVisitedSquares] = useState<ImmutableSet<Square>>(
-    ImmutableSet([STARTING_KNIGHT_SQUARE])
+    ImmutableSet()
   )
   const [targetSquare, setTargetSquare] = useState<Square | undefined>(
     incrementWhileAttacked(
@@ -39,29 +39,37 @@ const App: React.FC = () => {
       "previous"
     )
   )
-  const handleMove = (from: Square, to: Square) => {
-    setKnightSquare(to)
+  const startGame = useCallback(() => {
+    setState("PLAYING")
+    setVisitedSquares(ImmutableSet([STARTING_KNIGHT_SQUARE]))
+  }, [])
+  const handleMove = useCallback(
+    (from: Square, to: Square) => {
+      setKnightSquare(to)
 
-    if (attackedByQueen(to, QUEEN_SQUARE)) {
-      setState("KNIGHT_ATTACKED")
-      setPreAttackKnightSquare(from)
-    }
-
-    // If we move to a new target, update visited + target squares
-    if (to === targetSquare) {
-      setVisitedSquares(visitedSquares.add(to))
-      if (targetSquare === ENDING_KNIGHT_SQUARE) {
-        setState("FINISHED")
-      } else {
-        setTargetSquare(
-          incrementWhileAttacked(
-            getSquareIncrement(targetSquare, "previous"),
-            "previous"
-          )
-        )
+      if (attackedByQueen(to, QUEEN_SQUARE)) {
+        setState("KNIGHT_ATTACKED")
+        setPreAttackKnightSquare(from)
       }
-    }
-  }
+
+      // If we move to a new target, update visited + target squares
+      if (to === targetSquare) {
+        setVisitedSquares(visitedSquares.add(to))
+        if (targetSquare === ENDING_KNIGHT_SQUARE) {
+          setState("FINISHED")
+        } else {
+          setTargetSquare(
+            incrementWhileAttacked(
+              getSquareIncrement(targetSquare, "previous"),
+              "previous"
+            )
+          )
+        }
+      }
+    },
+    [targetSquare, visitedSquares]
+  )
+
   // If knight is attacked, reset to playing state after delay
   useConditionalTimeout(
     () => {
@@ -88,6 +96,7 @@ const App: React.FC = () => {
       </div>
       <div>
         <div>
+          <button onClick={startGame}>Start</button>
           <p>Next target: {targetSquare || "-"}</p>
           <p>{0} moves</p>
           <p>00:00</p>
