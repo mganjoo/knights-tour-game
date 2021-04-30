@@ -131,10 +131,6 @@ piece.fading {
   overflow: visible;
 }
 
-.cg-wrap .cg-custom-svgs {
-  color: #047857;
-}
-
 .cg-wrap coords {
   position: absolute;
   display: flex;

@@ -4,23 +4,50 @@ import "./Board.css"
 import { Api as ChessgroundApi } from "chessground/api"
 import * as cg from "chessground/types"
 import { Config } from "chessground/config"
-import { getPuzzleFen, getKnightDests, Square } from "./ChessLogic"
+import { getPuzzleFen, Square } from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
 
 type BoardProps = {
+  /**
+   * Starting square for the knight.
+   */
   initialKnightSquare: Square
-  queenSquare: Square
-  onKnightMove?: (from: Square, to: Square) => void
-  checkedSquares?: ImmutableSet<Square>
+  /**
+   * Function to generate set of valid knight moves.
+   */
+  generateKnightMoves: (square: Square) => Square[]
+  /**
+   * Square on which queen is placed (optional).
+   */
+  queenSquare?: Square
+  /**
+   * Callback once a knight move is made.
+   */
+  onKnightMove?: (to: Square) => void
+  /**
+   * Squares to be marked as checked (already visited).
+   */
+  visitedSquares: ImmutableSet<Square>
+  /**
+   * Square to visit next (marked with chevron).
+   */
+  targetSquare: Square
+  /**
+   * Whether the board is completed.
+   */
+  completed?: boolean
 }
 
 // "check" from https://heroicons.com/
 const CHECK_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z" clip-rule="evenodd"/></svg>'
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#047857"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z" clip-rule="evenodd"/></svg>'
+
+// "chevron-double-up" from https://heroicons.com/
+const TARGET_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#d97706"><path fill-rule="evenodd" d="M4.293 15.707a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 0 1-1.414 0zm0-6a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L10 5.414 5.707 9.707a1 1 0 0 1-1.414 0z" clip-rule="evenodd"/></svg>'
 
 const BASE_CHESSGROUND_CONFIG: Config = {
   orientation: "white",
-  coordinates: false,
   highlight: {
     lastMove: false,
   },
@@ -48,8 +75,11 @@ const BASE_CHESSGROUND_CONFIG: Config = {
 const Board: React.FC<BoardProps> = ({
   initialKnightSquare,
   queenSquare,
+  generateKnightMoves,
   onKnightMove,
-  checkedSquares,
+  targetSquare,
+  visitedSquares,
+  completed,
   children,
 }) => {
   const el = useRef<HTMLDivElement>(null)
@@ -60,9 +90,8 @@ const Board: React.FC<BoardProps> = ({
     [knightSquare, queenSquare]
   )
   const dests = useMemo<Map<cg.Key, cg.Key[]>>(
-    () =>
-      new Map([[knightSquare, getKnightDests(knightSquare, { queenSquare })]]),
-    [knightSquare, queenSquare]
+    () => new Map([[knightSquare, generateKnightMoves(knightSquare)]]),
+    [knightSquare, generateKnightMoves]
   )
   const handleMove = useCallback(
     (orig: cg.Key, dest: cg.Key) => {
@@ -75,7 +104,7 @@ const Board: React.FC<BoardProps> = ({
       ) {
         setKnightSquare(dest)
         if (onKnightMove) {
-          onKnightMove(orig, dest)
+          onKnightMove(dest)
         }
       }
     },
@@ -84,6 +113,7 @@ const Board: React.FC<BoardProps> = ({
   const config: Config = useMemo(
     () => ({
       fen: fen,
+      viewOnly: !!completed,
       turnColor: "white",
       // After first square, select current square by default
       selected: knightSquare === initialKnightSquare ? undefined : knightSquare,
@@ -93,18 +123,26 @@ const Board: React.FC<BoardProps> = ({
         events: { after: handleMove },
       },
       drawable: {
-        autoShapes: checkedSquares
-          ? checkedSquares
-              .filter((s) => s !== knightSquare)
-              .map((s) => ({
-                orig: s,
-                customSvg: CHECK_SVG,
-              }))
-              .toArray()
-          : [],
+        autoShapes: [{ orig: targetSquare, customSvg: TARGET_SVG }].concat(
+          visitedSquares
+            .map((s) => ({
+              orig: s,
+              customSvg: CHECK_SVG,
+            }))
+            .toArray()
+        ),
       },
     }),
-    [fen, dests, handleMove, initialKnightSquare, knightSquare, checkedSquares]
+    [
+      fen,
+      dests,
+      handleMove,
+      initialKnightSquare,
+      knightSquare,
+      targetSquare,
+      visitedSquares,
+      completed,
+    ]
   )
 
   useEffect(() => {
