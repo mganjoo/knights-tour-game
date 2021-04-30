@@ -124,7 +124,15 @@ const Board: React.FC<BoardProps> = ({
       : []
     const queenShapes: DrawShape[] =
       state === "KNIGHT_ATTACKED"
-        ? [{ orig: queenSquare, customSvg: undefined, brush: "red" }]
+        ? [
+            { orig: queenSquare, customSvg: undefined, brush: "red" },
+            {
+              orig: queenSquare,
+              dest: knightSquare,
+              customSvg: undefined,
+              brush: "red",
+            },
+          ]
         : []
     const visitedShapes: DrawShape[] = visitedSquares
       .map((s) => ({
@@ -133,7 +141,7 @@ const Board: React.FC<BoardProps> = ({
       }))
       .toArray()
     return targetShapes.concat(queenShapes).concat(visitedShapes)
-  }, [targetSquare, state, queenSquare, visitedSquares])
+  }, [targetSquare, state, queenSquare, knightSquare, visitedSquares])
 
   useEffect(() => {
     const config: Config = {
@@ -149,11 +157,8 @@ const Board: React.FC<BoardProps> = ({
         color: "white",
         events: { after: handleMove },
       },
-      drawable: {
-        autoShapes: shapes,
-      },
     }
-    set(config)
+    set(config, shapes)
   }, [set, fen, state, knightSquare, dests, handleMove, shapes])
 
   return <div ref={el}>{children}</div>
