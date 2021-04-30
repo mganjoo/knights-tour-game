@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef, useState } from "react"
+import { RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { Chessground } from "chessground"
 import "./Board.css"
 import { Api as ChessgroundApi } from "chessground/api"
@@ -7,14 +7,19 @@ import { Config } from "chessground/config"
 interface ChessgroundFunctions {
   el: RefObject<HTMLDivElement>
   set: (config: Config) => void
-  forceUpdate: () => void
 }
 
 export function useChessground(initialConfig: Config): ChessgroundFunctions {
   const el = useRef<HTMLDivElement>(null)
   const [ground, setGround] = useState<ChessgroundApi>()
-  const [updateConfig, setUpdateConfig] = useState<Config>()
-  const [forceBoardUpdate, setForceBoardUpdate] = useState(false)
+  const set = useCallback(
+    (config: Config) => {
+      if (ground) {
+        ground.set(config)
+      }
+    },
+    [ground]
+  )
 
   useEffect(() => {
     if (el.current && !ground) {
@@ -27,20 +32,8 @@ export function useChessground(initialConfig: Config): ChessgroundFunctions {
     }
   }, [ground, initialConfig])
 
-  useEffect(() => {
-    if (ground && updateConfig) {
-      ground.set(updateConfig)
-      if (forceBoardUpdate) {
-        setForceBoardUpdate(false)
-      }
-    }
-  }, [ground, updateConfig, forceBoardUpdate])
-
   return {
     el: el,
-    set: setUpdateConfig,
-    forceUpdate: () => {
-      setForceBoardUpdate(true)
-    },
+    set: set,
   }
 }
