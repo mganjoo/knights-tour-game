@@ -1,12 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Chessground } from "chessground"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import "./Board.css"
-import { Api as ChessgroundApi } from "chessground/api"
 import * as cg from "chessground/types"
 import { Config } from "chessground/config"
 import { attackedByQueen, getPuzzleFen, Square } from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
 import { useConditionalTimeout } from "beautiful-react-hooks"
+import { useChessground } from "./Chessground"
 
 type BoardProps = {
   /**
@@ -88,10 +87,9 @@ const Board: React.FC<BoardProps> = ({
   completed,
   children,
 }) => {
-  const el = useRef<HTMLDivElement>(null)
   const [knightSquare, setKnightSquare] = useState<Square>(initialKnightSquare)
   const [isStarting, setIsStarting] = useState(false)
-  const [ground, setGround] = useState<ChessgroundApi>()
+  const { el, set, forceUpdate } = useChessground(BASE_CHESSGROUND_CONFIG)
   const fen = useMemo<string | undefined>(
     () => getPuzzleFen(knightSquare, queenSquare),
     [knightSquare, queenSquare]
@@ -101,7 +99,6 @@ const Board: React.FC<BoardProps> = ({
     [knightSquare, generateKnightMoves]
   )
   const [knightAttacked, setKnightAttacked] = useState(false)
-  const [forceBoardUpdate, setForceBoardUpdate] = useState(false)
   const handleMove = useCallback(
     (orig: cg.Key, dest: cg.Key) => {
       const validDests = dests.get(orig)
@@ -161,9 +158,11 @@ const Board: React.FC<BoardProps> = ({
       visitedSquares,
     ]
   )
+
   useConditionalTimeout(
     () => {
-      setForceBoardUpdate(true)
+      // resets to last value of Config set by `set()`
+      forceUpdate()
       setKnightAttacked(false)
     },
     300,
@@ -171,24 +170,8 @@ const Board: React.FC<BoardProps> = ({
   )
 
   useEffect(() => {
-    if (el.current && !ground) {
-      setGround(Chessground(el.current, BASE_CHESSGROUND_CONFIG))
-    }
-    return () => {
-      if (ground) {
-        ground.destroy()
-      }
-    }
-  }, [ground])
-
-  useEffect(() => {
-    if (ground) {
-      ground.set(config)
-      if (forceBoardUpdate) {
-        setForceBoardUpdate(false)
-      }
-    }
-  }, [ground, config, forceBoardUpdate])
+    set(config)
+  }, [set, config])
 
   return <div ref={el}>{children}</div>
 }
