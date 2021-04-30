@@ -16,7 +16,34 @@ type BoardProps = {
 
 // "check" from https://heroicons.com/
 const CHECK_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 0 1 0 1.414l-8 8a1 1 0 0 1-1.414 0l-4-4a1 1 0 0 1 1.414-1.414L8 12.586l7.293-7.293a1 1 0 0 1 1.414 0z" clip-rule="evenodd"/></svg>'
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z" clip-rule="evenodd"/></svg>'
+
+const BASE_CHESSGROUND_CONFIG: Config = {
+  orientation: "white",
+  coordinates: false,
+  highlight: {
+    lastMove: false,
+  },
+  animation: {
+    enabled: false,
+  },
+  movable: {
+    free: false,
+  },
+  premovable: {
+    enabled: false,
+  },
+  predroppable: {
+    enabled: false,
+  },
+  draggable: {
+    enabled: true,
+    showGhost: false,
+  },
+  drawable: {
+    enabled: false,
+  },
+}
 
 const Board: React.FC<BoardProps> = ({
   initialKnightSquare,
@@ -57,43 +84,32 @@ const Board: React.FC<BoardProps> = ({
   const config: Config = useMemo(
     () => ({
       fen: fen,
-      orientation: "white",
       turnColor: "white",
-      selected: knightSquare,
-      highlight: {
-        lastMove: false,
-      },
-      animation: {
-        enabled: false,
-      },
+      // After first square, select current square by default
+      selected: knightSquare === initialKnightSquare ? undefined : knightSquare,
       movable: {
-        free: false,
-        color: "white",
         dests: dests,
+        color: "white",
         events: { after: handleMove },
       },
-      premovable: {
-        enabled: false,
-      },
-      predroppable: {
-        enabled: false,
-      },
       drawable: {
-        enabled: false,
         autoShapes: checkedSquares
-          ? Array.from(checkedSquares).map((s) => ({
-              orig: s,
-              customSvg: CHECK_SVG,
-            }))
+          ? checkedSquares
+              .filter((s) => s !== knightSquare)
+              .map((s) => ({
+                orig: s,
+                customSvg: CHECK_SVG,
+              }))
+              .toArray()
           : [],
       },
     }),
-    [fen, dests, handleMove, knightSquare, checkedSquares]
+    [fen, dests, handleMove, initialKnightSquare, knightSquare, checkedSquares]
   )
 
   useEffect(() => {
     if (el.current && !ground) {
-      setGround(Chessground(el.current, {}))
+      setGround(Chessground(el.current, BASE_CHESSGROUND_CONFIG))
     }
     return () => {
       if (ground) {
