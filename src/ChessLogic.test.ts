@@ -14,7 +14,10 @@ describe("getPuzzleFen()", () => {
     fc.assert(
       fc.property(
         fc
-          .tuple(fc.constantFrom(...SQUARES), fc.constantFrom(...SQUARES))
+          .tuple(
+            fc.constantFrom(...SQUARES),
+            fc.option(fc.constantFrom(...SQUARES), { nil: undefined })
+          )
           .filter((t) => t[0] !== t[1]),
         ([knightSquare, queenSquare]) => {
           // dummy element for Chessground to use
@@ -27,10 +30,16 @@ describe("getPuzzleFen()", () => {
             role: "knight",
             color: "white",
           })
-          expect(chessground.state.pieces.get(queenSquare)).toStrictEqual({
-            role: "queen",
-            color: "black",
-          })
+          expect(
+            queenSquare && chessground.state.pieces.get(queenSquare)
+          ).toStrictEqual(
+            queenSquare
+              ? {
+                  role: "queen",
+                  color: "black",
+                }
+              : undefined
+          )
           chessground.destroy()
           wrapper.remove()
         }

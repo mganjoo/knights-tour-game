@@ -114,7 +114,7 @@ export function getKnightDests(
  */
 export function getPuzzleFen(
   knightSquare: Square,
-  queenSquare: Square
+  queenSquare?: Square
 ): string | undefined {
   // Knight and queen can't be on same square
   if (knightSquare === queenSquare) {
@@ -123,7 +123,9 @@ export function getPuzzleFen(
 
   const lookup: { [idx: number]: "N" | "q" } = {}
   lookup[SQUARES_MAP[knightSquare]] = "N" // White knight
-  lookup[SQUARES_MAP[queenSquare]] = "q" // Black queen
+  if (queenSquare) {
+    lookup[SQUARES_MAP[queenSquare]] = "q" // Black queen
+  }
 
   let empty = 0
   let piecesRep = ""
