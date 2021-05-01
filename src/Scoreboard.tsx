@@ -9,14 +9,16 @@ interface ScoreboardProps {
 
 const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
   return (
-    <div className="flex flex-wrap justify-evenly my-3 md:justify-start md:space-x-5">
+    <div className="grid grid-cols-2 my-3 md:mb-3 md:mt-6">
       {tickers.map(({ label, value }) => (
         <div
           key={label}
           className="flex flex-col-reverse items-center py-1 px-1"
         >
-          <span className="uppercase text-xs flex items-center">{label}</span>
-          <span className="text-2xl my-1 md:text-3xl">
+          <span className="uppercase text-xs flex items-center lg:text-sm">
+            {label}
+          </span>
+          <span className="text-2xl my-1 md:text-3xl lg:text-3xl">
             {value !== undefined ? value : "-"}
           </span>
         </div>

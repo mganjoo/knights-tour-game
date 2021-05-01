@@ -49,8 +49,12 @@ const App: React.FC = () => {
       setElapsed((e) => e + 1)
     }
   }, 1000)
+  const [numMoves, setNumMoves] = useState(0)
   const startGame = useCallback(() => {
     setState("PLAYING")
+    setKnightSquare(STARTING_KNIGHT_SQUARE)
+    setElapsed(0)
+    setNumMoves(0)
     setVisitedSquares(ImmutableSet([STARTING_KNIGHT_SQUARE]))
     setTargetSquare(
       incrementWhileAttacked(
@@ -59,7 +63,6 @@ const App: React.FC = () => {
       )
     )
   }, [])
-  const [numMoves, setNumMoves] = useState(0)
   const handleMove = useCallback(
     (from: Square, to: Square) => {
       setKnightSquare(to)
@@ -104,8 +107,8 @@ const App: React.FC = () => {
 
   return (
     <main className="bg-blue-gray-100 text-blue-gray-900 min-h-screen">
-      <div className="px-3 py-3 max-w-5xl mx-auto sm:px-8 sm:py-8 md:flex">
-        <div className="relative mx-1 md:w-2/3 md:mx-0">
+      <div className="p-3 max-w-6xl mx-auto sm:px-8 sm:py-8 md:flex md:p-8">
+        <div className="relative md:w-2/3">
           <Board
             state={state}
             knightSquare={knightSquare}
@@ -114,39 +117,38 @@ const App: React.FC = () => {
             targetSquare={targetSquare}
             onKnightMove={handleMove}
           />
-          {state === "NOT_STARTED" && (
-            <div className="absolute inset-0 bg-light-blue-500 backdrop-filter backdrop-blur-lg bg-opacity-50 flex items-center justify-center px-8 py-4">
-              <div className="rounded-2xl bg-white p-3 shadow-2xl border border-gray-400">
-                <div className="flex justify-center">
-                  <button
-                    className="rounded-md border border-blue-300 px-8 py-2 text-sm font-medium shadow-sm text-white bg-light-blue-600 hover:bg-light-blue-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    onClick={startGame}
-                  >
-                    Start
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-        <div className="my-2 md:w-1/3 md:ml-10 md:my-0">
-          <h1 className="text-2xl font-semibold text-center pt-4 pb-2 md:pt-2 md:text-left md:text-3xl">
-            Knight-Queen Tour
-          </h1>
-          <p className="text-sm py-2 text-center md:text-base md:text-left">
-            Move the knight from one corner of the board to the other in as few
-            moves as possible, avoiding all squares controlled by the queen!
-          </p>
+        <div className="mt-6 md:w-1/3 md:ml-10 md:my-0">
+          <div className="flex items-center justify-between mx-2 md:mx-0 md:block md:border-b-2 md:pb-4 md:border-blue-gray-300">
+            <div className="w-3/4 pr-3 md:w-auto md:pr-0">
+              <h1 className="text-2xl font-semibold md:text-left lg:text-3xl">
+                Knight-Queen Tour
+              </h1>
+              <p className="text-sm py-2 lg:text-base">
+                Move the knight from one corner to another, visiting each square
+                marked by{" "}
+                <ChevronDoubleUpIcon className="w-4 h-4 inline text-yellow-600" />
+                . Avoid all squares controlled by the queen!
+              </p>
+            </div>
+            <div className="w-1/4 flex justify-end md:w-auto md:block md:py-3">
+              <button
+                className="rounded-md border border-blue-300 px-4 py-2 text-sm font-medium shadow-sm text-white bg-light-blue-600 hover:bg-light-blue-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-6 lg:text-base"
+                onClick={startGame}
+              >
+                {state === "NOT_STARTED" ? "Start" : "Restart"}
+              </button>
+            </div>
+          </div>
           <Scoreboard
             tickers={[
               {
                 label: "Target",
                 value: targetSquare,
-                icon: ChevronDoubleUpIcon,
-                iconColorClass: "text-yellow-600",
               },
-              { label: "Moves", value: numMoves },
               { label: "Time", value: formatSeconds(elapsed) },
+              { label: "Moves", value: numMoves },
+              { label: "Best", value: 50 },
             ]}
           />
         </div>
