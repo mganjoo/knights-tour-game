@@ -1,7 +1,12 @@
 import React, { useState, useCallback } from "react"
 import "./App.css"
 import Board, { BoardState } from "./Board"
-import { Square, getSquareIncrement, attackedByQueen } from "./ChessLogic"
+import {
+  Square,
+  getSquareIncrement,
+  attackedByQueen,
+  SQUARES,
+} from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
 import {
   useConditionalTimeout,
@@ -29,6 +34,8 @@ function incrementWhileAttacked(
 
 let STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked("h8", "previous")
 let ENDING_KNIGHT_SQUARE: Square = incrementWhileAttacked("a1", "next")
+let NUMBER_OF_SQUARES = SQUARES.filter((s) => !attackedByQueen(s, QUEEN_SQUARE))
+  .length
 
 function formatSeconds(seconds: number) {
   const h = Math.floor(seconds / 3600)
@@ -111,7 +118,7 @@ const App: React.FC = () => {
       }
       setState("PLAYING")
     },
-    300,
+    800,
     state === "KNIGHT_ATTACKED"
   )
 
@@ -129,32 +136,36 @@ const App: React.FC = () => {
           />
         </div>
         <div className="mt-4 md:w-1/3 md:ml-10 md:my-0">
-          <div className="flex items-center justify-between mx-2 md:mx-0 md:block md:border-b-2 md:pb-4 md:border-blue-gray-300">
+          <div className="flex items-center justify-between mx-2 md:mx-0 md:block">
             <div className="w-3/4 pr-3 md:w-auto md:pr-0">
               <h1 className="text-2xl font-semibold md:text-left lg:text-3xl">
                 Knight-Queen Tour
               </h1>
               <p className="text-sm py-2 lg:text-base">
-                Move the knight from one corner to another in as few moves as
-                possible, visiting each square marked by{" "}
+                The goal of this puzzle is to visit every square on the board
+                that is not controlled by the queen. The next target square is
+                marked by{" "}
                 <ChevronDoubleUpIcon className="w-4 h-4 inline text-yellow-600" />
-                . Avoid all squares controlled by the queen!
+                .
               </p>
             </div>
             <div className="w-1/4 flex justify-end md:w-auto md:block md:py-3">
               <button
-                className="rounded-md border border-blue-300 px-4 py-2 text-sm font-medium shadow-sm text-white bg-light-blue-600 hover:bg-light-blue-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-6 lg:text-base"
+                className="rounded-md border border-blue-300 px-4 py-2 text-sm font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-6 lg:text-base"
                 onClick={startGame}
               >
                 {state === "NOT_STARTED" ? "Start" : "Restart"}
               </button>
             </div>
           </div>
+          <div className="my-3 py-2 px-3 bg-blue-gray-200 border-blue-gray-800 border text-base font-medium text-center md:text-lg">
+            Next square: {targetSquare}
+          </div>
           <Scoreboard
             tickers={[
               {
-                label: "Target",
-                value: state === "FINISHED" ? "Done!" : targetSquare,
+                label: "Remaining",
+                value: NUMBER_OF_SQUARES - visitedSquares.size,
               },
               { label: "Time", value: formatSeconds(elapsed) },
               { label: "Moves", value: numMoves },
