@@ -12,7 +12,7 @@ interface ScoreboardProps {
 
 const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
   return (
-    <div className="flex flex-wrap justify-evenly">
+    <div className="flex flex-wrap justify-evenly my-3 md:justify-start md:space-x-5">
       {tickers.map(({ label, value, iconColorClass, ...other }) => (
         <div
           key={label}
@@ -26,7 +26,7 @@ const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
               />
             )}
           </span>
-          <span className="text-2xl my-1">
+          <span className="text-2xl my-1 md:text-3xl">
             {value !== undefined ? value : "-"}
           </span>
         </div>

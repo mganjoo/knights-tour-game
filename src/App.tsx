@@ -104,42 +104,38 @@ const App: React.FC = () => {
 
   return (
     <main className="px-4 py-4 max-w-4xl mx-auto sm:px-8 sm:py-8 md:flex">
-      <div className="md:w-2/3">
-        <div className="mb-4">
-          <h1 className="text-2xl font-semibold text-center mt-4 mb-3">
-            Knight-Queen Tour
-          </h1>
-          <p className="text-sm py-2">
-            Move the knight from one corner of the board to the other in as few
-            moves as possible, avoiding all squares controlled by the queen!
-          </p>
-        </div>
-        <div className="relative mx-1">
-          <Board
-            state={state}
-            knightSquare={knightSquare}
-            queenSquare={QUEEN_SQUARE}
-            visitedSquares={visitedSquares}
-            targetSquare={targetSquare}
-            onKnightMove={handleMove}
-          />
-          {state === "NOT_STARTED" && (
-            <div className="absolute inset-0 bg-light-blue-600 backdrop-filter backdrop-blur-lg bg-opacity-50 flex items-center justify-center px-8 py-4">
-              <div className="rounded-2xl bg-white p-3 shadow-2xl border border-gray-400">
-                <div className="flex justify-center">
-                  <button
-                    className="rounded-md border border-blue-300 px-8 py-2 text-sm font-medium shadow-sm text-white bg-light-blue-600 hover:bg-light-blue-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    onClick={startGame}
-                  >
-                    Start
-                  </button>
-                </div>
+      <div className="relative mx-1 md:w-2/3 md:mx-0">
+        <Board
+          state={state}
+          knightSquare={knightSquare}
+          queenSquare={QUEEN_SQUARE}
+          visitedSquares={visitedSquares}
+          targetSquare={targetSquare}
+          onKnightMove={handleMove}
+        />
+        {state === "NOT_STARTED" && (
+          <div className="absolute inset-0 bg-light-blue-600 backdrop-filter backdrop-blur-lg bg-opacity-50 flex items-center justify-center px-8 py-4">
+            <div className="rounded-2xl bg-white p-3 shadow-2xl border border-gray-400">
+              <div className="flex justify-center">
+                <button
+                  className="rounded-md border border-blue-300 px-8 py-2 text-sm font-medium shadow-sm text-white bg-light-blue-600 hover:bg-light-blue-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  onClick={startGame}
+                >
+                  Start
+                </button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-      <div className="mt-3 py-3 md:w-1/3">
+      <div className="my-2 md:w-1/3 md:ml-10 md:my-0">
+        <h1 className="text-2xl font-semibold text-center pt-4 pb-2 md:pt-2 md:text-left md:text-3xl">
+          Knight-Queen Tour
+        </h1>
+        <p className="text-sm py-2 md:text-base">
+          Move the knight from one corner of the board to the other in as few
+          moves as possible, avoiding all squares controlled by the queen!
+        </p>
         <Scoreboard
           tickers={[
             {
