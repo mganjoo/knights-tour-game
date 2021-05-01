@@ -144,7 +144,8 @@ const App: React.FC = () => {
             tickers={[
               {
                 label: "Target",
-                value: targetSquare,
+                value: state === "FINISHED" ? "Done!" : targetSquare,
+                textClass: "font-medium",
               },
               { label: "Time", value: formatSeconds(elapsed) },
               { label: "Moves", value: numMoves },
