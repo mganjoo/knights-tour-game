@@ -27,7 +27,7 @@ function incrementWhileAttacked(
   return finalSquare
 }
 
-let STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked("b1", "previous")
+let STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked("h8", "previous")
 let ENDING_KNIGHT_SQUARE: Square = incrementWhileAttacked("a1", "next")
 
 function formatSeconds(seconds: number) {
