@@ -117,7 +117,7 @@ const App: React.FC = () => {
 
   return (
     <main className="bg-blue-gray-100 text-blue-gray-900 min-h-screen">
-      <div className="p-3 max-w-6xl mx-auto sm:px-8 sm:py-8 md:flex md:p-8">
+      <div className="p-3 max-w-md mx-auto md:flex md:p-8 md:max-w-6xl">
         <div className="relative md:w-2/3">
           <Board
             state={state}
