@@ -15,6 +15,7 @@ import {
 } from "beautiful-react-hooks"
 import Scoreboard from "./Scoreboard"
 import { ChevronDoubleUpIcon } from "@heroicons/react/solid"
+import classNames from "classnames"
 
 const QUEEN_SQUARE: Square = "d5"
 
@@ -61,8 +62,8 @@ const App: React.FC = () => {
     }
   }, 1000)
   const [numMoves, setNumMoves] = useState(0)
-  const [bestNumMoves, setBestNumMoves] = useLocalStorage<number>(
-    "best-num-moves",
+  const [bestSeconds, setBestSeconds] = useLocalStorage<number>(
+    "best-seconds",
     0
   )
   const startGame = useCallback(() => {
@@ -80,9 +81,8 @@ const App: React.FC = () => {
   }, [])
   const handleMove = useCallback(
     (from: Square, to: Square) => {
-      const newNumMoves = numMoves + 1
       setKnightSquare(to)
-      setNumMoves(newNumMoves)
+      setNumMoves((numMoves) => numMoves + 1)
 
       // If the knight is attacked, we will need to reset back to original square
       if (attackedByQueen(to, QUEEN_SQUARE)) {
@@ -95,7 +95,7 @@ const App: React.FC = () => {
         setVisitedSquares(visitedSquares.add(to))
         if (targetSquare === ENDING_KNIGHT_SQUARE) {
           setState("FINISHED")
-          setBestNumMoves(newNumMoves)
+          setBestSeconds(elapsed)
           setTargetSquare(undefined)
         } else {
           setTargetSquare(
@@ -107,7 +107,7 @@ const App: React.FC = () => {
         }
       }
     },
-    [targetSquare, visitedSquares, setBestNumMoves, numMoves]
+    [targetSquare, visitedSquares, setBestSeconds, elapsed]
   )
 
   // If knight is attacked, reset to playing state after delay
@@ -158,9 +158,22 @@ const App: React.FC = () => {
               </button>
             </div>
           </div>
-          <div className="my-3 py-2 px-3 bg-blue-gray-200 border-blue-gray-800 border text-base font-medium text-center md:text-lg">
-            Next square: {targetSquare}
-          </div>
+          {state !== "NOT_STARTED" && (
+            <div
+              className={classNames(
+                "my-3 py-2 px-3 border text-base font-medium text-center md:text-lg",
+                state === "FINISHED"
+                  ? "bg-green-100 border-green-800 text-green-900"
+                  : "bg-blue-gray-200 border-blue-gray-800"
+              )}
+            >
+              {state === "FINISHED" ? (
+                <>Nicely done!</>
+              ) : (
+                <>Next square: {targetSquare}</>
+              )}
+            </div>
+          )}
           <Scoreboard
             tickers={[
               {
@@ -169,7 +182,7 @@ const App: React.FC = () => {
               },
               { label: "Time", value: formatSeconds(elapsed) },
               { label: "Moves", value: numMoves },
-              { label: "Best", value: bestNumMoves },
+              { label: "Best", value: formatSeconds(bestSeconds) },
             ]}
           />
         </div>
