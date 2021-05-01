@@ -9,7 +9,7 @@ interface ScoreboardProps {
 
 const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
   return (
-    <div className="grid grid-cols-2 my-3 md:mb-3 md:mt-6">
+    <div className="grid grid-cols-2 my-2 md:mb-3 md:mt-6">
       {tickers.map(({ label, value }) => (
         <div
           key={label}

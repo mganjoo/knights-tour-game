@@ -118,7 +118,7 @@ const App: React.FC = () => {
             onKnightMove={handleMove}
           />
         </div>
-        <div className="mt-6 md:w-1/3 md:ml-10 md:my-0">
+        <div className="mt-4 md:w-1/3 md:ml-10 md:my-0">
           <div className="flex items-center justify-between mx-2 md:mx-0 md:block md:border-b-2 md:pb-4 md:border-blue-gray-300">
             <div className="w-3/4 pr-3 md:w-auto md:pr-0">
               <h1 className="text-2xl font-semibold md:text-left lg:text-3xl">
