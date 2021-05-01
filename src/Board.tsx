@@ -131,12 +131,12 @@ const Board: React.FC<BoardProps> = ({
     const queenShapes: DrawShape[] =
       state === "KNIGHT_ATTACKED"
         ? [
-            { orig: queenSquare, customSvg: undefined, brush: "red" },
+            { orig: queenSquare, customSvg: undefined, brush: "yellow" },
             {
               orig: queenSquare,
               dest: knightSquare,
               customSvg: undefined,
-              brush: "red",
+              brush: "yellow",
             },
           ]
         : []
