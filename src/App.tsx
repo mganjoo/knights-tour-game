@@ -35,8 +35,8 @@ function incrementWhileAttacked(
 
 let STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked("h8", "previous")
 let ENDING_KNIGHT_SQUARE: Square = incrementWhileAttacked("a1", "next")
-let NUMBER_OF_SQUARES = SQUARES.filter((s) => !attackedByQueen(s, QUEEN_SQUARE))
-  .length
+let NUMBER_OF_SQUARES =
+  SQUARES.filter((s) => !attackedByQueen(s, QUEEN_SQUARE)).length - 1
 
 function formatSeconds(seconds: number) {
   const h = Math.floor(seconds / 3600)
