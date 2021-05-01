@@ -3,7 +3,11 @@ import "./App.css"
 import Board, { BoardState } from "./Board"
 import { Square, getSquareIncrement, attackedByQueen } from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
-import { useConditionalTimeout, useInterval } from "beautiful-react-hooks"
+import {
+  useConditionalTimeout,
+  useInterval,
+  useLocalStorage,
+} from "beautiful-react-hooks"
 import Scoreboard from "./Scoreboard"
 import { ChevronDoubleUpIcon } from "@heroicons/react/solid"
 
@@ -23,7 +27,7 @@ function incrementWhileAttacked(
   return finalSquare
 }
 
-let STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked("h8", "previous")
+let STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked("b1", "previous")
 let ENDING_KNIGHT_SQUARE: Square = incrementWhileAttacked("a1", "next")
 
 function formatSeconds(seconds: number) {
@@ -50,6 +54,10 @@ const App: React.FC = () => {
     }
   }, 1000)
   const [numMoves, setNumMoves] = useState(0)
+  const [bestNumMoves, setBestNumMoves] = useLocalStorage<number>(
+    "best-num-moves",
+    0
+  )
   const startGame = useCallback(() => {
     setState("PLAYING")
     setKnightSquare(STARTING_KNIGHT_SQUARE)
@@ -65,8 +73,9 @@ const App: React.FC = () => {
   }, [])
   const handleMove = useCallback(
     (from: Square, to: Square) => {
+      const newNumMoves = numMoves + 1
       setKnightSquare(to)
-      setNumMoves((n) => n + 1)
+      setNumMoves(newNumMoves)
 
       // If the knight is attacked, we will need to reset back to original square
       if (attackedByQueen(to, QUEEN_SQUARE)) {
@@ -79,6 +88,7 @@ const App: React.FC = () => {
         setVisitedSquares(visitedSquares.add(to))
         if (targetSquare === ENDING_KNIGHT_SQUARE) {
           setState("FINISHED")
+          setBestNumMoves(newNumMoves)
           setTargetSquare(undefined)
         } else {
           setTargetSquare(
@@ -90,7 +100,7 @@ const App: React.FC = () => {
         }
       }
     },
-    [targetSquare, visitedSquares]
+    [targetSquare, visitedSquares, setBestNumMoves, numMoves]
   )
 
   // If knight is attacked, reset to playing state after delay
@@ -125,8 +135,8 @@ const App: React.FC = () => {
                 Knight-Queen Tour
               </h1>
               <p className="text-sm py-2 lg:text-base">
-                Move the knight from one corner to another, visiting each square
-                marked by{" "}
+                Move the knight from one corner to another in as few moves as
+                possible, visiting each square marked by{" "}
                 <ChevronDoubleUpIcon className="w-4 h-4 inline text-yellow-600" />
                 . Avoid all squares controlled by the queen!
               </p>
@@ -145,11 +155,10 @@ const App: React.FC = () => {
               {
                 label: "Target",
                 value: state === "FINISHED" ? "Done!" : targetSquare,
-                textClass: "font-medium",
               },
               { label: "Time", value: formatSeconds(elapsed) },
               { label: "Moves", value: numMoves },
-              { label: "Best", value: 50 },
+              { label: "Best", value: bestNumMoves },
             ]}
           />
         </div>
