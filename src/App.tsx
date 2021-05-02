@@ -135,9 +135,9 @@ const App: React.FC = () => {
             onKnightMove={handleMove}
           />
         </div>
-        <div className="mt-4 md:w-1/3 md:ml-10 md:my-0">
+        <div className="mt-4 md:w-1/3 md:ml-6 md:my-0">
           <div className="flex items-center justify-between mx-2 md:mx-0 md:block">
-            <div className="w-3/4 pr-3 md:w-auto md:pr-0">
+            <div className="pr-3 md:pr-0">
               <h1 className="text-2xl font-semibold md:text-left lg:text-3xl">
                 Knight-Queen Tour
               </h1>
@@ -149,7 +149,7 @@ const App: React.FC = () => {
                 .
               </p>
             </div>
-            <div className="w-1/4 flex justify-end md:w-auto md:block md:py-3">
+            <div className="flex justify-end md:py-3 md:justify-center">
               <button
                 className="rounded-md border border-blue-300 px-4 py-2 text-sm font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-6 lg:text-base"
                 onClick={startGame}
