@@ -138,6 +138,7 @@ const App: React.FC = () => {
       bestNumMoves,
       numMoves,
       setBestNumMoves,
+      setOnboardingDone,
     ]
   )
 
