@@ -169,8 +169,9 @@ const App: React.FC = () => {
                     Knight-Queen Tour
                   </h1>
                   <p className="text-sm lg:text-base">
-                    Visit every square on the board with the knight, avoiding
-                    squares that are controlled by the queen!
+                    Visit every square with the knight in order, starting at the
+                    top right and ending at the bottom left. Avoid squares that
+                    are attacked by the queen!
                   </p>
                 </div>
                 <div className="flex flex-col justify-center items-center mt-1 md:my-6 md:flex-row md:justify-center">
