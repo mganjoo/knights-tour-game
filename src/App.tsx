@@ -62,9 +62,13 @@ const App: React.FC = () => {
     }
   }, 1000)
   const [numMoves, setNumMoves] = useState(0)
-  const [bestSeconds, setBestSeconds] = useLocalStorage<number>(
-    "best-seconds",
-    0
+  const [bestSeconds, setBestSeconds] = useLocalStorage<number | null>(
+    "v1.best_seconds",
+    null
+  )
+  const [bestNumMoves, setBestNumMoves] = useLocalStorage<number | null>(
+    "v1.best_num_moves",
+    null
   )
   const startGame = useCallback(() => {
     setState("PLAYING")
@@ -82,7 +86,8 @@ const App: React.FC = () => {
   const handleMove = useCallback(
     (from: Square, to: Square) => {
       setKnightSquare(to)
-      setNumMoves((numMoves) => numMoves + 1)
+      const newNumMoves = numMoves + 1
+      setNumMoves(newNumMoves)
 
       // If the knight is attacked, we will need to reset back to original square
       if (attackedByQueen(to, QUEEN_SQUARE)) {
@@ -95,7 +100,12 @@ const App: React.FC = () => {
         setVisitedSquares(visitedSquares.add(to))
         if (targetSquare === ENDING_KNIGHT_SQUARE) {
           setState("FINISHED")
-          setBestSeconds(elapsed)
+          if (bestSeconds === null || elapsed < bestSeconds) {
+            setBestSeconds(elapsed)
+          }
+          if (bestNumMoves === null || newNumMoves < bestNumMoves) {
+            setBestNumMoves(newNumMoves)
+          }
           setTargetSquare(undefined)
         } else {
           setTargetSquare(
@@ -107,7 +117,16 @@ const App: React.FC = () => {
         }
       }
     },
-    [targetSquare, visitedSquares, setBestSeconds, elapsed]
+    [
+      targetSquare,
+      visitedSquares,
+      bestSeconds,
+      setBestSeconds,
+      elapsed,
+      bestNumMoves,
+      numMoves,
+      setBestNumMoves,
+    ]
   )
 
   // If knight is attacked, reset to playing state after delay
@@ -180,12 +199,20 @@ const App: React.FC = () => {
           <Scoreboard
             tickers={[
               {
-                label: "Remaining",
+                label: "Remaining squares",
                 value: NUMBER_OF_SQUARES - visitedSquares.size,
+                span: true,
               },
               { label: "Time", value: formatSeconds(elapsed) },
               { label: "Moves", value: numMoves },
-              { label: "Best", value: formatSeconds(bestSeconds) },
+              {
+                label: "Best time",
+                value: bestSeconds !== null ? formatSeconds(bestSeconds) : "-",
+              },
+              {
+                label: "Best moves",
+                value: bestNumMoves !== null ? bestNumMoves : "-",
+              },
             ]}
           />
         </div>
