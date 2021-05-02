@@ -74,6 +74,10 @@ const App: React.FC = () => {
     "v1.hide_visited_squares",
     false
   )
+  const [onboardingDone, setOnboardingDone] = useLocalStorage<boolean>(
+    "v1.onboarding_done",
+    false
+  )
   const startGame = useCallback(() => {
     setState("PLAYING")
     setKnightSquare(STARTING_KNIGHT_SQUARE)
@@ -102,6 +106,10 @@ const App: React.FC = () => {
       // If we move to a new target, update visited + target squares
       if (to === targetSquare) {
         setVisitedSquares(visitedSquares.add(to))
+        if (visitedSquares.size >= 3) {
+          // After two moves, mark user as onboarded
+          setOnboardingDone(true)
+        }
         if (targetSquare === ENDING_KNIGHT_SQUARE) {
           setState("FINISHED")
           if (bestSeconds === null || elapsed < bestSeconds) {
@@ -159,7 +167,9 @@ const App: React.FC = () => {
                 targetSquare={targetSquare}
                 onKnightMove={handleMove}
                 hideVisitedSquares={hideVisitedSquares}
-                showTargetArrow={visitedSquares.size < 2}
+                // Show target arrow the first time the user plays,
+                // for their first move
+                showTargetArrow={!onboardingDone && visitedSquares.size < 2}
               />
             </div>
             <div className="px-2 md:px-0 md:w-1/3 md:ml-6">
@@ -169,9 +179,8 @@ const App: React.FC = () => {
                     Knight-Queen Tour
                   </h1>
                   <p className="text-sm lg:text-base">
-                    Visit every square with the knight in order, starting at the
-                    top right and ending at the bottom left. Avoid squares that
-                    are attacked by the queen!
+                    Visit every square with the knight, in order starting at the
+                    h8 corner. Avoid squares that are attacked by the queen!
                   </p>
                 </div>
                 <div className="flex flex-col justify-center items-center mt-1 md:my-6 md:flex-row md:justify-center">
