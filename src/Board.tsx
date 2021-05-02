@@ -42,6 +42,10 @@ type BoardProps = {
    * Whether to hide visited squares (makes the puzzle more challenging).
    */
   hideVisitedSquares?: boolean
+  /**
+   * Whether to draw an arrow to the next target square.
+   */
+  showTargetArrow?: boolean
 }
 
 // "check" from https://heroicons.com/
@@ -94,6 +98,7 @@ const Board: React.FC<BoardProps> = ({
   targetSquare,
   visitedSquares,
   hideVisitedSquares,
+  showTargetArrow,
   children,
 }) => {
   const { el, set } = useChessground(INITIAL_CHESSGROUND_CONFIG)
@@ -133,6 +138,17 @@ const Board: React.FC<BoardProps> = ({
       targetSquare && (state === "PLAYING" || state === "KNIGHT_ATTACKED")
         ? [{ orig: targetSquare, customSvg: TARGET_SVG }]
         : []
+    const targetArrowShapes: DrawShape[] =
+      targetSquare && showTargetArrow && state === "PLAYING"
+        ? [
+            {
+              orig: knightSquare,
+              dest: targetSquare,
+              customSvg: undefined,
+              brush: "blue",
+            },
+          ]
+        : []
     const queenShapes: DrawShape[] =
       state === "KNIGHT_ATTACKED"
         ? [
@@ -153,14 +169,18 @@ const Board: React.FC<BoardProps> = ({
             customSvg: CHECK_SVG,
           }))
           .toArray()
-    return targetShapes.concat(queenShapes).concat(visitedShapes)
+    return targetShapes
+      .concat(targetArrowShapes)
+      .concat(queenShapes)
+      .concat(visitedShapes)
   }, [
     targetSquare,
     state,
-    queenSquare,
+    showTargetArrow,
     knightSquare,
-    visitedSquares,
+    queenSquare,
     hideVisitedSquares,
+    visitedSquares,
   ])
 
   useEffect(() => {

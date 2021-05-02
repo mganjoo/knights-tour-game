@@ -160,6 +160,7 @@ const App: React.FC = () => {
                 targetSquare={targetSquare}
                 onKnightMove={handleMove}
                 hideVisitedSquares={hideVisitedSquares}
+                showTargetArrow={visitedSquares.size < 2}
               />
             </div>
             <div className="px-2 md:px-0 md:w-1/3 md:ml-6">
