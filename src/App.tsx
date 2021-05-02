@@ -14,9 +14,8 @@ import {
   useLocalStorage,
 } from "beautiful-react-hooks"
 import Scoreboard from "./Scoreboard"
-import classNames from "classnames"
-import { Switch } from "@headlessui/react"
 import CurrentMoveBox from "./CurrentMoveBox"
+import SettingsToggle from "./SettingsToggle"
 
 const QUEEN_SQUARE: Square = "d5"
 
@@ -204,34 +203,15 @@ const App: React.FC = () => {
                   },
                   {
                     label: "Best moves",
-                    value: bestNumMoves !== null ? bestNumMoves : "-",
+                    value: bestNumMoves,
                   },
                 ]}
               />
-              <Switch.Group>
-                <div className="flex justify-center items-center py-2">
-                  <Switch
-                    checked={hideVisitedSquares}
-                    onChange={setHideVisitedSquares}
-                    className={classNames(
-                      hideVisitedSquares ? "bg-light-blue-700" : "bg-gray-300",
-                      "relative inline-flex items-center flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-                    )}
-                  >
-                    <span className="sr-only">Hide visited squares</span>
-                    <span
-                      aria-hidden="true"
-                      className={classNames(
-                        hideVisitedSquares ? "translate-x-6" : "translate-x-0",
-                        "pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-lg transform ring-0 transition ease-in-out duration-200"
-                      )}
-                    />
-                  </Switch>
-                  <Switch.Label className="ml-2 text-xs md:text-sm lg:text-base md:ml-3">
-                    Hide visited squares (harder!)
-                  </Switch.Label>
-                </div>
-              </Switch.Group>
+              <SettingsToggle
+                label="Hide visited squares (harder!)"
+                enabled={hideVisitedSquares}
+                onToggle={setHideVisitedSquares}
+              />
             </div>
           </div>
         </main>
