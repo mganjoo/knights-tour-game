@@ -1,25 +1,17 @@
-import classNames from "classnames"
 import React from "react"
 
 interface ScoreboardProps {
   tickers: {
     label: string
     value?: string | number
-    spanClass?: string
   }[]
 }
 
 const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
   return (
     <div className="grid grid-cols-4 my-4 items-start md:my-5 md:grid-cols-2 md:gap-y-4">
-      {tickers.map(({ label, value, spanClass }) => (
-        <div
-          key={label}
-          className={classNames(
-            "flex flex-col-reverse items-center",
-            spanClass
-          )}
-        >
+      {tickers.map(({ label, value }) => (
+        <div key={label} className="flex flex-col-reverse items-center">
           <span className="uppercase text-xs text-center md:text-sm">
             {label}
           </span>
