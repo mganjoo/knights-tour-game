@@ -161,16 +161,19 @@ const App: React.FC = () => {
           {state !== "NOT_STARTED" && (
             <div
               className={classNames(
-                "my-3 py-2 px-3 border text-base font-medium text-center md:text-lg",
+                "mx-8 my-3 py-2 px-3 border text-base font-medium flex items-center text-white md:text-lg",
                 state === "FINISHED"
-                  ? "bg-green-100 border-green-800 text-green-900"
-                  : "bg-blue-gray-200 border-blue-gray-800"
+                  ? "bg-green-700 justify-center"
+                  : "bg-yellow-700 justify-between"
               )}
             >
               {state === "FINISHED" ? (
-                <>Nicely done!</>
+                <span>Nicely done!</span>
               ) : (
-                <>Next square: {targetSquare}</>
+                <>
+                  <span>Next square</span>
+                  <span>{targetSquare}</span>
+                </>
               )}
             </div>
           )}
