@@ -10,6 +10,11 @@ As far as I could tell, there isn't an app that presents this puzzle with an int
 
 The app is deployed to https://knights-tour-game.vercel.app/.
 
+## Screenshots
+
+<img src="screenshots/desktop.png" alt="Preview of app UI on desktop" width="600" />
+<img src="screenshots/mobile.png" alt="Preview of app UI on mobile" width="200" />
+
 ## Underlying libraries
 
 This app uses Chessground for the board UI and Tailwind for styling. For knight move generation and queen attack detection, I wrote some simple [0x88 move representation logic](https://www.chessprogramming.org/0x88) as an exercise (using the excellent [chess.js](https://github.com/jhlywa/chess.js) library as a reference).
