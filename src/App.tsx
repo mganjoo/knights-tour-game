@@ -142,82 +142,108 @@ const App: React.FC = () => {
   )
 
   return (
-    <main className="bg-blue-gray-100 text-blue-gray-900 min-h-screen">
-      <div className="p-3 max-w-md mx-auto md:flex md:p-8 md:max-w-6xl">
-        <div className="relative md:w-2/3">
-          <Board
-            state={state}
-            knightSquare={knightSquare}
-            queenSquare={QUEEN_SQUARE}
-            visitedSquares={visitedSquares}
-            targetSquare={targetSquare}
-            onKnightMove={handleMove}
-          />
-        </div>
-        <div className="mt-4 md:w-1/3 md:ml-6 md:my-0">
-          <div className="flex items-center justify-between mx-2 md:mx-0 md:block">
-            <div className="pr-3 md:pr-0">
-              <h1 className="text-2xl font-semibold md:text-left lg:text-3xl">
-                Knight-Queen Tour
-              </h1>
-              <p className="text-sm py-2 lg:text-base">
-                The goal of this puzzle is to visit every square on the board
-                that is not controlled by the queen. The next target square is
-                marked by{" "}
-                <ChevronDoubleUpIcon className="w-4 h-4 inline text-yellow-600" />
-                .
-              </p>
+    <div className="w-full bg-blue-gray-100 text-blue-gray-900 min-h-screen">
+      <div className="max-w-md mx-auto md:max-w-5xl">
+        <main>
+          <div className="p-3 md:flex md:p-6">
+            <div className="relative md:w-2/3">
+              <Board
+                state={state}
+                knightSquare={knightSquare}
+                queenSquare={QUEEN_SQUARE}
+                visitedSquares={visitedSquares}
+                targetSquare={targetSquare}
+                onKnightMove={handleMove}
+              />
             </div>
-            <div className="flex justify-end md:py-3 md:justify-center">
-              <button
-                className="rounded-md border border-blue-300 px-4 py-2 text-sm font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-6 lg:text-base"
-                onClick={startGame}
-              >
-                {state === "NOT_STARTED" ? "Start" : "Restart"}
-              </button>
+            <div className="px-2 md:px-0 md:w-1/3 md:ml-6">
+              <div className="flex items-start justify-between mt-2 md:m-0 md:block">
+                <div className="pr-3 md:pr-0">
+                  <h1 className="text-xl font-semibold mb-2 md:text-2xl md:mb-3 lg:text-3xl">
+                    Knight-Queen Tour
+                  </h1>
+                  <p className="text-sm lg:text-base">
+                    Visit every square on the board with the knight, avoiding
+                    squares that are controlled by the queen!
+                  </p>
+                </div>
+                <div className="flex flex-col justify-center items-center mt-1 md:my-6 md:flex-row md:justify-center">
+                  <button
+                    className="rounded-md border border-blue-300 px-3 py-2 text-xs font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-5 md:text-sm lg:text-base"
+                    onClick={startGame}
+                  >
+                    {state === "NOT_STARTED" ? "Start" : "Restart"}
+                  </button>
+                  <div className="text-sm font-semibold mt-3 md:text-lg md:mt-0 md:ml-5 md:w-16 md:text-right">
+                    {formatSeconds(elapsed)}
+                  </div>
+                </div>
+              </div>
+              {state !== "NOT_STARTED" && (
+                <div className="flex justify-center my-3 md:my-8">
+                  <div
+                    className={classNames(
+                      "py-2 px-3 text-base font-medium flex items-center space-x-3 text-white md:text-lg",
+                      state === "FINISHED"
+                        ? "bg-green-700 justify-center"
+                        : "bg-yellow-700 justify-between"
+                    )}
+                  >
+                    {state === "FINISHED" ? (
+                      <span className="text-sm md:text-base">
+                        Puzzle complete. Nicely done!
+                      </span>
+                    ) : (
+                      <>
+                        <ChevronDoubleUpIcon className="w-4 h-4" />
+                        <span className="uppercase text-xs lg:text-sm">
+                          Next square to visit
+                        </span>
+                        <span className="text-base lg:text-lg">
+                          {targetSquare}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+              <Scoreboard
+                tickers={[
+                  {
+                    label: "More squares",
+                    value: NUMBER_OF_SQUARES - visitedSquares.size,
+                  },
+                  { label: "Moves", value: numMoves },
+                  {
+                    label: "Best time",
+                    value:
+                      bestSeconds !== null ? formatSeconds(bestSeconds) : "-",
+                  },
+                  {
+                    label: "Best moves",
+                    value: bestNumMoves !== null ? bestNumMoves : "-",
+                  },
+                ]}
+              />
             </div>
           </div>
-          {state !== "NOT_STARTED" && (
-            <div
-              className={classNames(
-                "mx-8 my-3 py-2 px-3 border text-base font-medium flex items-center text-white md:text-lg",
-                state === "FINISHED"
-                  ? "bg-green-700 justify-center"
-                  : "bg-yellow-700 justify-between"
-              )}
-            >
-              {state === "FINISHED" ? (
-                <span>Nicely done!</span>
-              ) : (
-                <>
-                  <span>Next square</span>
-                  <span>{targetSquare}</span>
-                </>
-              )}
-            </div>
-          )}
-          <Scoreboard
-            tickers={[
-              {
-                label: "Remaining squares",
-                value: NUMBER_OF_SQUARES - visitedSquares.size,
-                span: true,
-              },
-              { label: "Time", value: formatSeconds(elapsed) },
-              { label: "Moves", value: numMoves },
-              {
-                label: "Best time",
-                value: bestSeconds !== null ? formatSeconds(bestSeconds) : "-",
-              },
-              {
-                label: "Best moves",
-                value: bestNumMoves !== null ? bestNumMoves : "-",
-              },
-            ]}
-          />
-        </div>
+        </main>
+        <footer className="text-xs text-center mx-5 pt-4 pb-10 border-t border-blue-gray-400 text-blue-gray-700 md:text-sm">
+          Built by{" "}
+          <a href="https://github.com/mganjoo" className="underline">
+            @mganjoo
+          </a>
+          .{" "}
+          <a
+            href="https://github.com/mganjoo/knights-tour-game"
+            className="underline"
+          >
+            View source code on GitHub
+          </a>
+          .
+        </footer>
       </div>
-    </main>
+    </div>
   )
 }
 
