@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@headlessui/react": "^1.1.1",
     "@heroicons/react": "^1.0.1",
     "beautiful-react-hooks": "^0.31.1",
     "chessground": "^7.11.1",
