@@ -1,4 +1,5 @@
 import React from "react"
+import { motion } from "framer-motion"
 
 interface ScoreboardProps {
   tickers: {
@@ -15,9 +16,14 @@ const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
           <span className="uppercase text-xs text-center md:text-sm">
             {label}
           </span>
-          <span className="text-lg mb-1 sm:text-xl md:text-2xl">
+          <motion.span
+            key={value !== undefined ? value : "-"}
+            className="text-lg mb-1 sm:text-xl md:text-2xl"
+            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.3 }}
+          >
             {value !== undefined ? value : "-"}
-          </span>
+          </motion.span>
         </div>
       ))}
     </div>

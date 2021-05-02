@@ -14,9 +14,9 @@ import {
   useLocalStorage,
 } from "beautiful-react-hooks"
 import Scoreboard from "./Scoreboard"
-import { ChevronDoubleUpIcon } from "@heroicons/react/solid"
 import classNames from "classnames"
 import { Switch } from "@headlessui/react"
+import CurrentMoveBox from "./CurrentMoveBox"
 
 const QUEEN_SQUARE: Square = "d5"
 
@@ -186,32 +186,7 @@ const App: React.FC = () => {
                 </div>
               </div>
               {state !== "NOT_STARTED" && (
-                <div className="flex justify-center my-3 md:my-8">
-                  <div
-                    className={classNames(
-                      "py-2 px-3 text-base font-medium flex items-center space-x-3 text-white md:text-lg",
-                      state === "FINISHED"
-                        ? "bg-green-700 justify-center"
-                        : "bg-yellow-700 justify-between"
-                    )}
-                  >
-                    {state === "FINISHED" ? (
-                      <span className="text-sm md:text-base">
-                        Puzzle complete. Nicely done!
-                      </span>
-                    ) : (
-                      <>
-                        <ChevronDoubleUpIcon className="w-4 h-4" />
-                        <span className="uppercase text-xs lg:text-sm">
-                          Next square to visit
-                        </span>
-                        <span className="text-base lg:text-lg">
-                          {targetSquare}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
+                <CurrentMoveBox state={state} targetSquare={targetSquare} />
               )}
               <Scoreboard
                 tickers={[
