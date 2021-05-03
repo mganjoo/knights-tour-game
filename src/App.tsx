@@ -73,6 +73,10 @@ const App: React.FC = () => {
     "v1.hide_visited_squares",
     false
   )
+  const [attackEndsGame, setAttackEndsGame] = useLocalStorage<boolean>(
+    "v1.attack_ends_game",
+    false
+  )
   const [onboardingDone, setOnboardingDone] = useLocalStorage<boolean>(
     "v1.onboarding_done",
     false
@@ -141,13 +145,18 @@ const App: React.FC = () => {
     ]
   )
 
-  // If knight is attacked, reset to playing state after delay
+  // If knight is attacked, either reset to original state, or capture
   useConditionalTimeout(
     () => {
-      if (preAttackKnightSquare) {
-        setKnightSquare(preAttackKnightSquare)
+      if (attackEndsGame) {
+        setState("CAPTURED")
+      } else {
+        if (preAttackKnightSquare) {
+          setKnightSquare(preAttackKnightSquare)
+          setPreAttackKnightSquare(undefined)
+        }
+        setState("PLAYING")
       }
-      setState("PLAYING")
     },
     800,
     state === "KNIGHT_ATTACKED"
@@ -161,7 +170,7 @@ const App: React.FC = () => {
             <Board
               state={state}
               knightSquare={knightSquare}
-              queenSquare={QUEEN_SQUARE}
+              queenSquare={state === "CAPTURED" ? knightSquare : QUEEN_SQUARE}
               visitedSquares={visitedSquares}
               targetSquare={targetSquare}
               onKnightMove={handleMove}
@@ -194,7 +203,11 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="md:col-start-3">
-            <CurrentMoveBox state={state} targetSquare={targetSquare} />
+            <CurrentMoveBox
+              state={state}
+              targetSquare={targetSquare}
+              attackEndsGame={attackEndsGame}
+            />
           </div>
           <div className="md:col-start-3">
             <Scoreboard
@@ -224,6 +237,11 @@ const App: React.FC = () => {
               label="Hide already visited squares"
               enabled={hideVisitedSquares}
               onToggle={setHideVisitedSquares}
+            />
+            <SettingsToggle
+              label="End game if knight moves to an attacked square"
+              enabled={attackEndsGame}
+              onToggle={setAttackEndsGame}
             />
           </div>
         </main>

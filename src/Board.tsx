@@ -12,6 +12,7 @@ export type BoardState =
   | "PLAYING"
   | "KNIGHT_ATTACKED"
   | "FINISHED"
+  | "CAPTURED"
 
 type BoardProps = {
   /**

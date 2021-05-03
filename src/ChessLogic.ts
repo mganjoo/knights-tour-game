@@ -124,15 +124,11 @@ export function getKnightDests(
 export function getPuzzleFen(
   knightSquare: Square,
   queenSquare?: Square
-): string | undefined {
-  // Knight and queen can't be on same square
-  if (knightSquare === queenSquare) {
-    return undefined
-  }
-
+): string {
   const lookup: { [idx: number]: "N" | "q" } = {}
   lookup[SQUARES_MAP[knightSquare]] = "N" // White knight
   if (queenSquare) {
+    // Note that if queen and knight square are the same, queen takes precedence
     lookup[SQUARES_MAP[queenSquare]] = "q" // Black queen
   }
 

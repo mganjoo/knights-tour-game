@@ -14,23 +14,24 @@ describe("getPuzzleFen()", () => {
   test("generates correct puzzle FEN with knight and queen", () => {
     fc.assert(
       fc.property(
-        fc
-          .tuple(
-            fc.constantFrom(...SQUARES),
-            fc.option(fc.constantFrom(...SQUARES), { nil: undefined })
-          )
-          .filter((t) => t[0] !== t[1]),
-        ([knightSquare, queenSquare]) => {
+        fc.constantFrom(...SQUARES),
+        fc.option(fc.constantFrom(...SQUARES), { nil: undefined }),
+        (knightSquare, queenSquare) => {
           // dummy element for Chessground to use
           const wrapper = document.createElement("div")
           const chessground = Chessground(wrapper, {
             fen: getPuzzleFen(knightSquare, queenSquare),
           })
           // verify placement of pieces using Chessground internal state
-          expect(chessground.state.pieces.get(knightSquare)).toStrictEqual({
-            role: "knight",
-            color: "white",
-          })
+          expect(chessground.state.pieces.get(knightSquare)).toStrictEqual(
+            // If knight square and queen square are the same, queen square wins
+            knightSquare === queenSquare
+              ? { role: "queen", color: "black" }
+              : {
+                  role: "knight",
+                  color: "white",
+                }
+          )
           expect(
             queenSquare && chessground.state.pieces.get(queenSquare)
           ).toStrictEqual(
@@ -45,14 +46,6 @@ describe("getPuzzleFen()", () => {
           wrapper.remove()
         }
       )
-    )
-  })
-
-  test("does not generate FEN if both knight and queen have same square", () => {
-    fc.assert(
-      fc.property(fc.constantFrom(...SQUARES), (square) => {
-        expect(getPuzzleFen(square, square)).toBeUndefined()
-      })
     )
   })
 })
