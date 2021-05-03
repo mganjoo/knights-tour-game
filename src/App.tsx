@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from "react"
-import "./App.css"
 import Board, { BoardState } from "./Board"
 import {
   Square,
