@@ -180,7 +180,7 @@ const App: React.FC = () => {
                     Knight-Queen Tour
                   </h1>
                   <p className="text-sm lg:text-base">
-                    Visit every square with the knight, in order starting at the
+                    Visit every square with the knight, in order, starting at the
                     h8 corner. Avoid squares that are attacked by the queen!
                   </p>
                 </div>
