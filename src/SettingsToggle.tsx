@@ -15,7 +15,7 @@ const SettingsToggle: React.FC<SettingsToggleProps> = ({
 }) => {
   return (
     <Switch.Group>
-      <div className="flex justify-center items-center py-2">
+      <div className="flex justify-center items-center mb-2">
         <Switch
           checked={enabled}
           onChange={onToggle}

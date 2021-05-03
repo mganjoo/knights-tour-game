@@ -12,7 +12,7 @@ const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
   const printValue = (s: string | number | null | undefined) =>
     s !== undefined && s !== null ? s : "-"
   return (
-    <div className="grid grid-cols-4 my-4 items-start md:my-5 md:grid-cols-2 md:gap-y-4">
+    <div className="grid grid-cols-4 items-start md:grid-cols-2 md:gap-y-4">
       {tickers.map(({ label, value }) => (
         <div key={label} className="flex flex-col-reverse items-center">
           <span className="uppercase text-xs text-center md:text-sm">
@@ -22,7 +22,7 @@ const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
             key={printValue(value)}
             className="text-lg mb-1 sm:text-xl md:text-2xl"
             animate={{ opacity: 1, scale: 1 }}
-            initial={{ opacity: 0, scale: 0.3 }}
+            initial={{ opacity: 0.4, scale: 0.5 }}
           >
             {printValue(value)}
           </motion.span>
