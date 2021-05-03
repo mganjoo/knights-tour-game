@@ -179,53 +179,6 @@ export function attackedByQueen(square: Square, queenSquare: Square): boolean {
 }
 
 /**
- * Generate a sequence of moves that completes a *unique* Knights' tour of
- * the board by visiting each square exactly once.
- *
- * @param square Starting square
- * @returns an Array of moves that correspond to a unique Knights' tour.
- */
-export function generateKnightsTour(square: Square) {
-  function generateKnightsTourHelper(
-    square: Square,
-    moves: Array<Square>,
-    numSquaresVisited: number
-  ): boolean {
-    if (numSquaresVisited === 64) {
-      return true
-    }
-
-    // Sort next candidates by Warnsdorff’s heuristic
-    const nextSquares = getKnightDests(square).sort(
-      (a, b) => getKnightDests(a).length - getKnightDests(b).length
-    )
-
-    for (const next of nextSquares) {
-      if (!moves.includes(next)) {
-        moves.push(next)
-        const finished = generateKnightsTourHelper(
-          next,
-          moves,
-          numSquaresVisited + 1
-        )
-        if (finished) {
-          return true
-        }
-        moves.pop()
-      }
-    }
-
-    return false
-  }
-
-  // Modify 'moves' in place
-  const moves = [square]
-  const finished = generateKnightsTourHelper(square, moves, 1)
-
-  return finished ? moves : undefined
-}
-
-/**
  * Get square to left or right of current square. If at the left edge of the
  * rank, get last square from previous rank (or if at right edge, get first
  * square from next rank). Cycles back after getting to bottom left or top
