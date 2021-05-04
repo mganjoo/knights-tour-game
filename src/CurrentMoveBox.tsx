@@ -50,7 +50,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
         }
         animate={targetStyle}
         className={classNames(
-          "py-2 px-4 text-sm font-medium flex items-center space-x-2 text-white lg:text-base",
+          "py-2 px-4 text-sm font-medium flex items-center text-white lg:text-base",
           state === "FINISHED"
             ? "bg-green-700"
             : state === "CAPTURED" || state === "KNIGHT_ATTACKED"
@@ -69,9 +69,9 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
           <>Oops, can't go there!</>
         ) : (
           <>
-            <ChevronDoubleUpIcon className="w-4 h-4" />
+            <ChevronDoubleUpIcon className="w-4 h-4 mr-2" />
             <span>Next square to visit</span>
-            <span className="text-base lg:text-lg">{targetSquare || "-"}</span>
+            <span className="ml-4">{targetSquare || "-"}</span>
           </>
         )}
       </motion.div>

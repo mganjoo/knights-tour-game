@@ -22,7 +22,7 @@ const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
           </span>
           <motion.span
             key={printValue(value)}
-            className="text-lg mb-1 sm:text-xl md:text-2xl"
+            className="text-lg mb-1 md:text-2xl"
             animate={{ opacity: 1, scale: 1 }}
             initial={
               shouldReduceMotion

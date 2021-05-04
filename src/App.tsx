@@ -204,10 +204,10 @@ const App: React.FC = () => {
   )
 
   return (
-    <div className="w-full min-h-screen bg-blue-gray-100 text-blue-gray-900 dark:bg-blue-gray-800 dark:text-white">
-      <div className="max-w-md mx-auto p-3 md:max-w-5xl md:p-6">
-        <main className="grid md:grid-cols-3 gap-y-4 pb-6 md:gap-x-6 md:gap-y-6 md:items-center">
-          <div className="relative col-start-1 row-start-2 md:self-start md:row-start-1 md:row-span-4 md:col-span-2">
+    <div className="min-h-screen bg-blue-gray-100 text-blue-gray-900 dark:bg-blue-gray-800 dark:text-white">
+      <div className="max-w-lg mx-auto px-4 md:px-6 md:max-w-screen-lg">
+        <main className="grid pt-4 pb-6 md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6 md:items-center">
+          <div className="col-start-1 row-start-2 md:row-start-1 md:row-span-4 md:col-span-2">
             <Board
               state={state}
               knightSquare={knightSquare}
@@ -222,12 +222,12 @@ const App: React.FC = () => {
               showInitialGuideArrows={!onboardingDone}
             />
           </div>
-          <div className="row-start-1 col-start-1 grid justify-items-center gap-x-3 md:col-start-3 md:gap-x-0 md:gap-y-3 md:items-center lg:gap-y-4">
+          <div className="row-start-1 col-start-1 grid justify-items-center gap-x-3 md:col-start-3 md:grid-cols-2 md:gap-x-0 md:gap-y-4 md:items-center lg:gap-y-5">
             <div className="row-start-1 col-start-1 row-span-2 md:row-span-1 md:col-span-2">
-              <h1 className="text-xl font-semibold mb-2 md:text-2xl lg:mb-3 lg:text-3xl">
+              <h1 className="text-xl font-semibold mb-2 md:text-2xl lg:text-3xl">
                 Knight-Queen Tour
               </h1>
-              <p className="text-sm lg:text-lg">
+              <p className="text-sm lg:text-base">
                 Visit every square on the board with the knight, in order,
                 starting at the {DEFAULT_STARTING_KNIGHT_SQUARE} corner. Avoid
                 squares that are attacked by the queen!
@@ -235,13 +235,13 @@ const App: React.FC = () => {
             </div>
             <div className="row-start-1 col-start-2 md:row-start-2 md:col-start-1">
               <button
-                className="rounded-md border border-blue-300 mt-1 px-3 py-2 text-xs font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-5 md:text-sm lg:text-base dark:border-transparent"
+                className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500 lg:px-4 lg:text-base"
                 onClick={restartGame}
               >
                 New game
               </button>
             </div>
-            <div className="row-start-2 col-start-2 text-sm font-semibold md:text-lg md:w-16">
+            <div className="row-start-2 col-start-2 text-base font-semibold md:text-lg lg:text-xl">
               {formatSeconds(elapsed)}
             </div>
           </div>
@@ -272,8 +272,8 @@ const App: React.FC = () => {
               ]}
             />
           </div>
-          <div className="flex flex-col pt-2 items-center md:col-start-3">
-            <h2 className="mb-3 font-medium text-sm sm:text-base md:text-lg lg:text-xl">
+          <div className="flex flex-col mt-2 items-center md:col-start-3">
+            <h2 className="mb-2 font-medium text-base md:text-lg md:mb">
               Increase difficulty
             </h2>
             <SettingsToggle
@@ -288,15 +288,15 @@ const App: React.FC = () => {
             />
           </div>
         </main>
-        <footer className="text-xs text-center mx-5 pt-4 pb-10 border-t border-blue-gray-400 text-blue-gray-700 md:text-sm md:mx-0 dark:border-blue-gray-300 dark:text-blue-gray-200">
+        <footer className="text-xs text-center mx-5 pt-4 pb-12 border-t border-blue-gray-400 text-blue-gray-700 md:text-sm md:mx-0 dark:border-blue-gray-300 dark:text-blue-gray-200">
           Built by{" "}
-          <a href="https://github.com/mganjoo" className="underline">
+          <a href="https://github.com/mganjoo" className="link-default">
             @mganjoo
           </a>
           .{" "}
           <a
             href="https://github.com/mganjoo/knights-tour-game"
-            className="underline"
+            className="link-default"
           >
             View source code on GitHub
           </a>

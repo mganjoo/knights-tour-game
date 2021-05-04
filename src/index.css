@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
+
+.link-default {
+  @apply underline focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-offset-2 focus-visible:ring-light-blue-500 focus-visible:ring-offset-blue-gray-100;
+}
+
 @tailwind utilities;
