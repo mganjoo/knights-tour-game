@@ -15,7 +15,7 @@ function getReactKey(state: BoardState, targetSquare: Square | undefined) {
   // Key determines which state changes get animated
   switch (state) {
     case "PLAYING":
-      return `next_${targetSquare}`
+      return targetSquare ? `next_${targetSquare}` : "other"
     case "CAPTURED":
     case "KNIGHT_ATTACKED":
       return "attacked"
@@ -55,7 +55,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
             ? "bg-green-700"
             : state === "CAPTURED" || state === "KNIGHT_ATTACKED"
             ? "bg-red-600 text-white"
-            : state === "NOT_STARTED"
+            : state === "NOT_STARTED" || !targetSquare
             ? "bg-blue-gray-200 text-blue-gray-600 dark:bg-blue-gray-700 dark:text-blue-gray-100"
             : "bg-yellow-700"
         )}
