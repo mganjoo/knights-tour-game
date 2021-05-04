@@ -31,7 +31,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
   targetSquare,
   attackEndsGame,
 }) => {
-  // Don't animate transition of box if user has enabled reduce motion
+  // Reduce animation of box transition if user has enabled reduce motion
   const shouldReduceMotion = useReducedMotion()
   const key = getReactKey(state, targetSquare)
   const targetStyle = { opacity: 1, y: 0, scale: 1 }
@@ -41,7 +41,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
         key={key}
         initial={
           state === "NOT_STARTED" || shouldReduceMotion
-            ? targetStyle
+            ? { opacity: 0, y: 0, scale: 0.9 }
             : {
                 opacity: 0,
                 y: 50,

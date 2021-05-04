@@ -1,5 +1,5 @@
 import React from "react"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 
 interface ScoreboardProps {
   tickers: {
@@ -11,6 +11,8 @@ interface ScoreboardProps {
 const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
   const printValue = (s: string | number | null | undefined) =>
     s !== undefined && s !== null ? s : "-"
+  // Reduce animation of box transition if user has enabled reduce motion
+  const shouldReduceMotion = useReducedMotion()
   return (
     <div className="grid grid-cols-4 items-start md:grid-cols-2 md:gap-y-4">
       {tickers.map(({ label, value }) => (
@@ -22,7 +24,11 @@ const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
             key={printValue(value)}
             className="text-lg mb-1 sm:text-xl md:text-2xl"
             animate={{ opacity: 1, scale: 1 }}
-            initial={{ opacity: 0.4, scale: 0.5 }}
+            initial={
+              shouldReduceMotion
+                ? { opacity: 0.4, scale: 0.9 }
+                : { opacity: 0.4, scale: 0.5 }
+            }
           >
             {printValue(value)}
           </motion.span>
