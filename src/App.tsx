@@ -15,6 +15,7 @@ import {
 import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
+import { useBeforeUnload } from "react-use"
 
 const DEFAULT_QUEEN_SQUARE = "d5"
 
@@ -185,6 +186,11 @@ const App: React.FC = () => {
     },
     800,
     state === "KNIGHT_ATTACKED"
+  )
+
+  useBeforeUnload(
+    state === "PLAYING" || state === "KNIGHT_ATTACKED",
+    "Closing the window will lose puzzle progress, are you sure?"
   )
 
   return (
