@@ -4,6 +4,7 @@ import {
   Square,
   getSquareIncrement,
   attackedByQueen,
+  incrementWhileAttacked,
   SQUARES,
 } from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
@@ -18,21 +19,6 @@ import SettingsToggle from "./SettingsToggle"
 import { useBeforeUnload } from "react-use"
 
 const DEFAULT_QUEEN_SQUARE = "d5"
-
-function incrementWhileAttacked(
-  square: Square,
-  queenSquare: Square,
-  direction: "previous" | "next"
-): Square {
-  let finalSquare = square
-  while (
-    attackedByQueen(finalSquare, queenSquare) ||
-    finalSquare === queenSquare
-  ) {
-    finalSquare = getSquareIncrement(finalSquare, direction)
-  }
-  return finalSquare
-}
 
 const DEFAULT_STARTING_KNIGHT_SQUARE: Square = "h8"
 const DEFAULT_ENDING_KNIGHT_SQUARE: Square = "a1"
@@ -103,19 +89,18 @@ const App: React.FC = () => {
       queenSquareToUse,
       "previous"
     )
+    const nextSquare = incrementWhileAttacked(
+      getSquareIncrement(startingKnightSquare, "previous"),
+      queenSquareToUse,
+      "previous"
+    )
     setState("PLAYING")
     setKnightSquare(startingKnightSquare)
     setQueenSquare(queenSquareToUse)
     setElapsed(0)
     setNumMoves(0)
     setVisitedSquares(ImmutableSet([startingKnightSquare]))
-    setTargetSquare(
-      incrementWhileAttacked(
-        getSquareIncrement(startingKnightSquare, "previous"),
-        queenSquareToUse,
-        "previous"
-      )
-    )
+    setTargetSquare(nextSquare)
   }, [])
   const restartGame = useCallback(() => {
     setState("RESTARTING")
@@ -149,13 +134,12 @@ const App: React.FC = () => {
           }
           setTargetSquare(undefined)
         } else {
-          setTargetSquare(
-            incrementWhileAttacked(
-              getSquareIncrement(targetSquare, "previous"),
-              queenSquare,
-              "previous"
-            )
+          const newTargetSquare = incrementWhileAttacked(
+            getSquareIncrement(targetSquare, "previous"),
+            queenSquare,
+            "previous"
           )
+          setTargetSquare(newTargetSquare)
         }
       }
     },

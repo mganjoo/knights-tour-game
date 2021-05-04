@@ -81,6 +81,8 @@ const QUEEN_ATTACKS: (0 | 1)[] = [
   1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0,
 ]
 
+type IncrementDirection = "previous" | "next"
+
 /**
  * Returns potential target squares for a knight from the current square.
  *
@@ -179,13 +181,14 @@ export function attackedByQueen(square: Square, queenSquare: Square): boolean {
  * rank, get last square from previous rank (or if at right edge, get first
  * square from next rank). Cycles back after getting to bottom left or top
  * right of square.
+ *
  * @param square Current square.
  * @param direction previous (decreasing rank/file) or next (increasing)
- * @returns Square to left.
+ * @returns Previous or next square.
  */
 export function getSquareIncrement(
   square: Square,
-  direction: "previous" | "next"
+  direction: IncrementDirection
 ): Square {
   const x88Idx = SQUARES_MAP[square]
   const increment = direction === "previous" ? -1 : 1
@@ -198,4 +201,151 @@ export function getSquareIncrement(
     }
   }
   return INVERSE_SQUARES_MAP[nextX88Idx]
+}
+
+/**
+ * Increments square using getSquareIncrement() while the square is attacked
+ * by a queen on `queenSquare`.
+ *
+ * @param square square to increment
+ * @param queenSquare square that queen is placed on
+ * @param direction previous (decreasing rank/file) or next (increasing)
+ * @returns first previous or next square that is not attacked
+ */
+export function incrementWhileAttacked(
+  square: Square,
+  queenSquare: Square,
+  direction: IncrementDirection
+): Square {
+  let finalSquare = square
+  while (
+    attackedByQueen(finalSquare, queenSquare) ||
+    finalSquare === queenSquare
+  ) {
+    finalSquare = getSquareIncrement(finalSquare, direction)
+  }
+  return finalSquare
+}
+
+interface BfsNode<T> {
+  node: T
+  parent?: BfsNode<T>
+  pathLength: number
+}
+
+/**
+ * Get shortest path between `start` and `end`, avoiding squares
+ * attacked by `queenSquare`.
+ *
+ * If either `start` or `end` are attacked by the queen, or a path
+ * cannot be found, return undefined.
+ *
+ * @param start starting square
+ * @param end ending square
+ * @param queenSquare square where queen is placed
+ * @returns an array of squares (a path) if found, or undefined if not.
+ */
+export function getShortestKnightPath(
+  start: Square,
+  end: Square,
+  queenSquare: Square
+): Square[] | undefined {
+  if (
+    attackedByQueen(start, queenSquare) ||
+    attackedByQueen(end, queenSquare)
+  ) {
+    return undefined
+  }
+
+  if (start === end) {
+    return [start, end]
+  }
+
+  let bfsQueue: Array<BfsNode<Square>> = [{ node: start, pathLength: 0 }]
+  let visited: Array<Square> = []
+
+  const constructPath = (n: BfsNode<Square>) => {
+    let next = n
+    let path = [next.node]
+    while (next.parent) {
+      next = next.parent
+      path.unshift(next.node)
+    }
+    return path
+  }
+
+  while (bfsQueue.length) {
+    let next = bfsQueue.shift()
+
+    if (next === undefined) {
+      return undefined
+    } else if (!visited.includes(next.node)) {
+      if (next.node === end) {
+        // Path found (or too long); now construct it
+        return constructPath(next)
+      }
+
+      // Not yet at end; mark as visited and enqueue neighbors
+      visited.push(next.node)
+
+      const dests = getKnightDests(next.node, {
+        queenSquare,
+        excludeAttackedSquares: true,
+      })
+      for (const d of dests) {
+        bfsQueue.push({
+          node: d,
+          parent: next,
+          pathLength: next.pathLength + 1,
+        })
+      }
+    }
+  }
+}
+
+/**
+ * Get solution to knight-queen tour puzzle, starting at `startingSquare` and
+ * ending at `endingSquare`, with queen on `queenSquare`.
+ *
+ * @param startingSquare starting square
+ * @param endingSquare ending square
+ * @param queenSquare location of square
+ * @returns an array (path) to solve the puzzle, or undefined
+ */
+export function getPuzzleKnightPath(
+  startingSquare: Square,
+  endingSquare: Square,
+  queenSquare: Square
+): Square[] | undefined {
+  const finalStartingSquare = incrementWhileAttacked(
+    startingSquare,
+    queenSquare,
+    "previous"
+  )
+  const finalEndingSquare = incrementWhileAttacked(
+    endingSquare,
+    queenSquare,
+    "next"
+  )
+
+  let start = finalStartingSquare
+  let fullPath: Array<Square> = []
+
+  while (start !== finalEndingSquare) {
+    const end = incrementWhileAttacked(
+      getSquareIncrement(start, "previous"),
+      queenSquare,
+      "previous"
+    )
+
+    const path = getShortestKnightPath(start, end, queenSquare)
+    if (path) {
+      fullPath.push(...path.slice(0, -1))
+      start = path[path.length - 1]
+    } else {
+      return undefined
+    }
+  }
+
+  return fullPath
 }
