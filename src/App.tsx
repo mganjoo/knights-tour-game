@@ -163,7 +163,7 @@ const App: React.FC = () => {
   )
 
   return (
-    <div className="w-full min-h-screen bg-blue-gray-100 text-blue-gray-900">
+    <div className="w-full min-h-screen bg-blue-gray-100 text-blue-gray-900 dark:bg-blue-gray-800 dark:text-white">
       <div className="max-w-md mx-auto p-3 md:max-w-5xl md:p-6">
         <main className="grid md:grid-cols-3 gap-y-4 pb-6 md:gap-x-6 md:gap-y-6 md:items-center">
           <div className="relative col-start-1 row-start-2 md:self-start md:row-start-1 md:row-span-4 md:col-span-2">
@@ -192,7 +192,7 @@ const App: React.FC = () => {
             </div>
             <div className="flex flex-col justify-center items-center mt-1 space-y-3 md:flex-row md:w-full md:justify-around md:mt-4 md:space-y-0 md:space-x-4">
               <button
-                className="rounded-md border border-blue-300 px-3 py-2 text-xs font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-5 md:text-sm lg:text-base"
+                className="rounded-md border border-blue-300 px-3 py-2 text-xs font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-5 md:text-sm lg:text-base dark:border-transparent"
                 onClick={startGame}
               >
                 {state === "NOT_STARTED" ? "Start" : "Restart"}
@@ -245,7 +245,7 @@ const App: React.FC = () => {
             />
           </div>
         </main>
-        <footer className="text-xs text-center mx-5 pt-4 pb-10 border-t border-blue-gray-400 text-blue-gray-700 md:text-sm md:mx-0">
+        <footer className="text-xs text-center mx-5 pt-4 pb-10 border-t border-blue-gray-400 text-blue-gray-700 md:text-sm md:mx-0 dark:border-blue-gray-300 dark:text-blue-gray-200">
           Built by{" "}
           <a href="https://github.com/mganjoo" className="underline">
             @mganjoo
