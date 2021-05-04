@@ -219,8 +219,8 @@ const App: React.FC = () => {
               showTargetArrow={!onboardingDone && visitedSquares.size < 2}
             />
           </div>
-          <div className="row-start-1 col-start-1 flex items-start justify-between space-x-3 md:col-start-3 md:flex-col md:space-x-0">
-            <div>
+          <div className="row-start-1 col-start-1 grid justify-items-center gap-x-3 md:col-start-3 md:gap-x-0 md:gap-y-3 md:items-center lg:gap-y-4">
+            <div className="row-start-1 col-start-1 row-span-2 md:row-span-1 md:col-span-2">
               <h1 className="text-xl font-semibold mb-2 md:text-2xl lg:mb-3 lg:text-3xl">
                 Knight-Queen Tour
               </h1>
@@ -230,16 +230,16 @@ const App: React.FC = () => {
                 attacked by the queen!
               </p>
             </div>
-            <div className="flex flex-col justify-center items-center mt-1 space-y-3 flex-shrink-0 md:flex-row md:w-full md:justify-around md:mt-4 md:space-y-0 md:space-x-4">
+            <div className="row-start-1 col-start-2 md:row-start-2 md:col-start-1">
               <button
-                className="rounded-md border border-blue-300 px-3 py-2 text-xs font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-5 md:text-sm lg:text-base dark:border-transparent"
+                className="rounded-md border border-blue-300 mt-1 px-3 py-2 text-xs font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-5 md:text-sm lg:text-base dark:border-transparent"
                 onClick={restartGame}
               >
                 New game
               </button>
-              <div className="text-sm font-semibold md:text-lg md:w-16 md:text-left">
-                {formatSeconds(elapsed)}
-              </div>
+            </div>
+            <div className="row-start-2 col-start-2 text-sm font-semibold md:text-lg md:w-16">
+              {formatSeconds(elapsed)}
             </div>
           </div>
           <div className="md:col-start-3">
