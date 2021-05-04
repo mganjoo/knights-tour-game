@@ -281,7 +281,7 @@ export function getShortestKnightPath(
       return undefined
     } else if (!visited.includes(next.node)) {
       if (next.node === end) {
-        // Path found (or too long); now construct it
+        // Path found; now construct it
         return constructPath(next)
       }
 
