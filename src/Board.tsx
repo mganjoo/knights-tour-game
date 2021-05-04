@@ -10,6 +10,7 @@ import { useReducedMotion } from "framer-motion"
 
 export type BoardState =
   | "NOT_STARTED"
+  | "RESTARTING"
   | "PLAYING"
   | "KNIGHT_ATTACKED"
   | "FINISHED"

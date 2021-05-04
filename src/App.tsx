@@ -117,6 +117,9 @@ const App: React.FC = () => {
       )
     )
   }, [])
+  const restartGame = useCallback(() => {
+    setState("RESTARTING")
+  }, [])
   const handleMove = useCallback(
     (from: Square, to: Square) => {
       setKnightSquare(to)
@@ -188,6 +191,14 @@ const App: React.FC = () => {
     state === "KNIGHT_ATTACKED"
   )
 
+  useConditionalTimeout(
+    () => {
+      startGame()
+    },
+    50,
+    state === "RESTARTING"
+  )
+
   useBeforeUnload(
     state === "PLAYING" || state === "KNIGHT_ATTACKED",
     "Closing the window will lose puzzle progress, are you sure?"
@@ -225,9 +236,9 @@ const App: React.FC = () => {
             <div className="flex flex-col justify-center items-center mt-1 space-y-3 md:flex-row md:w-full md:justify-around md:mt-4 md:space-y-0 md:space-x-4">
               <button
                 className="rounded-md border border-blue-300 px-3 py-2 text-xs font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-5 md:text-sm lg:text-base dark:border-transparent"
-                onClick={startGame}
+                onClick={restartGame}
               >
-                {state === "NOT_STARTED" ? "Start" : "Restart"}
+                New game
               </button>
               <div className="text-sm font-semibold md:text-lg md:w-16 md:text-left">
                 {formatSeconds(elapsed)}
