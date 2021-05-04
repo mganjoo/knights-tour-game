@@ -219,7 +219,7 @@ const App: React.FC = () => {
             </div>
             <div className="flex flex-col justify-center items-center mt-1 space-y-3 md:flex-row md:w-full md:justify-around md:mt-4 md:space-y-0 md:space-x-4">
               <button
-                className="rounded-md border border-blue-300 px-3 py-2 text-xs font-medium shadow-sm text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-5 md:text-sm lg:text-base dark:border-transparent"
+                className="rounded-md border border-blue-300 px-3 py-2 text-xs font-medium shadow-sm whitespace-nowrap text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 md:px-5 md:text-sm lg:text-base dark:border-transparent"
                 onClick={restartGame}
               >
                 New game
