@@ -56,7 +56,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
             : state === "CAPTURED" || state === "KNIGHT_ATTACKED"
             ? "bg-red-600 text-white"
             : state === "NOT_STARTED"
-            ? "bg-blue-gray-700 text-blue-gray-100"
+            ? "bg-blue-gray-200 text-blue-gray-600 dark:bg-blue-gray-700 dark:text-blue-gray-100"
             : "bg-yellow-700"
         )}
       >
