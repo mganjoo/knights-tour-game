@@ -125,8 +125,8 @@ const App: React.FC = () => {
       // If we move to a new target, update visited + target squares
       if (to === targetSquare) {
         setVisitedSquares(visitedSquares.add(to))
-        if (visitedSquares.size > 2) {
-          // After a successful square visit, mark user
+        if (visitedSquares.size >= 3) {
+          // After three successful square visits, mark user
           // as onboarded (stop showing arrows)
           setOnboardingDone(true)
         }
@@ -197,7 +197,9 @@ const App: React.FC = () => {
   )
 
   useBeforeUnload(
-    state === "PLAYING" || state === "KNIGHT_ATTACKED",
+    // Prompt user before closing if at least two squares have been visited
+    (state === "PLAYING" || state === "KNIGHT_ATTACKED") &&
+      visitedSquares.size >= 2,
     "Closing the window will lose puzzle progress, are you sure?"
   )
 
