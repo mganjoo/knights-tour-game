@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useMemo } from "react"
 import Board, { BoardState } from "./Board"
 import {
   Square,
@@ -16,26 +16,30 @@ import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
 
-const QUEEN_SQUARE: Square = "d5"
+const DEFAULT_QUEEN_SQUARE = "d5"
 
 function incrementWhileAttacked(
   square: Square,
+  queenSquare: Square,
   direction: "previous" | "next"
 ): Square {
   let finalSquare = square
   while (
-    attackedByQueen(finalSquare, QUEEN_SQUARE) ||
-    finalSquare === QUEEN_SQUARE
+    attackedByQueen(finalSquare, queenSquare) ||
+    finalSquare === queenSquare
   ) {
     finalSquare = getSquareIncrement(finalSquare, direction)
   }
   return finalSquare
 }
 
-let STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked("h8", "previous")
-let ENDING_KNIGHT_SQUARE: Square = incrementWhileAttacked("a1", "next")
-let NUMBER_OF_SQUARES =
-  SQUARES.filter((s) => !attackedByQueen(s, QUEEN_SQUARE)).length - 1
+const DEFAULT_STARTING_KNIGHT_SQUARE: Square = "h8"
+const DEFAULT_ENDING_KNIGHT_SQUARE: Square = "a1"
+const DEFAULT_SAFE_STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked(
+  DEFAULT_STARTING_KNIGHT_SQUARE,
+  DEFAULT_QUEEN_SQUARE,
+  "previous"
+)
 
 function formatSeconds(seconds: number) {
   const h = Math.floor(seconds / 3600)
@@ -46,8 +50,9 @@ function formatSeconds(seconds: number) {
 
 const App: React.FC = () => {
   const [state, setState] = useState<BoardState>("NOT_STARTED")
+  const [queenSquare, setQueenSquare] = useState<Square>(DEFAULT_QUEEN_SQUARE)
   const [knightSquare, setKnightSquare] = useState<Square>(
-    STARTING_KNIGHT_SQUARE
+    DEFAULT_SAFE_STARTING_KNIGHT_SQUARE
   )
   const [preAttackKnightSquare, setPreAttackKnightSquare] = useState<Square>()
   const [visitedSquares, setVisitedSquares] = useState<ImmutableSet<Square>>(
@@ -81,15 +86,32 @@ const App: React.FC = () => {
     "v1.onboarding_done",
     false
   )
+  const endingKnightSquare = useMemo(
+    () =>
+      incrementWhileAttacked(DEFAULT_ENDING_KNIGHT_SQUARE, queenSquare, "next"),
+    [queenSquare]
+  )
+  const numSquares = useMemo(
+    () => SQUARES.filter((s) => !attackedByQueen(s, queenSquare)).length - 1,
+    [queenSquare]
+  )
   const startGame = useCallback(() => {
+    const queenSquareToUse = DEFAULT_QUEEN_SQUARE
+    const startingKnightSquare = incrementWhileAttacked(
+      DEFAULT_STARTING_KNIGHT_SQUARE,
+      queenSquareToUse,
+      "previous"
+    )
     setState("PLAYING")
-    setKnightSquare(STARTING_KNIGHT_SQUARE)
+    setKnightSquare(startingKnightSquare)
+    setQueenSquare(queenSquareToUse)
     setElapsed(0)
     setNumMoves(0)
-    setVisitedSquares(ImmutableSet([STARTING_KNIGHT_SQUARE]))
+    setVisitedSquares(ImmutableSet([startingKnightSquare]))
     setTargetSquare(
       incrementWhileAttacked(
-        getSquareIncrement(STARTING_KNIGHT_SQUARE, "previous"),
+        getSquareIncrement(startingKnightSquare, "previous"),
+        queenSquareToUse,
         "previous"
       )
     )
@@ -101,7 +123,7 @@ const App: React.FC = () => {
       setNumMoves(newNumMoves)
 
       // If the knight is attacked, we will need to reset back to original square
-      if (attackedByQueen(to, QUEEN_SQUARE)) {
+      if (attackedByQueen(to, queenSquare)) {
         setState("KNIGHT_ATTACKED")
         setPreAttackKnightSquare(from)
       }
@@ -113,7 +135,7 @@ const App: React.FC = () => {
           // After two moves, mark user as onboarded
           setOnboardingDone(true)
         }
-        if (targetSquare === ENDING_KNIGHT_SQUARE) {
+        if (targetSquare === endingKnightSquare) {
           setState("FINISHED")
           if (bestSeconds === null || elapsed < bestSeconds) {
             setBestSeconds(elapsed)
@@ -126,6 +148,7 @@ const App: React.FC = () => {
           setTargetSquare(
             incrementWhileAttacked(
               getSquareIncrement(targetSquare, "previous"),
+              queenSquare,
               "previous"
             )
           )
@@ -133,15 +156,17 @@ const App: React.FC = () => {
       }
     },
     [
+      numMoves,
       targetSquare,
       visitedSquares,
+      endingKnightSquare,
+      setOnboardingDone,
       bestSeconds,
-      setBestSeconds,
       elapsed,
       bestNumMoves,
-      numMoves,
+      setBestSeconds,
       setBestNumMoves,
-      setOnboardingDone,
+      queenSquare,
     ]
   )
 
@@ -170,7 +195,7 @@ const App: React.FC = () => {
             <Board
               state={state}
               knightSquare={knightSquare}
-              queenSquare={state === "CAPTURED" ? knightSquare : QUEEN_SQUARE}
+              queenSquare={state === "CAPTURED" ? knightSquare : queenSquare}
               visitedSquares={visitedSquares}
               targetSquare={targetSquare}
               onKnightMove={handleMove}
@@ -186,8 +211,9 @@ const App: React.FC = () => {
                 Knight-Queen Tour
               </h1>
               <p className="text-sm lg:text-lg">
-                Visit every square with the knight, in order, starting at the h8
-                corner. Avoid squares that are attacked by the queen!
+                Visit every square with the knight, in order, starting at the{" "}
+                {DEFAULT_STARTING_KNIGHT_SQUARE} corner. Avoid squares that are
+                attacked by the queen!
               </p>
             </div>
             <div className="flex flex-col justify-center items-center mt-1 space-y-3 md:flex-row md:w-full md:justify-around md:mt-4 md:space-y-0 md:space-x-4">
@@ -214,7 +240,7 @@ const App: React.FC = () => {
               tickers={[
                 {
                   label: "More squares",
-                  value: NUMBER_OF_SQUARES - visitedSquares.size,
+                  value: numSquares - visitedSquares.size,
                 },
                 { label: "Moves", value: numMoves },
                 {
