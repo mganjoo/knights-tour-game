@@ -49,6 +49,10 @@ type BoardProps = {
    * Whether to draw an arrow to the next target square.
    */
   showTargetArrow?: boolean
+  /**
+   * Whether to show the initial arrows that demonstrate the knight's path.
+   */
+  showInitialGuideArrows?: boolean
 }
 
 // "check" from https://heroicons.com/
@@ -67,7 +71,6 @@ const EMPTY_BOARD_FEN = "8/8/8/8/8/8/8/8 w - - 0 1"
  */
 function makeInitialConfig(shouldReduceMotion: boolean | null): Config {
   return {
-    // Empty board
     fen: EMPTY_BOARD_FEN,
     orientation: "white",
     highlight: {
@@ -104,7 +107,7 @@ const Board: React.FC<BoardProps> = ({
   visitedSquares,
   hideVisitedSquares,
   showTargetArrow,
-  children,
+  showInitialGuideArrows,
 }) => {
   const shouldReduceMotion = useReducedMotion()
   const makeConfig = useCallback(() => makeInitialConfig(shouldReduceMotion), [
@@ -112,11 +115,8 @@ const Board: React.FC<BoardProps> = ({
   ])
   const { el, set } = useChessground(makeConfig)
   const fen = useMemo<string | undefined>(
-    () =>
-      state !== "NOT_STARTED"
-        ? getPuzzleFen(knightSquare, queenSquare)
-        : EMPTY_BOARD_FEN,
-    [knightSquare, queenSquare, state]
+    () => getPuzzleFen(knightSquare, queenSquare),
+    [knightSquare, queenSquare]
   )
   const dests = useMemo<Map<cg.Key, cg.Key[]>>(
     () =>
@@ -143,6 +143,13 @@ const Board: React.FC<BoardProps> = ({
     [dests, onKnightMove]
   )
   const shapes = useMemo<DrawShape[]>(() => {
+    const onboardingShapes: DrawShape[] =
+      state === "NOT_STARTED" && showInitialGuideArrows
+        ? [
+            { orig: knightSquare, dest: "a8", brush: "blue" },
+            { orig: "h7", dest: "a7", brush: "blue" },
+          ]
+        : []
     const targetShapes: DrawShape[] =
       targetSquare && (state === "PLAYING" || state === "KNIGHT_ATTACKED")
         ? [{ orig: targetSquare, customSvg: TARGET_SVG }]
@@ -179,6 +186,7 @@ const Board: React.FC<BoardProps> = ({
           }))
           .toArray()
     return targetShapes
+      .concat(onboardingShapes)
       .concat(targetArrowShapes)
       .concat(queenShapes)
       .concat(visitedShapes)
@@ -186,6 +194,7 @@ const Board: React.FC<BoardProps> = ({
     targetSquare,
     state,
     showTargetArrow,
+    showInitialGuideArrows,
     knightSquare,
     queenSquare,
     hideVisitedSquares,
@@ -222,7 +231,7 @@ const Board: React.FC<BoardProps> = ({
     shapes,
   ])
 
-  return <div ref={el}>{children}</div>
+  return <div ref={el}></div>
 }
 
 export default Board

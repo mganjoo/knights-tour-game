@@ -125,7 +125,7 @@ const App: React.FC = () => {
       // If we move to a new target, update visited + target squares
       if (to === targetSquare) {
         setVisitedSquares(visitedSquares.add(to))
-        if (visitedSquares.size >= 3) {
+        if (visitedSquares.size >= 2) {
           // After three successful square visits, mark user
           // as onboarded (stop showing arrows)
           setOnboardingDone(true)
@@ -219,6 +219,7 @@ const App: React.FC = () => {
               // Show target arrow the first time the user plays,
               // for their first move
               showTargetArrow={!onboardingDone && visitedSquares.size < 2}
+              showInitialGuideArrows={!onboardingDone}
             />
           </div>
           <div className="row-start-1 col-start-1 grid justify-items-center gap-x-3 md:col-start-3 md:gap-x-0 md:gap-y-3 md:items-center lg:gap-y-4">
@@ -227,9 +228,9 @@ const App: React.FC = () => {
                 Knight-Queen Tour
               </h1>
               <p className="text-sm lg:text-lg">
-                Visit every square with the knight, in order, starting at the{" "}
-                {DEFAULT_STARTING_KNIGHT_SQUARE} corner. Avoid squares that are
-                attacked by the queen!
+                Visit every square on the board with the knight, in order,
+                starting at the {DEFAULT_STARTING_KNIGHT_SQUARE} corner. Avoid
+                squares that are attacked by the queen!
               </p>
             </div>
             <div className="row-start-1 col-start-2 md:row-start-2 md:col-start-1">
