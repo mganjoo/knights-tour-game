@@ -10,7 +10,9 @@ interface ChessgroundFunctions {
   set: (config: Config, shapes?: DrawShape[]) => void
 }
 
-export function useChessground(initialConfig: Config): ChessgroundFunctions {
+export function useChessground(
+  initialConfig: () => Config
+): ChessgroundFunctions {
   const el = useRef<HTMLDivElement>(null)
   const [ground, setGround] = useState<ChessgroundApi>()
   const set = useCallback(
@@ -27,7 +29,7 @@ export function useChessground(initialConfig: Config): ChessgroundFunctions {
 
   useEffect(() => {
     if (el.current && !ground) {
-      setGround(Chessground(el.current, initialConfig))
+      setGround(Chessground(el.current, initialConfig()))
     }
     return () => {
       if (ground) {

@@ -6,6 +6,7 @@ import { getPuzzleFen, getKnightDests, Square } from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
 import { useChessground } from "./Chessground"
 import { DrawShape } from "chessground/draw"
+import { useReducedMotion } from "framer-motion"
 
 export type BoardState =
   | "NOT_STARTED"
@@ -63,32 +64,34 @@ const EMPTY_BOARD_FEN = "8/8/8/8/8/8/8/8 w - - 0 1"
  * One-time configuration is set initially. Some of this
  * configuration never needs to change.
  */
-const INITIAL_CHESSGROUND_CONFIG: Config = {
-  // Empty board
-  fen: EMPTY_BOARD_FEN,
-  orientation: "white",
-  highlight: {
-    lastMove: false,
-  },
-  animation: {
-    enabled: true,
-  },
-  movable: {
-    free: false,
-  },
-  premovable: {
-    enabled: false,
-  },
-  predroppable: {
-    enabled: false,
-  },
-  draggable: {
-    enabled: true,
-    showGhost: false,
-  },
-  drawable: {
-    enabled: false,
-  },
+function makeInitialConfig(shouldReduceMotion: boolean | null): Config {
+  return {
+    // Empty board
+    fen: EMPTY_BOARD_FEN,
+    orientation: "white",
+    highlight: {
+      lastMove: false,
+    },
+    animation: {
+      enabled: !!!shouldReduceMotion,
+    },
+    movable: {
+      free: false,
+    },
+    premovable: {
+      enabled: false,
+    },
+    predroppable: {
+      enabled: false,
+    },
+    draggable: {
+      enabled: true,
+      showGhost: false,
+    },
+    drawable: {
+      enabled: false,
+    },
+  }
 }
 
 const Board: React.FC<BoardProps> = ({
@@ -102,7 +105,11 @@ const Board: React.FC<BoardProps> = ({
   showTargetArrow,
   children,
 }) => {
-  const { el, set } = useChessground(INITIAL_CHESSGROUND_CONFIG)
+  const shouldReduceMotion = useReducedMotion()
+  const makeConfig = useCallback(() => makeInitialConfig(shouldReduceMotion), [
+    shouldReduceMotion,
+  ])
+  const { el, set } = useChessground(makeConfig)
   const fen = useMemo<string | undefined>(
     () =>
       state !== "NOT_STARTED"
@@ -193,6 +200,9 @@ const Board: React.FC<BoardProps> = ({
       turnColor: "white",
       // If the puzzle is ongoing, select current knight square by default
       selected: state === "PLAYING" ? knightSquare : undefined,
+      animation: {
+        enabled: !!!shouldReduceMotion,
+      },
       movable: {
         dests: dests,
         color: "white",
@@ -200,7 +210,16 @@ const Board: React.FC<BoardProps> = ({
       },
     }
     set(config, shapes)
-  }, [set, fen, state, knightSquare, dests, handleMove, shapes])
+  }, [
+    set,
+    fen,
+    state,
+    knightSquare,
+    shouldReduceMotion,
+    dests,
+    handleMove,
+    shapes,
+  ])
 
   return <div ref={el}>{children}</div>
 }

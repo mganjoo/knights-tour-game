@@ -1,5 +1,5 @@
 import React from "react"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { BoardState } from "./Board"
 import { Square } from "./ChessLogic"
 import classNames from "classnames"
@@ -31,6 +31,8 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
   targetSquare,
   attackEndsGame,
 }) => {
+  // Don't animate transition of box if user has enabled reduce motion
+  const shouldReduceMotion = useReducedMotion()
   const key = getReactKey(state, targetSquare)
   const targetStyle = { opacity: 1, y: 0, scale: 1 }
   return (
@@ -38,9 +40,13 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
       <motion.div
         key={key}
         initial={
-          state === "NOT_STARTED"
+          state === "NOT_STARTED" || shouldReduceMotion
             ? targetStyle
-            : { opacity: 0, y: 50, scale: 0.4 }
+            : {
+                opacity: 0,
+                y: 50,
+                scale: 0.4,
+              }
         }
         animate={targetStyle}
         className={classNames(
