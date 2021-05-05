@@ -330,19 +330,20 @@ const App: React.FC = () => {
             />
           </div>
         </main>
-        <footer className="text-xs text-center mx-5 pt-4 pb-12 border-t border-blue-gray-400 text-blue-gray-700 md:text-sm md:mx-0 dark:border-blue-gray-300 dark:text-blue-gray-200">
-          Built by{" "}
-          <a href="https://github.com/mganjoo" className="link-default">
-            @mganjoo
-          </a>
-          .{" "}
+        <footer className="text-xs mx-5 pt-4 pb-12 flex items-center justify-center space-x-1 border-t border-blue-gray-400 text-blue-gray-700 md:text-sm md:mx-0 dark:border-blue-gray-300 dark:text-blue-gray-200">
+          <span>
+            By{" "}
+            <a href="https://github.com/mganjoo" className="link-default">
+              @mganjoo
+            </a>
+          </span>
+          <span>&middot;</span>
           <a
             href="https://github.com/mganjoo/knights-tour-game"
             className="link-default"
           >
-            View source code on GitHub
+            View on GitHub
           </a>
-          .
         </footer>
       </div>
     </div>
