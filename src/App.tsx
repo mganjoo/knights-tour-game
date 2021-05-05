@@ -290,11 +290,17 @@ const App: React.FC = () => {
                   label: "More squares",
                   value: numSquares - visitedSquares.size,
                 },
-                { label: "Moves", value: numMoves },
+                {
+                  label: "Moves",
+                  value:
+                    numMoves !== null && numMoves > 0 ? numMoves : undefined,
+                },
                 {
                   label: "Best time",
                   value:
-                    bestSeconds !== null ? formatSeconds(bestSeconds) : "-",
+                    bestSeconds !== null && bestSeconds > 0
+                      ? formatSeconds(bestSeconds)
+                      : "-",
                 },
                 {
                   label: "Best moves",
