@@ -347,5 +347,6 @@ export function getPuzzleKnightPath(
     }
   }
 
+  fullPath.push(start)
   return fullPath
 }
