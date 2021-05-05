@@ -44,7 +44,7 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
               >
                 <Listbox.Options
                   static
-                  className="absolute w-full py-1 mb-1 bottom-full overflow-auto bg-white rounded-md shadow-lg text-sm max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none md:text-base"
+                  className="absolute w-full py-1 mb-1 bottom-full overflow-auto bg-white rounded-md shadow-lg text-sm max-h-72 ring-1 ring-black ring-opacity-5 focus:outline-none md:text-base"
                 >
                   {CANDIDATE_QUEEN_SQUARES.map((square) => (
                     <Listbox.Option
