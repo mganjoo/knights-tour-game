@@ -176,14 +176,15 @@ const Board: React.FC<BoardProps> = ({
             },
           ]
         : []
-    const visitedShapes: DrawShape[] = hideVisitedSquares
-      ? []
-      : visitedSquares
-          .map((s) => ({
-            orig: s,
-            customSvg: CHECK_SVG,
-          }))
-          .toArray()
+    const visitedShapes: DrawShape[] =
+      hideVisitedSquares || state === "NOT_STARTED"
+        ? []
+        : visitedSquares
+            .map((s) => ({
+              orig: s,
+              customSvg: CHECK_SVG,
+            }))
+            .toArray()
     return targetShapes
       .concat(onboardingShapes)
       .concat(targetArrowShapes)
