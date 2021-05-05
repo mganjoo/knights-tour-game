@@ -12,16 +12,7 @@ ReactDOM.render(
   document.getElementById("root")
 )
 
-serviceWorkerRegistration.register({
-  onUpdate: () => {
-    const answer = window.confirm(
-      `This website has been updated. Reload to display the latest version?`
-    )
-    if (answer === true) {
-      window.location.reload()
-    }
-  },
-})
+serviceWorkerRegistration.register()
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
