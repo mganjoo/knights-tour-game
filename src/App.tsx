@@ -212,6 +212,7 @@ const App: React.FC = () => {
           setKnightSquare(preAttackKnightSquare)
           setPreAttackKnightSquare(undefined)
         }
+        setState("PLAYING")
       }
     },
     800,
