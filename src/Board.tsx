@@ -209,7 +209,10 @@ const Board: React.FC<BoardProps> = ({
       // Always white to move
       turnColor: "white",
       // If the puzzle is ongoing, select current knight square by default
-      selected: state === "PLAYING" ? knightSquare : undefined,
+      selected:
+        state === "PLAYING" || state === "RESTARTING"
+          ? knightSquare
+          : undefined,
       animation: {
         enabled: !!!shouldReduceMotion,
       },
