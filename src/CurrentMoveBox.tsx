@@ -71,7 +71,9 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
           <>
             <ChevronDoubleUpIcon className="w-4 h-4 mr-2" />
             <span>Next square to visit</span>
-            <span className="ml-4">{targetSquare || "-"}</span>
+            <span className="ml-4">
+              {state === "NOT_STARTED" || !targetSquare ? "-" : targetSquare}
+            </span>
           </>
         )}
       </motion.div>
