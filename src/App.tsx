@@ -8,11 +8,7 @@ import {
   SQUARES,
 } from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
-import {
-  useConditionalTimeout,
-  useInterval,
-  useLocalStorage,
-} from "beautiful-react-hooks"
+import { useInterval, useLocalStorage } from "beautiful-react-hooks"
 import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
@@ -26,7 +22,7 @@ const DEFAULT_QUEEN_SQUARE = "d5"
 const DEFAULT_STARTING_KNIGHT_SQUARE = "h8"
 const DEFAULT_ENDING_KNIGHT_SQUARE = "a1"
 
-// "Safe" squares to be used as source and destination squares for knight
+// "Safe" square to be used as source square for knight
 const DEFAULT_SAFE_STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked(
   DEFAULT_STARTING_KNIGHT_SQUARE,
   DEFAULT_QUEEN_SQUARE,
@@ -48,11 +44,11 @@ const App: React.FC = () => {
   const [knightSquare, setKnightSquare] = useState<Square>(
     DEFAULT_SAFE_STARTING_KNIGHT_SQUARE
   )
-  const [preAttackKnightSquare, setPreAttackKnightSquare] = useState<Square>()
   const [visitedSquares, setVisitedSquares] = useState<ImmutableSet<Square>>(
-    ImmutableSet()
+    ImmutableSet([knightSquare])
   )
   const [targetSquare, setTargetSquare] = useState<Square>()
+  const [preAttackKnightSquare, setPreAttackKnightSquare] = useState<Square>()
   const [elapsed, setElapsed] = useState(0)
   const [numMoves, setNumMoves] = useState(0)
   const [loadedQueenSquare, setLoadedQueenSquare] = useLocalStorage<string>(
@@ -80,6 +76,7 @@ const App: React.FC = () => {
     false
   )
   const numSquares = useMemo(
+    // Minus 1 because queen also counts aas a square
     () => SQUARES.filter((s) => !attackedByQueen(s, queenSquare)).length - 1,
     [queenSquare]
   )
@@ -88,16 +85,17 @@ const App: React.FC = () => {
       incrementWhileAttacked(DEFAULT_ENDING_KNIGHT_SQUARE, queenSquare, "next"),
     [queenSquare]
   )
-  const resetGame = useCallback((queenSquareToUse: QueenSquare) => {
-    setQueenSquare(queenSquareToUse)
+
+  // Reset game state (knight to original position, timers reset etc)
+  const resetGame = useCallback(() => {
     const startingKnightSquare = incrementWhileAttacked(
       DEFAULT_STARTING_KNIGHT_SQUARE,
-      queenSquareToUse,
+      queenSquare,
       "previous"
     )
     const nextSquare = incrementWhileAttacked(
       getSquareIncrement(startingKnightSquare, "previous"),
-      queenSquareToUse,
+      queenSquare,
       "previous"
     )
     setKnightSquare(startingKnightSquare)
@@ -105,10 +103,8 @@ const App: React.FC = () => {
     setNumMoves(0)
     setVisitedSquares(ImmutableSet([startingKnightSquare]))
     setTargetSquare(nextSquare)
-  }, [])
-  const restartGame = useCallback(() => {
-    setState("RESTARTING")
-  }, [])
+  }, [queenSquare])
+
   const handleMove = useCallback(
     (from: Square, to: Square) => {
       setKnightSquare(to)
@@ -130,7 +126,6 @@ const App: React.FC = () => {
           setOnboardingDone(true)
         }
         if (targetSquare === endingKnightSquare) {
-          setState("FINISHED")
           if (bestSeconds === null || elapsed < bestSeconds) {
             setBestSeconds(elapsed)
           }
@@ -138,6 +133,7 @@ const App: React.FC = () => {
             setBestNumMoves(newNumMoves)
           }
           setTargetSquare(undefined)
+          setState("FINISHED")
         } else {
           setTargetSquare(
             incrementWhileAttacked(
@@ -163,38 +159,29 @@ const App: React.FC = () => {
       queenSquare,
     ]
   )
+
   const updateQueenSquare = useCallback(
-    (square: QueenSquare) => {
-      resetGame(square)
+    (square: string) => {
+      const finalSquare: QueenSquare = isQueenSquare(square)
+        ? square
+        : DEFAULT_QUEEN_SQUARE
+      setQueenSquare(finalSquare)
+      setLoadedQueenSquare(finalSquare)
+      resetGame()
       if (state === "PLAYING") {
-        // If game is in progress, restart it
-        restartGame()
+        setState("RESTARTING")
       }
     },
-    [resetGame, restartGame, state]
-  )
-  const saveAndUpdateQueenSquare = useCallback(
-    (square: QueenSquare) => {
-      setLoadedQueenSquare(square)
-      updateQueenSquare(square)
-    },
-    [setLoadedQueenSquare, updateQueenSquare]
+    [resetGame, setLoadedQueenSquare, state]
   )
 
   useEffect(() => {
+    // When the saved queen square (which may be invalid) is loaded
+    // from local storage, try to update queen square
     if (queenSquare !== loadedQueenSquare) {
-      if (isQueenSquare(loadedQueenSquare)) {
-        updateQueenSquare(loadedQueenSquare)
-      } else {
-        saveAndUpdateQueenSquare(DEFAULT_QUEEN_SQUARE)
-      }
+      updateQueenSquare(loadedQueenSquare)
     }
-  }, [
-    queenSquare,
-    loadedQueenSquare,
-    updateQueenSquare,
-    saveAndUpdateQueenSquare,
-  ])
+  }, [queenSquare, loadedQueenSquare, updateQueenSquare])
 
   useInterval(() => {
     if (state === "PLAYING" || state === "KNIGHT_ATTACKED") {
@@ -202,31 +189,33 @@ const App: React.FC = () => {
     }
   }, 1000)
 
-  // If knight is attacked, either reset to original state, or capture
-  useConditionalTimeout(
-    () => {
-      if (attackEndsGame) {
-        setState("CAPTURED")
-      } else {
-        if (preAttackKnightSquare) {
-          setKnightSquare(preAttackKnightSquare)
-          setPreAttackKnightSquare(undefined)
-        }
+  useEffect(() => {
+    if (state === "RESTARTING") {
+      const timeout = setTimeout(() => {
+        resetGame()
         setState("PLAYING")
-      }
-    },
-    800,
-    state === "KNIGHT_ATTACKED"
-  )
+      }, 50)
+      return () => clearTimeout(timeout)
+    }
+  }, [state, resetGame])
 
-  useConditionalTimeout(
-    () => {
-      resetGame(queenSquare)
-      setState("PLAYING")
-    },
-    50,
-    state === "RESTARTING"
-  )
+  useEffect(() => {
+    // Automatically transition out of attacked state
+    if (state === "KNIGHT_ATTACKED") {
+      const timeout = setTimeout(() => {
+        if (state === "KNIGHT_ATTACKED") {
+          if (attackEndsGame || !preAttackKnightSquare) {
+            setState("CAPTURED")
+          } else {
+            setKnightSquare(preAttackKnightSquare)
+            setPreAttackKnightSquare(undefined)
+            setState("PLAYING")
+          }
+        }
+      }, 800)
+      return () => clearTimeout(timeout)
+    }
+  }, [state, attackEndsGame, preAttackKnightSquare])
 
   useBeforeUnload(
     // Prompt user before closing if at least two squares have been visited
@@ -268,7 +257,7 @@ const App: React.FC = () => {
             <div className="row-start-1 col-start-2 md:row-start-2 md:col-start-1">
               <button
                 className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500 lg:px-4 lg:text-base"
-                onClick={restartGame}
+                onClick={() => setState("RESTARTING")}
               >
                 New game
               </button>
@@ -326,7 +315,7 @@ const App: React.FC = () => {
             />
             <QueenSquareSelector
               selected={queenSquare}
-              setSelected={saveAndUpdateQueenSquare}
+              setSelected={updateQueenSquare}
             />
           </div>
         </main>
