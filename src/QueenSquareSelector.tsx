@@ -3,7 +3,7 @@ import { CheckIcon, SelectorIcon } from "@heroicons/react/solid"
 import classNames from "classnames"
 import React, { Fragment } from "react"
 
-const CANDIDATE_QUEEN_SQUARES = ["d5", "e5", "d4", "e4"] as const
+const CANDIDATE_QUEEN_SQUARES = ["d5", "d4", "d2", "e5", "e4", "e2"] as const
 
 export type QueenSquare = typeof CANDIDATE_QUEEN_SQUARES[number]
 
