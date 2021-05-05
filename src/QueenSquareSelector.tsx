@@ -12,13 +12,11 @@ export function isQueenSquare(s: string): s is QueenSquare {
 }
 
 interface QueenSquareSelectorProps {
-  label: string
   selected: QueenSquare
   setSelected: (s: QueenSquare) => void
 }
 
 const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
-  label,
   selected,
   setSelected,
 }) => {
@@ -88,7 +86,7 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
             </div>
           </div>
           <Listbox.Label className="ml-2 text-sm md:text-base md:ml-3">
-            {label}
+            Change queen square
           </Listbox.Label>
         </div>
       )}

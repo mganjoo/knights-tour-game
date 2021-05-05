@@ -325,7 +325,6 @@ const App: React.FC = () => {
               onToggle={setAttackEndsGame}
             />
             <QueenSquareSelector
-              label="Change queen starting square"
               selected={queenSquare}
               setSelected={saveAndUpdateQueenSquare}
             />
