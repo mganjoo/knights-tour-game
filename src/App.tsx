@@ -288,7 +288,7 @@ const App: React.FC = () => {
             <Scoreboard
               tickers={[
                 {
-                  label: "More squares",
+                  label: "Squares left",
                   value: numSquares - visitedSquares.size,
                 },
                 {
