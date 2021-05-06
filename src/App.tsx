@@ -8,11 +8,11 @@ import {
   SQUARES,
 } from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
-import { useInterval, useLocalStorage } from "beautiful-react-hooks"
+import { useLocalStorage } from "beautiful-react-hooks"
 import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
-import { useBeforeUnload } from "react-use"
+import { useBeforeUnload, useInterval } from "react-use"
 import QueenSquareSelector, {
   isQueenSquare,
   QueenSquare,
