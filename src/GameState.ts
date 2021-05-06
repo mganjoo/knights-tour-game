@@ -102,21 +102,25 @@ function resetGameState(state: GameState): GameState {
 function handleAction(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "setQueenSquare":
-      const stateWithNewQueen = resetGameState({
-        ...state,
-        queenSquare: action.square,
-        finalTargetSquare: incrementWhileAttacked(
-          ENDING_KNIGHT_SQUARE,
-          action.square,
-          "next"
-        ),
-      })
-      return {
-        ...stateWithNewQueen,
-        boardState:
-          state.boardState.id === "PLAYING"
-            ? { id: "RESTARTING" }
-            : state.boardState,
+      if (state.queenSquare === action.square) {
+        return state
+      } else {
+        const stateWithNewQueen = resetGameState({
+          ...state,
+          queenSquare: action.square,
+          finalTargetSquare: incrementWhileAttacked(
+            ENDING_KNIGHT_SQUARE,
+            action.square,
+            "next"
+          ),
+        })
+        return {
+          ...stateWithNewQueen,
+          boardState:
+            state.boardState.id === "PLAYING"
+              ? { id: "RESTARTING" }
+              : state.boardState,
+        }
       }
     case "beginRestarting":
       return { ...state, boardState: { id: "RESTARTING" } }
