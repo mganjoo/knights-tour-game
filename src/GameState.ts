@@ -28,7 +28,7 @@ const SerializedGameStateSchema = Record({
 
 export type SerializedGameState = Static<typeof SerializedGameStateSchema>
 
-interface GameState {
+export interface GameState {
   boardState: BoardState
   queenSquare: QueenSquare
   knightSquare: Square
@@ -317,6 +317,7 @@ export default function useGameState(args: UseGameStateArgs) {
       ["NOT_STARTED", "RESTARTING", "CAPTURED", "FINISHED"].includes(
         gameState.boardState.id
       ) ||
+      (gameState.boardState.id === "KNIGHT_ATTACKED" && args.attackEndsGame) ||
       (gameState.boardState.id === "PLAYING" && gameState.numMoves === 0)
     ) {
       // Delete saved state if we're on move 0, or game is in non-playing state
@@ -341,6 +342,7 @@ export default function useGameState(args: UseGameStateArgs) {
     gameState.visitedSquares,
     removeSerializedGameState,
     setSerializedGameState,
+    args.attackEndsGame,
   ])
 
   return { gameState, doAction }

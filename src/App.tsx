@@ -6,7 +6,7 @@ import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
 import QueenSquareSelector from "./QueenSquareSelector"
 import useGameState, { DEFAULT_QUEEN_SQUARE } from "./GameState"
-import { useFlag, useNonNegative, useQueenSquareChoice } from "./Settings"
+import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
 
 function formatSeconds(seconds: number) {
   const h = Math.floor(seconds / 3600)
@@ -20,8 +20,6 @@ const App: React.FC = () => {
     "v1.loaded_queen_square",
     DEFAULT_QUEEN_SQUARE
   )
-  const [bestSeconds, setBestSeconds] = useNonNegative("v1.best_seconds")
-  const [bestNumMoves, setBestNumMoves] = useNonNegative("v1.best_num_moves")
   const [hideVisitedSquares, setHideVisitedSquares] = useFlag(
     "v1.hide_visited_squares"
   )
@@ -38,6 +36,8 @@ const App: React.FC = () => {
       1,
     [gameState.queenSquare]
   )
+  const { bestScoresMap, updateBestScores } = useBestScores("v1.best_scores")
+  const bestScores = bestScoresMap[gameState.queenSquare]
 
   useEffect(() => {
     if (gameState.visitedSquares.size >= 3) {
@@ -49,21 +49,18 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (gameState.boardState.id === "FINISHED") {
-      if (!bestSeconds || gameState.elapsed < bestSeconds) {
-        setBestSeconds(gameState.elapsed)
-      }
-      if (!bestNumMoves || gameState.numMoves < bestNumMoves) {
-        setBestNumMoves(gameState.numMoves)
-      }
+      updateBestScores({
+        queenSquare: gameState.queenSquare,
+        numMoves: gameState.numMoves,
+        elapsed: gameState.elapsed,
+      })
     }
   }, [
     gameState.boardState,
     gameState.elapsed,
     gameState.numMoves,
-    bestSeconds,
-    bestNumMoves,
-    setBestSeconds,
-    setBestNumMoves,
+    gameState.queenSquare,
+    updateBestScores,
   ])
 
   return (
@@ -137,14 +134,16 @@ const App: React.FC = () => {
                 {
                   label: "Best time",
                   value:
-                    bestSeconds && bestSeconds > 0
-                      ? formatSeconds(bestSeconds)
+                    bestScores?.bestSeconds && bestScores?.bestSeconds > 0
+                      ? formatSeconds(bestScores?.bestSeconds)
                       : "-",
                 },
                 {
                   label: "Best moves",
                   value:
-                    bestNumMoves && bestNumMoves > 0 ? bestNumMoves : undefined,
+                    bestScores?.bestMoves && bestScores?.bestSeconds > 0
+                      ? bestScores?.bestMoves
+                      : undefined,
                 },
               ]}
             />
