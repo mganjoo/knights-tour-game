@@ -262,7 +262,7 @@ const App: React.FC = () => {
                 New game
               </button>
             </div>
-            <div className="row-start-2 col-start-2 text-base font-semibold md:text-lg lg:text-xl">
+            <div className="row-start-2 col-start-2 text-base font-semibold tabular-nums md:text-lg lg:text-xl">
               {formatSeconds(elapsed)}
             </div>
           </div>
