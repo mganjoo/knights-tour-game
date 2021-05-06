@@ -8,11 +8,10 @@ import {
   SQUARES,
 } from "./ChessLogic"
 import { Set as ImmutableSet } from "immutable"
-import { useLocalStorage } from "beautiful-react-hooks"
 import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
-import { useBeforeUnload, useInterval } from "react-use"
+import { useBeforeUnload, useInterval, useLocalStorage } from "react-use"
 import QueenSquareSelector, {
   isQueenSquare,
   QueenSquare,
@@ -126,10 +125,10 @@ const App: React.FC = () => {
           setOnboardingDone(true)
         }
         if (targetSquare === endingKnightSquare) {
-          if (bestSeconds === null || elapsed < bestSeconds) {
+          if (!bestSeconds || elapsed < bestSeconds) {
             setBestSeconds(elapsed)
           }
-          if (bestNumMoves === null || newNumMoves < bestNumMoves) {
+          if (!bestNumMoves || newNumMoves < bestNumMoves) {
             setBestNumMoves(newNumMoves)
           }
           setTargetSquare(undefined)
@@ -161,10 +160,9 @@ const App: React.FC = () => {
   )
 
   const updateQueenSquare = useCallback(
-    (square: string) => {
-      const finalSquare: QueenSquare = isQueenSquare(square)
-        ? square
-        : DEFAULT_QUEEN_SQUARE
+    (square: string | undefined) => {
+      const finalSquare: QueenSquare =
+        square && isQueenSquare(square) ? square : DEFAULT_QUEEN_SQUARE
       setQueenSquare(finalSquare)
       setLoadedQueenSquare(finalSquare)
       resetGame()
@@ -282,19 +280,19 @@ const App: React.FC = () => {
                 },
                 {
                   label: "Moves",
-                  value:
-                    numMoves !== null && numMoves > 0 ? numMoves : undefined,
+                  value: numMoves,
                 },
                 {
                   label: "Best time",
                   value:
-                    bestSeconds !== null && bestSeconds > 0
+                    bestSeconds && bestSeconds > 0
                       ? formatSeconds(bestSeconds)
                       : "-",
                 },
                 {
                   label: "Best moves",
-                  value: bestNumMoves,
+                  value:
+                    bestNumMoves && bestNumMoves > 0 ? bestNumMoves : undefined,
                 },
               ]}
             />
@@ -305,12 +303,12 @@ const App: React.FC = () => {
             </h2>
             <SettingsToggle
               label="Hide already visited squares"
-              enabled={hideVisitedSquares}
+              enabled={!!hideVisitedSquares}
               onToggle={setHideVisitedSquares}
             />
             <SettingsToggle
               label="End game if knight moves to an attacked square"
-              enabled={attackEndsGame}
+              enabled={!!attackEndsGame}
               onToggle={setAttackEndsGame}
             />
             <QueenSquareSelector
