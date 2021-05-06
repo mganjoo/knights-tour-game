@@ -1,12 +1,13 @@
 import React, { useMemo, useEffect } from "react"
 import Board from "./Board"
-import { attackedByQueen, SQUARES, isQueenSquare } from "./ChessLogic"
+import { attackedByQueen, SQUARES } from "./ChessLogic"
 import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
-import { useBeforeUnload, useLocalStorage } from "react-use"
+import { useBeforeUnload } from "react-use"
 import QueenSquareSelector from "./QueenSquareSelector"
 import useGameState, { DEFAULT_QUEEN_SQUARE } from "./GameState"
+import { useFlag, useNonNegative, useQueenSquareChoice } from "./Settings"
 
 function formatSeconds(seconds: number) {
   const h = Math.floor(seconds / 3600)
@@ -16,34 +17,21 @@ function formatSeconds(seconds: number) {
 }
 
 const App: React.FC = () => {
-  const [loadedQueenSquare, setLoadedQueenSquare] = useLocalStorage<string>(
+  const [loadedQueenSquare, setLoadedQueenSquare] = useQueenSquareChoice(
     "v1.loaded_queen_square",
     DEFAULT_QUEEN_SQUARE
   )
-  const [bestSeconds, setBestSeconds] = useLocalStorage<number | null>(
-    "v1.best_seconds",
-    null
+  const [bestSeconds, setBestSeconds] = useNonNegative("v1.best_seconds")
+  const [bestNumMoves, setBestNumMoves] = useNonNegative("v1.best_num_moves")
+  const [hideVisitedSquares, setHideVisitedSquares] = useFlag(
+    "v1.hide_visited_squares"
   )
-  const [bestNumMoves, setBestNumMoves] = useLocalStorage<number | null>(
-    "v1.best_num_moves",
-    null
-  )
-  const [hideVisitedSquares, setHideVisitedSquares] = useLocalStorage<boolean>(
-    "v1.hide_visited_squares",
-    false
-  )
-  const [attackEndsGame, setAttackEndsGame] = useLocalStorage<boolean>(
-    "v1.attack_ends_game",
-    false
-  )
-  const [onboardingDone, setOnboardingDone] = useLocalStorage<boolean>(
-    "v1.onboarding_done",
-    false
-  )
+  const [attackEndsGame, setAttackEndsGame] = useFlag("v1.attack_ends_game")
+  const [onboardingDone, setOnboardingDone] = useFlag("v1.onboarding_done")
   const { gameState, doAction } = useGameState({
-    attackEndsGame: !!attackEndsGame,
+    attackEndsGame: attackEndsGame,
+    queenSquare: loadedQueenSquare,
   })
-
   const numSquares = useMemo(
     // Minus 1 because queen also counts aas a square
     () =>
@@ -51,18 +39,6 @@ const App: React.FC = () => {
       1,
     [gameState.queenSquare]
   )
-
-  useEffect(() => {
-    // When the saved queen square (which may be invalid) is loaded
-    // from local storage, try to update queen square
-    if (
-      gameState.queenSquare !== loadedQueenSquare &&
-      loadedQueenSquare &&
-      isQueenSquare(loadedQueenSquare)
-    ) {
-      doAction({ type: "setQueenSquare", square: loadedQueenSquare })
-    }
-  }, [gameState.queenSquare, loadedQueenSquare, doAction])
 
   useEffect(() => {
     if (gameState.visitedSquares.size >= 3) {

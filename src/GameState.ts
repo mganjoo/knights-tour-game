@@ -210,6 +210,7 @@ const INITIAL_STATE: GameState = {
 
 interface UseGameStateArgs {
   attackEndsGame: boolean
+  queenSquare: QueenSquare
 }
 
 export default function useGameState(args: UseGameStateArgs) {
@@ -237,6 +238,12 @@ export default function useGameState(args: UseGameStateArgs) {
       return () => clearTimeout(timeout)
     }
   }, [gameState, args.attackEndsGame])
+
+  useEffect(() => {
+    if (gameState.queenSquare !== args.queenSquare) {
+      doAction({ type: "setQueenSquare", square: args.queenSquare })
+    }
+  }, [gameState.queenSquare, args.queenSquare])
 
   return { gameState, doAction }
 }
