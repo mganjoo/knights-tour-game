@@ -10,7 +10,7 @@ import {
   Square,
 } from "./ChessLogic"
 import { BoardState } from "./Board"
-import { useEffect, useReducer } from "react"
+import { useEffect, useReducer, useState } from "react"
 import { useHarmonicIntervalFn, useInterval, useLocalStorage } from "react-use"
 import { useNonNegative } from "./Settings"
 
@@ -231,7 +231,6 @@ function makeInitialState(args: MakeInitialStateArgs): GameState {
     }
     visitedSquares = visitedSquares.push(serializedGameState.lastVisitedSquare)
   }
-  console.log(serializedGameState)
   const queenSquare = serializedGameState?.queenSquare || DEFAULT_QUEEN_SQUARE
 
   return {
@@ -268,9 +267,12 @@ export default function useGameState(args: UseGameStateArgs) {
     { loadedElapsed: elapsed || 0, serializedGameState },
     makeInitialState
   )
+  const [appVisible, setAppVisible] = useState(true)
 
   useHarmonicIntervalFn(() => {
-    doAction({ type: "tick" })
+    if (appVisible) {
+      doAction({ type: "tick" })
+    }
   }, 1000)
 
   useInterval(() => {
@@ -278,6 +280,12 @@ export default function useGameState(args: UseGameStateArgs) {
       setElapsed(gameState.elapsed)
     }
   }, 1000)
+
+  useEffect(() => {
+    document.addEventListener("visibilitychange", () => {
+      setAppVisible(document.visibilityState === "visible")
+    })
+  })
 
   useEffect(() => {
     if (gameState.boardState.id === "RESTARTING") {
