@@ -1,5 +1,5 @@
-import { String, Number, Record, Static } from "runtypes"
-import { Set as ImmutableSet } from "immutable"
+import { String, Number, Record, Static, Optional } from "runtypes"
+import { List as ImmutableList } from "immutable"
 import {
   attackedByQueen,
   getSquareIncrement,
@@ -11,7 +11,8 @@ import {
 } from "./ChessLogic"
 import { BoardState } from "./Board"
 import { useEffect, useReducer } from "react"
-import { useInterval } from "react-use"
+import { useHarmonicIntervalFn, useInterval, useLocalStorage } from "react-use"
+import { useNonNegative } from "./Settings"
 
 const SquareType = String.withGuard(isSquare)
 const QueenSquareType = String.withGuard(isQueenSquare)
@@ -21,7 +22,7 @@ const SerializedGameStateSchema = Record({
   queenSquare: QueenSquareType,
   knightSquare: SquareType,
   lastVisitedSquare: SquareType,
-  targetSquare: SquareType,
+  targetSquare: Optional(SquareType),
   numMoves: NonNegative,
 })
 
@@ -31,7 +32,7 @@ interface GameState {
   boardState: BoardState
   queenSquare: QueenSquare
   knightSquare: Square
-  visitedSquares: ImmutableSet<Square>
+  visitedSquares: ImmutableList<Square>
   targetSquare?: Square
   finalTargetSquare: Square
   numMoves: number
@@ -92,7 +93,7 @@ function resetGameState(state: GameState): GameState {
       state.queenSquare,
       "previous"
     ),
-    visitedSquares: ImmutableSet([startingSquare]),
+    visitedSquares: ImmutableList([startingSquare]),
     numMoves: 0,
     elapsed: 0,
   }
@@ -145,7 +146,7 @@ function handleAction(state: GameState, action: GameAction): GameState {
         // If we move to a new target, update visited + target squares
         return {
           ...newBaseState,
-          visitedSquares: state.visitedSquares.add(action.to),
+          visitedSquares: state.visitedSquares.push(action.to),
           targetSquare:
             state.targetSquare === state.finalTargetSquare
               ? undefined
@@ -183,8 +184,8 @@ function handleAction(state: GameState, action: GameAction): GameState {
 
 export const DEFAULT_QUEEN_SQUARE = "d5"
 
-const STARTING_KNIGHT_SQUARE = "h8"
-const ENDING_KNIGHT_SQUARE = "a1"
+const STARTING_KNIGHT_SQUARE: Square = "h8"
+const ENDING_KNIGHT_SQUARE: Square = "a1"
 
 // "Safe" square to be used as source square for knight
 const DEFAULT_SAFE_STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked(
@@ -198,14 +199,46 @@ const DEFAULT_SAFE_ENDING_KNIGHT_SQUARE: Square = incrementWhileAttacked(
   "next"
 )
 
-const INITIAL_STATE: GameState = {
-  boardState: { id: "NOT_STARTED" },
-  queenSquare: DEFAULT_QUEEN_SQUARE,
-  knightSquare: DEFAULT_SAFE_STARTING_KNIGHT_SQUARE,
-  visitedSquares: ImmutableSet([DEFAULT_SAFE_STARTING_KNIGHT_SQUARE]),
-  finalTargetSquare: DEFAULT_SAFE_ENDING_KNIGHT_SQUARE,
-  numMoves: 0,
-  elapsed: 0,
+interface MakeInitialStateArgs {
+  loadedElapsed: number
+  serializedGameState: unknown
+}
+
+function makeInitialState(args: MakeInitialStateArgs): GameState {
+  const serializedGameState = SerializedGameStateSchema.guard(
+    args.serializedGameState
+  )
+    ? args.serializedGameState
+    : undefined
+
+  let visitedSquares: ImmutableList<Square> = ImmutableList()
+
+  if (serializedGameState) {
+    for (
+      let visitedSquare = STARTING_KNIGHT_SQUARE;
+      visitedSquare !== serializedGameState.lastVisitedSquare;
+      visitedSquare = incrementWhileAttacked(
+        getSquareIncrement(visitedSquare, "previous"),
+        serializedGameState.queenSquare,
+        "previous"
+      )
+    ) {
+      visitedSquares = visitedSquares.push(visitedSquare)
+    }
+    visitedSquares = visitedSquares.push(serializedGameState.lastVisitedSquare)
+  }
+
+  return {
+    boardState: { id: serializedGameState ? "PLAYING" : "NOT_STARTED" },
+    queenSquare: serializedGameState?.queenSquare || DEFAULT_QUEEN_SQUARE,
+    knightSquare:
+      serializedGameState?.knightSquare || DEFAULT_SAFE_STARTING_KNIGHT_SQUARE,
+    visitedSquares: visitedSquares,
+    finalTargetSquare:
+      serializedGameState?.targetSquare || DEFAULT_SAFE_ENDING_KNIGHT_SQUARE,
+    numMoves: serializedGameState?.numMoves || 0,
+    elapsed: serializedGameState !== undefined ? args.loadedElapsed : 0,
+  }
 }
 
 interface UseGameStateArgs {
@@ -214,10 +247,26 @@ interface UseGameStateArgs {
 }
 
 export default function useGameState(args: UseGameStateArgs) {
-  const [gameState, doAction] = useReducer(handleAction, INITIAL_STATE)
+  const [elapsed, setElapsed] = useNonNegative("v1.elapsed")
+  const [
+    serializedGameState,
+    setSerializedGameState,
+    removeSerializedGameState,
+  ] = useLocalStorage("v1.game_state")
+  const [gameState, doAction] = useReducer(
+    handleAction,
+    { loadedElapsed: elapsed || 0, serializedGameState },
+    makeInitialState
+  )
+
+  useHarmonicIntervalFn(() => {
+    doAction({ type: "tick" })
+  }, 1000)
 
   useInterval(() => {
-    doAction({ type: "tick" })
+    if (gameState.boardState.id === "PLAYING") {
+      setElapsed(gameState.elapsed)
+    }
   }, 1000)
 
   useEffect(() => {
@@ -244,6 +293,37 @@ export default function useGameState(args: UseGameStateArgs) {
       doAction({ type: "setQueenSquare", square: args.queenSquare })
     }
   }, [gameState.queenSquare, args.queenSquare])
+
+  useEffect(() => {
+    if (
+      ["NOT_STARTED", "RESTARTING", "CAPTURED", "FINISHED"].includes(
+        gameState.boardState.id
+      ) ||
+      (gameState.boardState.id === "PLAYING" && gameState.numMoves === 0)
+    ) {
+      // Delete saved state if we're on move 0, or game is in non-playing state
+      removeSerializedGameState()
+    } else if (gameState.boardState.id === "PLAYING") {
+      setSerializedGameState({
+        queenSquare: gameState.queenSquare,
+        knightSquare: gameState.knightSquare,
+        lastVisitedSquare: gameState.visitedSquares.last(
+          gameState.knightSquare
+        ),
+        targetSquare: gameState.targetSquare,
+        numMoves: gameState.numMoves,
+      })
+    }
+  }, [
+    gameState.boardState,
+    gameState.knightSquare,
+    gameState.numMoves,
+    gameState.queenSquare,
+    gameState.targetSquare,
+    gameState.visitedSquares,
+    removeSerializedGameState,
+    setSerializedGameState,
+  ])
 
   return { gameState, doAction }
 }

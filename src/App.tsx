@@ -4,7 +4,6 @@ import { attackedByQueen, SQUARES } from "./ChessLogic"
 import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
-import { useBeforeUnload } from "react-use"
 import QueenSquareSelector from "./QueenSquareSelector"
 import useGameState, { DEFAULT_QUEEN_SQUARE } from "./GameState"
 import { useFlag, useNonNegative, useQueenSquareChoice } from "./Settings"
@@ -66,14 +65,6 @@ const App: React.FC = () => {
     setBestSeconds,
     setBestNumMoves,
   ])
-
-  useBeforeUnload(
-    // Prompt user before closing if at least two squares have been visited
-    (gameState.boardState.id === "PLAYING" ||
-      gameState.boardState.id === "KNIGHT_ATTACKED") &&
-      gameState.visitedSquares.size >= 2,
-    "Closing the window will lose puzzle progress, are you sure?"
-  )
 
   return (
     <div className="min-h-screen bg-blue-gray-100 text-blue-gray-900 dark:bg-blue-gray-800 dark:text-white">

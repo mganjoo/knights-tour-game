@@ -3,7 +3,7 @@ import "./Board.css"
 import * as cg from "chessground/types"
 import { Config } from "chessground/config"
 import { getPuzzleFen, getKnightDests, Square } from "./ChessLogic"
-import { Set as ImmutableSet } from "immutable"
+import { List as ImmutableList } from "immutable"
 import { useChessground } from "./Chessground"
 import { DrawShape } from "chessground/draw"
 import { useReducedMotion } from "framer-motion"
@@ -48,7 +48,7 @@ type BoardProps = {
   /**
    * Squares already visited (marked with check).
    */
-  visitedSquares: ImmutableSet<Square>
+  visitedSquares: ImmutableList<Square>
   /**
    * Square to visit next (marked with chevron).
    */
