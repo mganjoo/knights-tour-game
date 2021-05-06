@@ -10,7 +10,7 @@ import {
   Optional,
 } from "runtypes"
 import { isQueenSquare, QueenSquare } from "./ChessLogic"
-import { DEFAULT_QUEEN_SQUARE, GameState } from "./GameState"
+import { DEFAULT_QUEEN_SQUARE } from "./GameState"
 
 export function useFlag(key: string): [boolean, (b: boolean) => void] {
   const [flag, setFlag] = useLocalStorage(key, false)
