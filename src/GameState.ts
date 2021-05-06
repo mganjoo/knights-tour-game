@@ -105,6 +105,11 @@ function handleAction(state: GameState, action: GameAction): GameState {
       const stateWithNewQueen = resetGameState({
         ...state,
         queenSquare: action.square,
+        finalTargetSquare: incrementWhileAttacked(
+          ENDING_KNIGHT_SQUARE,
+          action.square,
+          "next"
+        ),
       })
       return {
         ...stateWithNewQueen,
@@ -193,11 +198,6 @@ const DEFAULT_SAFE_STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked(
   DEFAULT_QUEEN_SQUARE,
   "previous"
 )
-const DEFAULT_SAFE_ENDING_KNIGHT_SQUARE: Square = incrementWhileAttacked(
-  ENDING_KNIGHT_SQUARE,
-  DEFAULT_QUEEN_SQUARE,
-  "next"
-)
 
 interface MakeInitialStateArgs {
   loadedElapsed: number
@@ -227,15 +227,21 @@ function makeInitialState(args: MakeInitialStateArgs): GameState {
     }
     visitedSquares = visitedSquares.push(serializedGameState.lastVisitedSquare)
   }
+  console.log(serializedGameState)
+  const queenSquare = serializedGameState?.queenSquare || DEFAULT_QUEEN_SQUARE
 
   return {
     boardState: { id: serializedGameState ? "PLAYING" : "NOT_STARTED" },
-    queenSquare: serializedGameState?.queenSquare || DEFAULT_QUEEN_SQUARE,
+    queenSquare: queenSquare,
     knightSquare:
       serializedGameState?.knightSquare || DEFAULT_SAFE_STARTING_KNIGHT_SQUARE,
     visitedSquares: visitedSquares,
-    finalTargetSquare:
-      serializedGameState?.targetSquare || DEFAULT_SAFE_ENDING_KNIGHT_SQUARE,
+    targetSquare: serializedGameState?.targetSquare,
+    finalTargetSquare: incrementWhileAttacked(
+      ENDING_KNIGHT_SQUARE,
+      queenSquare,
+      "next"
+    ),
     numMoves: serializedGameState?.numMoves || 0,
     elapsed: serializedGameState !== undefined ? args.loadedElapsed : 0,
   }
