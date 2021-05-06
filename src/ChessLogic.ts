@@ -45,6 +45,34 @@ export function isSquare(square: string): square is Square {
 }
 
 /**
+ * Squares that can be used for placing the queen. These have been verified
+ * to lead to a completable puzzle.
+ */
+export const CANDIDATE_QUEEN_SQUARES = [
+  "d5",
+  "d4",
+  "d2",
+  "e5",
+  "e4",
+  "e2",
+] as const
+
+/**
+ * Type alias for queen squares.
+ */
+export type QueenSquare = typeof CANDIDATE_QUEEN_SQUARES[number]
+
+/**
+ * Type guard to check that a string corresponds to a queen square.
+ *
+ * @param s a string that might be a QueenSquare
+ * @returns a type predicate confirming that the string is of type QueenSquare
+ */
+export function isQueenSquare(s: string): s is QueenSquare {
+  return CANDIDATE_QUEEN_SQUARES.includes(s as QueenSquare)
+}
+
+/**
  * 0x88Diff offsets that knight can move to.
  */
 const KNIGHT_OFFSETS = [-31, -14, 18, 33, 31, 14, -18, -33]

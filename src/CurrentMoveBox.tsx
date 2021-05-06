@@ -13,7 +13,7 @@ interface CurrentMoveBoxProps {
 
 function getReactKey(state: BoardState, targetSquare: Square | undefined) {
   // Key determines which state changes get animated
-  switch (state) {
+  switch (state.id) {
     case "PLAYING":
       return targetSquare ? `next_${targetSquare}` : "other"
     case "CAPTURED":
@@ -40,7 +40,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
       <motion.div
         key={key}
         initial={
-          state === "NOT_STARTED" || shouldReduceMotion
+          state.id === "NOT_STARTED" || shouldReduceMotion
             ? { opacity: 0, y: 0, scale: 0.9 }
             : {
                 opacity: 0,
@@ -51,28 +51,28 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
         animate={targetStyle}
         className={classNames(
           "py-2 px-4 text-sm font-medium flex items-center text-white lg:text-base",
-          state === "FINISHED"
+          state.id === "FINISHED"
             ? "bg-green-700"
-            : state === "CAPTURED" || state === "KNIGHT_ATTACKED"
+            : state.id === "CAPTURED" || state.id === "KNIGHT_ATTACKED"
             ? "bg-red-600 text-white"
-            : state === "NOT_STARTED" || !targetSquare
+            : state.id === "NOT_STARTED" || !targetSquare
             ? "bg-blue-gray-200 text-blue-gray-600 dark:bg-blue-gray-700 dark:text-blue-gray-100"
             : "bg-yellow-700"
         )}
       >
-        {state === "FINISHED" ? (
+        {state.id === "FINISHED" ? (
           <>Puzzle complete. Nicely done!</>
-        ) : state === "CAPTURED" ||
-          (state === "KNIGHT_ATTACKED" && attackEndsGame) ? (
+        ) : state.id === "CAPTURED" ||
+          (state.id === "KNIGHT_ATTACKED" && attackEndsGame) ? (
           <>Oops, game over! Try again.</>
-        ) : state === "KNIGHT_ATTACKED" ? (
+        ) : state.id === "KNIGHT_ATTACKED" ? (
           <>Oops, can't go there!</>
         ) : (
           <>
             <ChevronDoubleUpIcon className="w-4 h-4 mr-2" />
             <span>Next square to visit</span>
             <span className="ml-4">
-              {state === "NOT_STARTED" || !targetSquare ? "-" : targetSquare}
+              {state.id === "NOT_STARTED" || !targetSquare ? "-" : targetSquare}
             </span>
           </>
         )}

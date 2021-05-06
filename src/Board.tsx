@@ -9,13 +9,24 @@ import { DrawShape } from "chessground/draw"
 import { useReducedMotion } from "framer-motion"
 import { myConfig } from "./TailwindUtil"
 
-export type BoardState =
+export type OldBoardState =
   | "NOT_STARTED"
   | "RESTARTING"
   | "PLAYING"
   | "KNIGHT_ATTACKED"
   | "FINISHED"
   | "CAPTURED"
+
+export type BoardState =
+  | { id: "NOT_STARTED" }
+  | { id: "RESTARTING" }
+  | { id: "PLAYING" }
+  | {
+      id: "KNIGHT_ATTACKED"
+      previousSquare: Square
+    }
+  | { id: "FINISHED" }
+  | { id: "CAPTURED" }
 
 type BoardProps = {
   /**
@@ -143,18 +154,19 @@ const Board: React.FC<BoardProps> = ({
   )
   const shapes = useMemo<DrawShape[]>(() => {
     const onboardingShapes: DrawShape[] =
-      state === "NOT_STARTED" && showInitialGuideArrows
+      state.id === "NOT_STARTED" && showInitialGuideArrows
         ? [
             { orig: knightSquare, dest: "a8", brush: "blue" },
             { orig: "h7", dest: "a7", brush: "blue" },
           ]
         : []
     const targetShapes: DrawShape[] =
-      targetSquare && (state === "PLAYING" || state === "KNIGHT_ATTACKED")
+      targetSquare && (state.id === "PLAYING" || state.id === "KNIGHT_ATTACKED")
         ? [{ orig: targetSquare, customSvg: TARGET_SVG }]
         : []
+
     const targetArrowShapes: DrawShape[] =
-      targetSquare && showTargetArrow && state === "PLAYING"
+      targetSquare && showTargetArrow && state.id === "PLAYING"
         ? [
             {
               orig: knightSquare,
@@ -165,7 +177,7 @@ const Board: React.FC<BoardProps> = ({
           ]
         : []
     const queenShapes: DrawShape[] =
-      state === "KNIGHT_ATTACKED"
+      state.id === "KNIGHT_ATTACKED"
         ? [
             { orig: queenSquare, customSvg: undefined, brush: "yellow" },
             {
@@ -177,7 +189,7 @@ const Board: React.FC<BoardProps> = ({
           ]
         : []
     const visitedShapes: DrawShape[] =
-      hideVisitedSquares || state === "NOT_STARTED"
+      hideVisitedSquares || state.id === "NOT_STARTED"
         ? []
         : visitedSquares
             .map((s) => ({
@@ -205,11 +217,11 @@ const Board: React.FC<BoardProps> = ({
     const config: Config = {
       fen: fen,
       // Allow moves only in playing state
-      viewOnly: state !== "PLAYING",
+      viewOnly: state.id !== "PLAYING",
       // Always white to move
       turnColor: "white",
       // If the puzzle is ongoing, select current knight square by default
-      selected: state === "PLAYING" ? knightSquare : undefined,
+      selected: state.id === "PLAYING" ? knightSquare : undefined,
       animation: {
         enabled: !!!shouldReduceMotion,
       },

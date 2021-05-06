@@ -2,15 +2,7 @@ import { Listbox, Transition } from "@headlessui/react"
 import { CheckIcon, SelectorIcon } from "@heroicons/react/solid"
 import classNames from "classnames"
 import React, { Fragment } from "react"
-
-const CANDIDATE_QUEEN_SQUARES = ["d5", "d4", "d2", "e5", "e4", "e2"] as const
-
-export type QueenSquare = typeof CANDIDATE_QUEEN_SQUARES[number]
-
-export function isQueenSquare(s: string): s is QueenSquare {
-  return CANDIDATE_QUEEN_SQUARES.includes(s as QueenSquare)
-}
-
+import { CANDIDATE_QUEEN_SQUARES, QueenSquare } from "./ChessLogic"
 interface QueenSquareSelectorProps {
   selected: QueenSquare
   setSelected: (s: QueenSquare) => void

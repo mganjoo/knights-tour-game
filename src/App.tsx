@@ -1,32 +1,12 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react"
-import Board, { BoardState } from "./Board"
-import {
-  Square,
-  getSquareIncrement,
-  attackedByQueen,
-  incrementWhileAttacked,
-  SQUARES,
-} from "./ChessLogic"
-import { Set as ImmutableSet } from "immutable"
+import React, { useMemo, useEffect } from "react"
+import Board from "./Board"
+import { attackedByQueen, SQUARES, isQueenSquare } from "./ChessLogic"
 import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
-import { useBeforeUnload, useInterval, useLocalStorage } from "react-use"
-import QueenSquareSelector, {
-  isQueenSquare,
-  QueenSquare,
-} from "./QueenSquareSelector"
-
-const DEFAULT_QUEEN_SQUARE = "d5"
-const DEFAULT_STARTING_KNIGHT_SQUARE = "h8"
-const DEFAULT_ENDING_KNIGHT_SQUARE = "a1"
-
-// "Safe" square to be used as source square for knight
-const DEFAULT_SAFE_STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked(
-  DEFAULT_STARTING_KNIGHT_SQUARE,
-  DEFAULT_QUEEN_SQUARE,
-  "previous"
-)
+import { useBeforeUnload, useLocalStorage } from "react-use"
+import QueenSquareSelector from "./QueenSquareSelector"
+import useGameState, { DEFAULT_QUEEN_SQUARE } from "./GameState"
 
 function formatSeconds(seconds: number) {
   const h = Math.floor(seconds / 3600)
@@ -36,20 +16,6 @@ function formatSeconds(seconds: number) {
 }
 
 const App: React.FC = () => {
-  const [state, setState] = useState<BoardState>("NOT_STARTED")
-  const [queenSquare, setQueenSquare] = useState<QueenSquare>(
-    DEFAULT_QUEEN_SQUARE
-  )
-  const [knightSquare, setKnightSquare] = useState<Square>(
-    DEFAULT_SAFE_STARTING_KNIGHT_SQUARE
-  )
-  const [visitedSquares, setVisitedSquares] = useState<ImmutableSet<Square>>(
-    ImmutableSet([knightSquare])
-  )
-  const [targetSquare, setTargetSquare] = useState<Square>()
-  const [preAttackKnightSquare, setPreAttackKnightSquare] = useState<Square>()
-  const [elapsed, setElapsed] = useState(0)
-  const [numMoves, setNumMoves] = useState(0)
   const [loadedQueenSquare, setLoadedQueenSquare] = useLocalStorage<string>(
     "v1.loaded_queen_square",
     DEFAULT_QUEEN_SQUARE
@@ -74,151 +40,62 @@ const App: React.FC = () => {
     "v1.onboarding_done",
     false
   )
+  const { gameState, doAction } = useGameState({
+    attackEndsGame: !!attackEndsGame,
+  })
+
   const numSquares = useMemo(
     // Minus 1 because queen also counts aas a square
-    () => SQUARES.filter((s) => !attackedByQueen(s, queenSquare)).length - 1,
-    [queenSquare]
-  )
-  const endingKnightSquare = useMemo<Square>(
     () =>
-      incrementWhileAttacked(DEFAULT_ENDING_KNIGHT_SQUARE, queenSquare, "next"),
-    [queenSquare]
-  )
-
-  // Reset game state (knight to original position, timers reset etc)
-  const resetGame = useCallback(() => {
-    const startingKnightSquare = incrementWhileAttacked(
-      DEFAULT_STARTING_KNIGHT_SQUARE,
-      queenSquare,
-      "previous"
-    )
-    const nextSquare = incrementWhileAttacked(
-      getSquareIncrement(startingKnightSquare, "previous"),
-      queenSquare,
-      "previous"
-    )
-    setKnightSquare(startingKnightSquare)
-    setElapsed(0)
-    setNumMoves(0)
-    setVisitedSquares(ImmutableSet([startingKnightSquare]))
-    setTargetSquare(nextSquare)
-  }, [queenSquare])
-
-  const handleMove = useCallback(
-    (from: Square, to: Square) => {
-      setKnightSquare(to)
-      const newNumMoves = numMoves + 1
-      setNumMoves(newNumMoves)
-
-      // If the knight is attacked, we may need to reset back to original square
-      if (attackedByQueen(to, queenSquare)) {
-        setState("KNIGHT_ATTACKED")
-        setPreAttackKnightSquare(from)
-      }
-
-      // If we move to a new target, update visited + target squares
-      if (to === targetSquare) {
-        setVisitedSquares(visitedSquares.add(to))
-        if (visitedSquares.size >= 2) {
-          // After three successful square visits, mark user
-          // as onboarded (stop showing arrows)
-          setOnboardingDone(true)
-        }
-        if (targetSquare === endingKnightSquare) {
-          if (!bestSeconds || elapsed < bestSeconds) {
-            setBestSeconds(elapsed)
-          }
-          if (!bestNumMoves || newNumMoves < bestNumMoves) {
-            setBestNumMoves(newNumMoves)
-          }
-          setTargetSquare(undefined)
-          setState("FINISHED")
-        } else {
-          setTargetSquare(
-            incrementWhileAttacked(
-              getSquareIncrement(targetSquare, "previous"),
-              queenSquare,
-              "previous"
-            )
-          )
-        }
-      }
-    },
-    [
-      numMoves,
-      targetSquare,
-      visitedSquares,
-      endingKnightSquare,
-      setOnboardingDone,
-      bestSeconds,
-      elapsed,
-      bestNumMoves,
-      setBestSeconds,
-      setBestNumMoves,
-      queenSquare,
-    ]
-  )
-
-  const updateQueenSquare = useCallback(
-    (square: string | undefined) => {
-      const finalSquare: QueenSquare =
-        square && isQueenSquare(square) ? square : DEFAULT_QUEEN_SQUARE
-      setQueenSquare(finalSquare)
-      setLoadedQueenSquare(finalSquare)
-      resetGame()
-      if (state === "PLAYING") {
-        setState("RESTARTING")
-      }
-    },
-    [resetGame, setLoadedQueenSquare, state]
+      SQUARES.filter((s) => !attackedByQueen(s, gameState.queenSquare)).length -
+      1,
+    [gameState.queenSquare]
   )
 
   useEffect(() => {
     // When the saved queen square (which may be invalid) is loaded
     // from local storage, try to update queen square
-    if (queenSquare !== loadedQueenSquare) {
-      updateQueenSquare(loadedQueenSquare)
+    if (
+      gameState.queenSquare !== loadedQueenSquare &&
+      loadedQueenSquare &&
+      isQueenSquare(loadedQueenSquare)
+    ) {
+      doAction({ type: "setQueenSquare", square: loadedQueenSquare })
     }
-  }, [queenSquare, loadedQueenSquare, updateQueenSquare])
-
-  useInterval(() => {
-    if (state === "PLAYING" || state === "KNIGHT_ATTACKED") {
-      setElapsed((e) => e + 1)
-    }
-  }, 1000)
+  }, [gameState.queenSquare, loadedQueenSquare, doAction])
 
   useEffect(() => {
-    if (state === "RESTARTING") {
-      const timeout = setTimeout(() => {
-        resetGame()
-        setState("PLAYING")
-      }, 50)
-      return () => clearTimeout(timeout)
+    if (gameState.visitedSquares.size >= 3) {
+      // After three successful square visits, mark user
+      // as onboarded (stop showing arrows)
+      setOnboardingDone(true)
     }
-  }, [state, resetGame])
+  }, [gameState.visitedSquares, setOnboardingDone])
 
   useEffect(() => {
-    // Automatically transition out of attacked state
-    if (state === "KNIGHT_ATTACKED") {
-      const timeout = setTimeout(() => {
-        if (state === "KNIGHT_ATTACKED") {
-          if (attackEndsGame || !preAttackKnightSquare) {
-            setState("CAPTURED")
-          } else {
-            setKnightSquare(preAttackKnightSquare)
-            setPreAttackKnightSquare(undefined)
-            setState("PLAYING")
-          }
-        }
-      }, 800)
-      return () => clearTimeout(timeout)
+    if (gameState.boardState.id === "FINISHED") {
+      if (!bestSeconds || gameState.elapsed < bestSeconds) {
+        setBestSeconds(gameState.elapsed)
+      }
+      if (!bestNumMoves || gameState.numMoves < bestNumMoves) {
+        setBestNumMoves(gameState.numMoves)
+      }
     }
-  }, [state, attackEndsGame, preAttackKnightSquare])
+  }, [
+    gameState.boardState,
+    gameState.elapsed,
+    gameState.numMoves,
+    bestSeconds,
+    bestNumMoves,
+    setBestSeconds,
+    setBestNumMoves,
+  ])
 
   useBeforeUnload(
     // Prompt user before closing if at least two squares have been visited
-    (state === "PLAYING" || state === "KNIGHT_ATTACKED") &&
-      visitedSquares.size >= 2,
+    (gameState.boardState.id === "PLAYING" ||
+      gameState.boardState.id === "KNIGHT_ATTACKED") &&
+      gameState.visitedSquares.size >= 2,
     "Closing the window will lose puzzle progress, are you sure?"
   )
 
@@ -228,16 +105,22 @@ const App: React.FC = () => {
         <main className="grid pt-4 pb-6 md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6 md:items-center">
           <div className="col-start-1 row-start-2 md:row-start-1 md:row-span-4 md:col-span-2">
             <Board
-              state={state}
-              knightSquare={knightSquare}
-              queenSquare={state === "CAPTURED" ? knightSquare : queenSquare}
-              visitedSquares={visitedSquares}
-              targetSquare={targetSquare}
-              onKnightMove={handleMove}
+              state={gameState.boardState}
+              knightSquare={gameState.knightSquare}
+              queenSquare={
+                gameState.boardState.id === "CAPTURED"
+                  ? gameState.knightSquare
+                  : gameState.queenSquare
+              }
+              visitedSquares={gameState.visitedSquares}
+              targetSquare={gameState.targetSquare}
+              onKnightMove={(from, to) => doAction({ type: "move", from, to })}
               hideVisitedSquares={hideVisitedSquares}
               // Show target arrow the first time the user plays,
               // for their first move
-              showTargetArrow={!onboardingDone && visitedSquares.size < 2}
+              showTargetArrow={
+                !onboardingDone && gameState.visitedSquares.size < 2
+              }
               showInitialGuideArrows={!onboardingDone}
             />
           </div>
@@ -248,26 +131,28 @@ const App: React.FC = () => {
               </h1>
               <p className="text-sm lg:text-base">
                 Visit every square on the board with the knight, in order,
-                starting at the {DEFAULT_STARTING_KNIGHT_SQUARE} corner. Avoid
-                squares that are attacked by the queen!
+                starting at the h8 corner. Avoid squares that are attacked by
+                the queen!
               </p>
             </div>
             <div className="row-start-1 col-start-2 md:row-start-2 md:col-start-1">
               <button
                 className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500 lg:px-4 lg:text-base"
-                onClick={() => setState("RESTARTING")}
+                onClick={() => {
+                  doAction({ type: "beginRestarting" })
+                }}
               >
                 New game
               </button>
             </div>
             <div className="row-start-2 col-start-2 text-base font-semibold tabular-nums md:text-lg lg:text-xl">
-              {formatSeconds(elapsed)}
+              {formatSeconds(gameState.elapsed)}
             </div>
           </div>
           <div className="md:col-start-3">
             <CurrentMoveBox
-              state={state}
-              targetSquare={targetSquare}
+              state={gameState.boardState}
+              targetSquare={gameState.targetSquare}
               attackEndsGame={attackEndsGame}
             />
           </div>
@@ -276,11 +161,11 @@ const App: React.FC = () => {
               tickers={[
                 {
                   label: "Squares left",
-                  value: numSquares - visitedSquares.size,
+                  value: numSquares - gameState.visitedSquares.size,
                 },
                 {
                   label: "Moves",
-                  value: numMoves,
+                  value: gameState.numMoves,
                 },
                 {
                   label: "Best time",
@@ -312,8 +197,11 @@ const App: React.FC = () => {
               onToggle={setAttackEndsGame}
             />
             <QueenSquareSelector
-              selected={queenSquare}
-              setSelected={updateQueenSquare}
+              selected={gameState.queenSquare}
+              setSelected={(square) => {
+                doAction({ type: "setQueenSquare", square })
+                setLoadedQueenSquare(square)
+              }}
             />
           </div>
         </main>
