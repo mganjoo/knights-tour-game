@@ -288,9 +288,11 @@ export default function useGameState(args: UseGameStateArgs) {
   }, 1000)
 
   useEffect(() => {
-    document.addEventListener("visibilitychange", () => {
+    const handleVisibilityChange = () =>
       setAppVisible(document.visibilityState === "visible")
-    })
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
   })
 
   useEffect(() => {
