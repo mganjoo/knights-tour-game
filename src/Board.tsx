@@ -9,14 +9,6 @@ import { DrawShape } from "chessground/draw"
 import { useReducedMotion } from "framer-motion"
 import { myConfig } from "./TailwindUtil"
 
-export type OldBoardState =
-  | "NOT_STARTED"
-  | "RESTARTING"
-  | "PLAYING"
-  | "KNIGHT_ATTACKED"
-  | "FINISHED"
-  | "CAPTURED"
-
 export type BoardState =
   | { id: "NOT_STARTED" }
   | { id: "RESTARTING" }
