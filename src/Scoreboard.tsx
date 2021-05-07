@@ -4,13 +4,13 @@ import { motion, useReducedMotion } from "framer-motion"
 interface ScoreboardProps {
   tickers: {
     label: string
-    value?: string | number | null
+    value: string | number | undefined
   }[]
 }
 
 const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
-  const printValue = (s: string | number | null | undefined) =>
-    s !== undefined && s !== null ? s : "-"
+  const printValue = (s: string | number | undefined) =>
+    s !== undefined ? s : "-"
   // Reduce animation of box transition if user has enabled reduce motion
   const shouldReduceMotion = useReducedMotion()
   return (

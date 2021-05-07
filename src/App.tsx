@@ -1,6 +1,6 @@
-import React, { useMemo, useEffect } from "react"
+import React, { useMemo, useEffect, useCallback } from "react"
 import Board from "./Board"
-import { attackedByQueen, SQUARES } from "./ChessLogic"
+import { attackedByQueen, Square, SQUARES } from "./ChessLogic"
 import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
@@ -38,6 +38,10 @@ const App: React.FC = () => {
   )
   const { bestScoresMap, updateBestScores } = useBestScores("v1.best_scores")
   const bestScores = bestScoresMap[gameState.queenSquare]
+  const onKnightMove = useCallback(
+    (from: Square, to: Square) => doAction({ type: "move", from, to }),
+    [doAction]
+  )
 
   useEffect(() => {
     if (gameState.visitedSquares.size >= 3) {
@@ -56,7 +60,7 @@ const App: React.FC = () => {
       })
     }
   }, [
-    gameState.boardState,
+    gameState.boardState.id,
     gameState.elapsed,
     gameState.numMoves,
     gameState.queenSquare,
@@ -69,7 +73,7 @@ const App: React.FC = () => {
         <main className="grid pt-4 pb-6 md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6 md:items-center">
           <div className="col-start-1 row-start-2 md:row-start-1 md:row-span-5 md:col-span-2">
             <Board
-              state={gameState.boardState}
+              boardState={gameState.boardState}
               knightSquare={gameState.knightSquare}
               queenSquare={
                 gameState.boardState.id === "CAPTURED"
@@ -78,7 +82,7 @@ const App: React.FC = () => {
               }
               visitedSquares={gameState.visitedSquares}
               targetSquare={gameState.targetSquare}
-              onKnightMove={(from, to) => doAction({ type: "move", from, to })}
+              onKnightMove={onKnightMove}
               hideVisitedSquares={hideVisitedSquares}
               // Show target arrow the first time the user plays,
               // for their first move
@@ -134,14 +138,16 @@ const App: React.FC = () => {
                 {
                   label: "Best time",
                   value:
-                    bestScores?.bestSeconds && bestScores?.bestSeconds > 0
+                    bestScores?.bestSeconds !== undefined &&
+                    bestScores?.bestSeconds > 0
                       ? formatSeconds(bestScores?.bestSeconds)
-                      : "-",
+                      : undefined,
                 },
                 {
                   label: "Best moves",
                   value:
-                    bestScores?.bestMoves && bestScores?.bestSeconds > 0
+                    bestScores?.bestMoves !== undefined &&
+                    bestScores?.bestSeconds > 0
                       ? bestScores?.bestMoves
                       : undefined,
                 },

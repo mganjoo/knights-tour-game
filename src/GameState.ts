@@ -293,7 +293,7 @@ export default function useGameState(args: UseGameStateArgs) {
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange)
-  })
+  }, [])
 
   useEffect(() => {
     if (gameState.boardState.id === "RESTARTING") {
@@ -302,7 +302,7 @@ export default function useGameState(args: UseGameStateArgs) {
       }, 50)
       return () => clearTimeout(timeout)
     }
-  }, [gameState.boardState])
+  }, [gameState.boardState.id])
 
   useEffect(() => {
     // Automatically transition out of attacked state
@@ -312,7 +312,7 @@ export default function useGameState(args: UseGameStateArgs) {
       }, 800)
       return () => clearTimeout(timeout)
     }
-  }, [gameState.boardState, args.attackEndsGame])
+  }, [gameState.boardState.id, args.attackEndsGame])
 
   useEffect(() => {
     if (gameState.queenSquare !== args.queenSquare) {
@@ -342,7 +342,7 @@ export default function useGameState(args: UseGameStateArgs) {
       })
     }
   }, [
-    gameState.boardState,
+    gameState.boardState.id,
     gameState.knightSquare,
     gameState.numMoves,
     gameState.queenSquare,
