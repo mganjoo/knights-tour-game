@@ -78,8 +78,8 @@ export function useBestScores(key: string) {
           bestSeconds: v1BestSeconds,
         },
       })
-      deleteV1BestSeconds()
       deleteV1BestMoves()
+      deleteV1BestSeconds()
     }
   }, [
     bestScoresMap,

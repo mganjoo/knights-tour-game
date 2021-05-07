@@ -117,9 +117,10 @@ function handleAction(state: GameState, action: GameAction): GameState {
         return {
           ...stateWithNewQueen,
           boardState:
-            state.boardState.id === "PLAYING"
+            state.boardState.id === "PLAYING" ||
+            state.boardState.id === "KNIGHT_ATTACKED"
               ? { id: "RESTARTING" }
-              : state.boardState,
+              : { id: "NOT_STARTED" },
         }
       }
     case "beginRestarting":
@@ -294,7 +295,7 @@ export default function useGameState(args: UseGameStateArgs) {
       }, 50)
       return () => clearTimeout(timeout)
     }
-  }, [gameState])
+  }, [gameState.boardState])
 
   useEffect(() => {
     // Automatically transition out of attacked state
@@ -304,7 +305,7 @@ export default function useGameState(args: UseGameStateArgs) {
       }, 800)
       return () => clearTimeout(timeout)
     }
-  }, [gameState, args.attackEndsGame])
+  }, [gameState.boardState, args.attackEndsGame])
 
   useEffect(() => {
     if (gameState.queenSquare !== args.queenSquare) {
