@@ -67,7 +67,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-blue-gray-100 text-blue-gray-900 dark:bg-blue-gray-800 dark:text-white">
       <div className="max-w-lg mx-auto px-4 md:px-6 md:max-w-screen-lg">
         <main className="grid pt-4 pb-6 md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6 md:items-center">
-          <div className="col-start-1 row-start-2 md:row-start-1 md:row-span-4 md:col-span-2">
+          <div className="col-start-1 row-start-2 md:row-start-1 md:row-span-5 md:col-span-2">
             <Board
               state={gameState.boardState}
               knightSquare={gameState.knightSquare}
@@ -148,7 +148,16 @@ const App: React.FC = () => {
               ]}
             />
           </div>
-          <div className="mt-2 md:col-start-3">
+          <div className="pt-1 pb-2 md:col-start-3">
+            <QueenSquareSelector
+              selected={gameState.queenSquare}
+              setSelected={(square) => {
+                doAction({ type: "setQueenSquare", square })
+                setLoadedQueenSquare(square)
+              }}
+            />
+          </div>
+          <div className="md:col-start-3">
             <h2 className="mb-2 font-medium text-base text-center md:text-lg md:mb">
               Increase difficulty
             </h2>
@@ -161,13 +170,6 @@ const App: React.FC = () => {
               label="End game if knight moves to an attacked square"
               enabled={!!attackEndsGame}
               onToggle={setAttackEndsGame}
-            />
-            <QueenSquareSelector
-              selected={gameState.queenSquare}
-              setSelected={(square) => {
-                doAction({ type: "setQueenSquare", square })
-                setLoadedQueenSquare(square)
-              }}
             />
           </div>
         </main>
