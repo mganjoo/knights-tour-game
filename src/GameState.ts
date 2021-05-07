@@ -219,8 +219,13 @@ function makeInitialState(args: MakeInitialStateArgs): GameState {
   let visitedSquares: ImmutableList<Square> = ImmutableList()
 
   if (serializedGameState) {
+    const startingSquare = incrementWhileAttacked(
+      STARTING_KNIGHT_SQUARE,
+      serializedGameState.queenSquare,
+      "previous"
+    )
     for (
-      let visitedSquare = STARTING_KNIGHT_SQUARE;
+      let visitedSquare = startingSquare;
       visitedSquare !== serializedGameState.lastVisitedSquare;
       visitedSquare = incrementWhileAttacked(
         getSquareIncrement(visitedSquare, "previous"),
