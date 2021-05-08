@@ -12,13 +12,20 @@ import { myConfig } from "./TailwindUtil"
 export type BoardState =
   | { id: "NOT_STARTED" }
   | { id: "RESTARTING" }
-  | { id: "PLAYING" }
+  | {
+      id: "PLAYING"
+      moved: boolean
+    }
   | {
       id: "KNIGHT_ATTACKED"
       previousSquare: Square
     }
   | { id: "FINISHED" }
   | { id: "CAPTURED" }
+  | {
+      id: "PAUSED"
+      previouslyElapsedMs: number
+    }
 
 type BoardProps = {
   /**
@@ -91,7 +98,7 @@ function makeInitialConfig(shouldReduceMotion: boolean | null): Config {
       enabled: false,
     },
     draggable: {
-      enabled: true,
+      enabled: false,
       showGhost: false,
     },
     drawable: {
@@ -207,14 +214,15 @@ const Board: React.FC<BoardProps> = ({
   ])
 
   useEffect(() => {
+    // If the puzzle is ongoing, select current knight square by default
+    const selected = boardState.id === "PLAYING" ? knightSquare : undefined
     const config: Config = {
       fen: fen,
       // Allow moves only in playing state
       viewOnly: boardState.id !== "PLAYING",
       // Always white to move
       turnColor: "white",
-      // If the puzzle is ongoing, select current knight square by default
-      selected: boardState.id === "PLAYING" ? knightSquare : undefined,
+      selected,
       animation: {
         enabled: !!!shouldReduceMotion,
       },
@@ -222,6 +230,14 @@ const Board: React.FC<BoardProps> = ({
         dests: dests,
         color: "white",
         events: { after: handleMove },
+      },
+      events: {
+        select: (key) => {
+          // If user clicks outside one of the allowed squares, reset selected
+          if (!dests.get(knightSquare)?.includes(key)) {
+            set({ selected })
+          }
+        },
       },
     }
     set(config, shapes)

@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useCallback } from "react"
+import React, { useMemo, useEffect, useCallback, useState } from "react"
 import Board from "./Board"
 import { attackedByQueen, Square, SQUARES } from "./ChessLogic"
 import Scoreboard from "./Scoreboard"
@@ -7,6 +7,7 @@ import SettingsToggle from "./SettingsToggle"
 import QueenSquareSelector from "./QueenSquareSelector"
 import useGameState, { DEFAULT_QUEEN_SQUARE } from "./GameState"
 import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
+import { useHarmonicIntervalFn } from "react-use"
 
 function formatSeconds(seconds: number) {
   const h = Math.floor(seconds / 3600)
@@ -25,23 +26,24 @@ const App: React.FC = () => {
   )
   const [attackEndsGame, setAttackEndsGame] = useFlag("v1.attack_ends_game")
   const [onboardingDone, setOnboardingDone] = useFlag("v1.onboarding_done")
-  const { gameState, doAction } = useGameState({
+  const { gameState, doAction, getElapsedMs } = useGameState({
     attackEndsGame: attackEndsGame,
     queenSquare: loadedQueenSquare,
   })
   const numSquares = useMemo(
-    // Minus 1 because queen also counts aas a square
+    // Minus 1 because queen also counts as a square
     () =>
       SQUARES.filter((s) => !attackedByQueen(s, gameState.queenSquare)).length -
       1,
     [gameState.queenSquare]
   )
   const { bestScoresMap, updateBestScores } = useBestScores("v1.best_scores")
-  const bestScores = bestScoresMap[gameState.queenSquare]
   const onKnightMove = useCallback(
     (from: Square, to: Square) => doAction({ type: "move", from, to }),
     [doAction]
   )
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0)
+  const bestScores = bestScoresMap[gameState.queenSquare]
 
   useEffect(() => {
     if (gameState.visitedSquares.size >= 3) {
@@ -56,16 +58,20 @@ const App: React.FC = () => {
       updateBestScores({
         queenSquare: gameState.queenSquare,
         numMoves: gameState.numMoves,
-        elapsed: gameState.elapsed,
+        elapsed: getElapsedMs(),
       })
     }
   }, [
     gameState.boardState.id,
-    gameState.elapsed,
     gameState.numMoves,
     gameState.queenSquare,
+    getElapsedMs,
     updateBestScores,
   ])
+
+  useHarmonicIntervalFn(() => {
+    setElapsedSeconds(Math.round(getElapsedMs() / 1000))
+  }, 1000)
 
   return (
     <div className="min-h-screen bg-blue-gray-100 text-blue-gray-900 dark:bg-blue-gray-800 dark:text-white">
@@ -114,7 +120,7 @@ const App: React.FC = () => {
               </button>
             </div>
             <div className="row-start-2 col-start-2 text-base font-semibold tabular-nums md:text-lg lg:text-xl">
-              {formatSeconds(gameState.elapsed)}
+              {formatSeconds(elapsedSeconds)}
             </div>
           </div>
           <div className="md:col-start-3">
