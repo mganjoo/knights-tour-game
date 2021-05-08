@@ -9,10 +9,11 @@ import useGameState from "./GameState"
 import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
 import { useHarmonicIntervalFn } from "react-use"
 
-function formatSeconds(seconds?: number): string | undefined {
-  if (seconds === undefined || seconds < 0) {
+function formatMillis(ms?: number): string | undefined {
+  if (ms === undefined || ms < 0) {
     return undefined
   }
+  const seconds = Math.round(ms / 1000)
   const h = Math.floor(seconds / 3600)
   const m = ("0" + (Math.floor(seconds / 60) % 60)).slice(-2)
   const s = ("0" + Math.floor(seconds % 60)).slice(-2)
@@ -40,8 +41,8 @@ const App: React.FC = () => {
       1,
     [gameState.queenSquare]
   )
-  const { bestScoresMap, updateBestScores } = useBestScores("v1.best_scores")
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0)
+  const { bestScoresMap, updateBestScores } = useBestScores()
+  const [elapsedMillis, setElapsedMillis] = useState<number>(0)
   const bestScores = bestScoresMap[gameState.queenSquare]
 
   useEffect(() => {
@@ -69,7 +70,7 @@ const App: React.FC = () => {
   ])
 
   useHarmonicIntervalFn(() => {
-    setElapsedSeconds(Math.round(getElapsedMs() / 1000))
+    setElapsedMillis(getElapsedMs())
   }, 1000)
 
   return (
@@ -119,7 +120,7 @@ const App: React.FC = () => {
               </button>
             </div>
             <div className="row-start-2 col-start-2 text-base font-semibold tabular-nums md:text-lg lg:text-xl">
-              {formatSeconds(elapsedSeconds)}
+              {formatMillis(elapsedMillis)}
             </div>
           </div>
           <div className="md:col-start-3">
@@ -142,11 +143,11 @@ const App: React.FC = () => {
                 },
                 {
                   label: "Best time",
-                  value: formatSeconds(bestScores?.bestSeconds),
+                  value: formatMillis(bestScores?.bestElapsedMs),
                 },
                 {
                   label: "Best moves",
-                  value: bestScores?.bestMoves,
+                  value: bestScores?.bestNumMoves,
                 },
               ]}
             />
