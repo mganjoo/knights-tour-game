@@ -172,7 +172,7 @@ function handleAction(state: GameState, action: GameAction): GameState {
     case "finishRestarting":
       return {
         ..._resetGameState(state),
-        boardState: { id: "PLAYING", moved: false },
+        boardState: { id: "PLAYING" },
         startTimeMs: Date.now(),
       }
     case "move":
@@ -180,7 +180,7 @@ function handleAction(state: GameState, action: GameAction): GameState {
         ...state,
         knightSquare: action.to,
         numMoves: state.numMoves + 1,
-        boardState: { id: "PLAYING", moved: true },
+        boardState: { id: "PLAYING" },
       }
 
       if (attackedByQueen(action.to, state.queenSquare)) {
@@ -226,7 +226,7 @@ function handleAction(state: GameState, action: GameAction): GameState {
           return {
             ...state,
             knightSquare: state.boardState.previousSquare,
-            boardState: { id: "PLAYING", moved: true },
+            boardState: { id: "PLAYING" },
           }
         }
       } else {
@@ -250,7 +250,7 @@ function handleAction(state: GameState, action: GameAction): GameState {
         )
         return {
           ...state,
-          boardState: { id: "PLAYING", moved: true },
+          boardState: { id: "PLAYING" },
           startTimeMs: Date.now() - previouslyElapsedMs,
           endTimeMs: undefined,
         }
@@ -306,7 +306,7 @@ function makeInitialState(args: MakeInitialStateArgs): GameState {
     boardState:
       serializedGameState === undefined
         ? { id: "NOT_STARTED" }
-        : { id: "PLAYING", moved: false },
+        : { id: "PLAYING" },
     queenSquare: queenSquare,
     knightSquare:
       serializedGameState?.knightSquare ||

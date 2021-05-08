@@ -12,10 +12,7 @@ import { myConfig } from "./TailwindUtil"
 export type BoardState =
   | { id: "NOT_STARTED" }
   | { id: "RESTARTING" }
-  | {
-      id: "PLAYING"
-      moved: boolean
-    }
+  | { id: "PLAYING" }
   | {
       id: "KNIGHT_ATTACKED"
       previousSquare: Square
