@@ -75,7 +75,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
           <>Oops, can't go there!</>
         ) : (
           <>
-            <ChevronDoubleUpIcon className="w-4 h-4 mr-2" aria-hidden={true} />
+            <ChevronDoubleUpIcon className="w-4 h-4 mr-2" aria-hidden />
             <span>Next square to visit</span>
             <span className="ml-4">
               {state.id === "NOT_STARTED" || !targetSquare ? "-" : targetSquare}
