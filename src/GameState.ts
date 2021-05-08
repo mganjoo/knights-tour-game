@@ -12,9 +12,20 @@ import {
   STARTING_KNIGHT_SQUARE,
   ENDING_KNIGHT_SQUARE,
 } from "./ChessLogic"
-import { BoardState } from "./Board"
 import { useCallback, useEffect, useReducer } from "react"
 import { useLocalStorage } from "react-use"
+
+export type BoardState =
+  | { id: "NOT_STARTED" }
+  | { id: "RESTARTING" }
+  | { id: "PLAYING" }
+  | {
+      id: "KNIGHT_ATTACKED"
+      previousSquare: Square
+    }
+  | { id: "FINISHED" }
+  | { id: "CAPTURED" }
+  | { id: "PAUSED" }
 
 export interface GameState {
   boardState: BoardState

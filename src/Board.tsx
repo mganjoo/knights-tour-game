@@ -8,18 +8,7 @@ import { useChessground } from "./Chessground"
 import { DrawShape } from "chessground/draw"
 import { useReducedMotion } from "framer-motion"
 import { colors } from "./TailwindUtil"
-
-export type BoardState =
-  | { id: "NOT_STARTED" }
-  | { id: "RESTARTING" }
-  | { id: "PLAYING" }
-  | {
-      id: "KNIGHT_ATTACKED"
-      previousSquare: Square
-    }
-  | { id: "FINISHED" }
-  | { id: "CAPTURED" }
-  | { id: "PAUSED" }
+import { BoardState } from "./GameState"
 
 type BoardProps = {
   /**

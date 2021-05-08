@@ -1,6 +1,6 @@
 import React from "react"
 import { motion, useReducedMotion } from "framer-motion"
-import { BoardState } from "./Board"
+import { BoardState } from "./GameState"
 import { Square } from "./ChessLogic"
 import classNames from "classnames"
 import { ChevronDoubleUpIcon } from "@heroicons/react/solid"
@@ -70,7 +70,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
           <>Oops, can't go there!</>
         ) : (
           <>
-            <ChevronDoubleUpIcon className="w-4 h-4 mr-2" />
+            <ChevronDoubleUpIcon className="w-4 h-4 mr-2" aria-hidden={true} />
             <span>Next square to visit</span>
             <span className="ml-4">
               {state.id === "NOT_STARTED" || !targetSquare ? "-" : targetSquare}
