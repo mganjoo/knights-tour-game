@@ -22,10 +22,7 @@ export type BoardState =
     }
   | { id: "FINISHED" }
   | { id: "CAPTURED" }
-  | {
-      id: "PAUSED"
-      previouslyElapsedMs: number
-    }
+  | { id: "PAUSED" }
 
 type BoardProps = {
   /**

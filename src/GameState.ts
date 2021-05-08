@@ -8,25 +8,13 @@ import {
   isSquare,
   QueenSquare,
   Square,
+  DEFAULT_QUEEN_SQUARE,
+  STARTING_KNIGHT_SQUARE,
+  ENDING_KNIGHT_SQUARE,
 } from "./ChessLogic"
 import { BoardState } from "./Board"
 import { useCallback, useEffect, useReducer } from "react"
 import { useLocalStorage } from "react-use"
-
-const SquareType = String.withGuard(isSquare)
-const QueenSquareType = String.withGuard(isQueenSquare)
-const NonNegative = Number.withConstraint((n) => n >= 0)
-
-const SerializedGameStateSchema = Record({
-  queenSquare: QueenSquareType,
-  knightSquare: SquareType,
-  lastVisitedSquare: SquareType,
-  targetSquare: Optional(SquareType),
-  numMoves: NonNegative,
-  previouslyElapsedMs: NonNegative,
-})
-
-export type SerializedGameState = Static<typeof SerializedGameStateSchema>
 
 export interface GameState {
   boardState: BoardState
@@ -38,6 +26,7 @@ export interface GameState {
   numMoves: number
   startTimeMs: number | undefined
   endTimeMs: number | undefined
+  attackEndsGame: boolean
 }
 
 type SetQueenSquareAction = {
@@ -61,16 +50,19 @@ type MoveAction = {
 
 type HandleKnightAttackAction = {
   type: "handleKnightAttack"
-  endGame: boolean
 }
 
 type PauseAction = {
   type: "pause"
-  queenAttackEndsGame: boolean
 }
 
 type UnpauseAction = {
   type: "unpause"
+}
+
+type SetAttackEndsGame = {
+  type: "setAttackEndsGame"
+  value: boolean
 }
 
 type GameAction =
@@ -81,12 +73,28 @@ type GameAction =
   | HandleKnightAttackAction
   | PauseAction
   | UnpauseAction
+  | SetAttackEndsGame
 
-function assertNever(x: never): never {
+const SquareType = String.withGuard(isSquare)
+const QueenSquareType = String.withGuard(isQueenSquare)
+const NonNegative = Number.withConstraint((n) => n >= 0)
+
+const SerializedGameStateSchema = Record({
+  queenSquare: QueenSquareType,
+  knightSquare: SquareType,
+  lastVisitedSquare: SquareType,
+  targetSquare: Optional(SquareType),
+  numMoves: NonNegative,
+  previouslyElapsedMs: NonNegative,
+})
+
+export type SerializedGameState = Static<typeof SerializedGameStateSchema>
+
+function _assertNever(x: never): never {
   throw new Error(`unexpected action: ${x}`)
 }
 
-function resetGameState(state: GameState): GameState {
+function _resetGameState(state: GameState): GameState {
   const startingSquare = incrementWhileAttacked(
     STARTING_KNIGHT_SQUARE,
     state.queenSquare,
@@ -107,13 +115,41 @@ function resetGameState(state: GameState): GameState {
   }
 }
 
+function _getElapsedMs(
+  startTimeMs: number | undefined,
+  endTimeMs: number | undefined
+) {
+  if (startTimeMs === undefined) {
+    return 0
+  } else if (endTimeMs === undefined) {
+    return Date.now() - startTimeMs
+  } else {
+    return endTimeMs - startTimeMs
+  }
+}
+
+/**
+ * Whether the game should be saved when browsing away etc.
+ */
+function _isSaveable(gameState: GameState) {
+  return (
+    // If knight is under attack with the end game setting on, no point saving
+    (gameState.boardState.id === "KNIGHT_ATTACKED" &&
+      !gameState.attackEndsGame) ||
+    // Only save games where a move has been made
+    (gameState.boardState.id === "PLAYING" && gameState.boardState.moved) ||
+    // Save paused games so they are later restored as paused
+    gameState.boardState.id === "PAUSED"
+  )
+}
+
 function handleAction(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "setQueenSquare":
       if (state.queenSquare === action.square) {
         return state
       } else {
-        const stateWithNewQueen = resetGameState({
+        const stateWithNewQueen = _resetGameState({
           ...state,
           queenSquare: action.square,
           finalTargetSquare: incrementWhileAttacked(
@@ -136,7 +172,7 @@ function handleAction(state: GameState, action: GameAction): GameState {
       return { ...state, boardState: { id: "RESTARTING" } }
     case "finishRestarting":
       return {
-        ...resetGameState(state),
+        ..._resetGameState(state),
         boardState: { id: "PLAYING", moved: false },
         startTimeMs: Date.now(),
       }
@@ -155,9 +191,7 @@ function handleAction(state: GameState, action: GameAction): GameState {
           boardState: { id: "KNIGHT_ATTACKED", previousSquare: action.from },
         }
       } else if (action.to === state.targetSquare) {
-        // If we move to a new target, update visited + target squares
-        const finished = state.targetSquare === state.finalTargetSquare
-        return {
+        const stateWithMove = {
           ...newBaseState,
           visitedSquares: state.visitedSquares.push(action.to),
           targetSquare:
@@ -168,15 +202,22 @@ function handleAction(state: GameState, action: GameAction): GameState {
                   state.queenSquare,
                   "previous"
                 ),
-          boardState: finished ? { id: "FINISHED" } : newBaseState.boardState,
-          endTimeMs: finished ? Date.now() : undefined,
+        }
+        if (state.targetSquare === state.finalTargetSquare) {
+          return {
+            ...stateWithMove,
+            boardState: { id: "FINISHED" },
+            endTimeMs: Date.now(),
+          }
+        } else {
+          return stateWithMove
         }
       } else {
         return newBaseState
       }
     case "handleKnightAttack":
       if (state.boardState.id === "KNIGHT_ATTACKED") {
-        if (action.endGame) {
+        if (state.attackEndsGame) {
           return {
             ...state,
             boardState: { id: "CAPTURED" },
@@ -193,52 +234,42 @@ function handleAction(state: GameState, action: GameAction): GameState {
         return state
       }
     case "pause":
-      if (
-        _isSaveable(state.boardState, action.queenAttackEndsGame) &&
-        state.startTimeMs !== undefined
-      ) {
+      if (_isSaveable(state)) {
         return {
           ...state,
-          boardState: {
-            id: "PAUSED",
-            previouslyElapsedMs: Date.now() - state.startTimeMs,
-          },
+          endTimeMs: Date.now(),
+          boardState: { id: "PAUSED" },
         }
       } else {
         return state
       }
     case "unpause":
       if (state.boardState.id === "PAUSED") {
+        const previouslyElapsedMs = _getElapsedMs(
+          state.startTimeMs,
+          state.endTimeMs
+        )
         return {
           ...state,
-          boardState: {
-            id: "PLAYING",
-            moved: true,
-          },
-          startTimeMs: Date.now() - state.boardState.previouslyElapsedMs,
+          boardState: { id: "PLAYING", moved: true },
+          startTimeMs: Date.now() - previouslyElapsedMs,
           endTimeMs: undefined,
         }
       } else {
         return state
       }
+    case "setAttackEndsGame":
+      return {
+        ...state,
+        attackEndsGame: action.value,
+      }
     default:
-      assertNever(action)
+      _assertNever(action)
   }
 }
 
-export const DEFAULT_QUEEN_SQUARE = "d5"
-
-const STARTING_KNIGHT_SQUARE: Square = "h8"
-const ENDING_KNIGHT_SQUARE: Square = "a1"
-
-// "Safe" square to be used as source square for knight
-const DEFAULT_SAFE_STARTING_KNIGHT_SQUARE: Square = incrementWhileAttacked(
-  STARTING_KNIGHT_SQUARE,
-  DEFAULT_QUEEN_SQUARE,
-  "previous"
-)
-
 interface MakeInitialStateArgs {
+  attackEndsGame: boolean
   serializedGameState: unknown
 }
 
@@ -279,7 +310,8 @@ function makeInitialState(args: MakeInitialStateArgs): GameState {
         : { id: "PLAYING", moved: false },
     queenSquare: queenSquare,
     knightSquare:
-      serializedGameState?.knightSquare || DEFAULT_SAFE_STARTING_KNIGHT_SQUARE,
+      serializedGameState?.knightSquare ||
+      incrementWhileAttacked(STARTING_KNIGHT_SQUARE, queenSquare, "previous"),
     visitedSquares: visitedSquares,
     targetSquare: serializedGameState?.targetSquare,
     finalTargetSquare: incrementWhileAttacked(
@@ -293,37 +325,8 @@ function makeInitialState(args: MakeInitialStateArgs): GameState {
         ? Date.now() - serializedGameState.previouslyElapsedMs
         : undefined,
     endTimeMs: undefined,
+    attackEndsGame: args.attackEndsGame,
   }
-}
-
-function _getElapsedMs(
-  startTimeMs: number | undefined,
-  endTimeMs: number | undefined
-) {
-  if (startTimeMs === undefined) {
-    return 0
-  } else if (endTimeMs === undefined) {
-    return Date.now() - startTimeMs
-  } else {
-    return endTimeMs - startTimeMs
-  }
-}
-
-/**
- * Whether the game should be saved when browsing away etc. A game
- * will saved if it's in PLAYING state and the user has moved, or
- * if the knight is attacked but eh game is not configured to end
- * immediately.
- */
-function _isSaveable(boardState: BoardState, attackEndsGame: boolean) {
-  return !(
-    ["NOT_STARTED", "RESTARTING", "CAPTURED", "FINISHED"].includes(
-      boardState.id
-    ) ||
-    // This will lead to game over on next transition
-    (boardState.id === "KNIGHT_ATTACKED" && attackEndsGame) ||
-    (boardState.id === "PLAYING" && !boardState.moved)
-  )
 }
 
 interface UseGameStateArgs {
@@ -347,7 +350,7 @@ export default function useGameState(
   ] = useLocalStorage("v1.game_state")
   const [gameState, doAction] = useReducer(
     handleAction,
-    { serializedGameState },
+    { attackEndsGame: args.attackEndsGame, serializedGameState },
     makeInitialState
   )
 
@@ -362,14 +365,13 @@ export default function useGameState(
       lastVisitedSquare: gameState.visitedSquares.last(gameState.knightSquare),
       targetSquare: gameState.targetSquare,
       numMoves: gameState.numMoves,
-      previouslyElapsedMs:
-        gameState.boardState.id === "PAUSED"
-          ? gameState.boardState.previouslyElapsedMs
-          : _getElapsedMs(gameState.startTimeMs, gameState.endTimeMs),
+      previouslyElapsedMs: _getElapsedMs(
+        gameState.startTimeMs,
+        gameState.endTimeMs
+      ),
     }
     setSerializedGameState(serialized)
   }, [
-    gameState.boardState,
     gameState.endTimeMs,
     gameState.knightSquare,
     gameState.numMoves,
@@ -381,20 +383,14 @@ export default function useGameState(
   ])
 
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        doAction({ type: "pause", queenAttackEndsGame: args.attackEndsGame })
-        if (_isSaveable(gameState.boardState, args.attackEndsGame)) {
-          saveGameState()
-        }
-      } else {
-        doAction({ type: "unpause" })
-      }
-    }
+    const handleVisibilityChange = () =>
+      doAction({
+        type: document.visibilityState === "hidden" ? "pause" : "unpause",
+      })
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [args.attackEndsGame, gameState.boardState, saveGameState])
+  }, [])
 
   useEffect(() => {
     if (gameState.boardState.id === "RESTARTING") {
@@ -406,36 +402,30 @@ export default function useGameState(
   }, [gameState.boardState.id])
 
   useEffect(() => {
-    // Automatically transition out of attacked state
     if (gameState.boardState.id === "KNIGHT_ATTACKED") {
       const timeout = setTimeout(() => {
-        doAction({ type: "handleKnightAttack", endGame: args.attackEndsGame })
+        doAction({ type: "handleKnightAttack" })
       }, 800)
       return () => clearTimeout(timeout)
     }
-  }, [gameState.boardState.id, args.attackEndsGame])
+  }, [gameState.boardState.id])
 
   useEffect(() => {
-    if (gameState.queenSquare !== args.queenSquare) {
-      doAction({ type: "setQueenSquare", square: args.queenSquare })
-    }
+    doAction({ type: "setAttackEndsGame", value: args.attackEndsGame })
+  }, [args.attackEndsGame])
+
+  useEffect(() => {
+    doAction({ type: "setQueenSquare", square: args.queenSquare })
   }, [gameState.queenSquare, args.queenSquare])
 
-  // Save game state on various state changes
+  // Save game state whenever we can (game state changes)
   useEffect(() => {
-    if (!_isSaveable(gameState.boardState, args.attackEndsGame)) {
-      // Delete saved state if are on move 0, or game is in non-playing state
-      // (ended, transitioning, not started)
-      removeSerializedGameState()
-    } else if (gameState.boardState.id === "PLAYING") {
+    if (_isSaveable(gameState)) {
       saveGameState()
+    } else {
+      removeSerializedGameState()
     }
-  }, [
-    gameState.boardState,
-    args.attackEndsGame,
-    removeSerializedGameState,
-    saveGameState,
-  ])
+  }, [gameState, removeSerializedGameState, saveGameState])
 
   return { gameState, doAction, getElapsedMs }
 }
