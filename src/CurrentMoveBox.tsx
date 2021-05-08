@@ -62,7 +62,12 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
         )}
       >
         {state.id === "FINISHED" ? (
-          <>Puzzle complete. Nicely done!</>
+          <>
+            <span className="mr-2" aria-hidden>
+              🎉
+            </span>
+            <span>Puzzle complete. Nicely done!</span>
+          </>
         ) : state.id === "CAPTURED" ||
           (state.id === "KNIGHT_ATTACKED" && attackEndsGame) ? (
           <>Oops, game over! Try again.</>
