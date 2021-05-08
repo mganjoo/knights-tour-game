@@ -51,14 +51,14 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
         }
         animate={targetStyle}
         className={classNames(
-          "py-2 px-4 text-sm font-medium flex items-center text-white lg:text-base",
+          "py-2 px-4 text-sm font-medium flex items-center lg:text-base",
           state.id === "FINISHED"
-            ? "bg-green-700"
+            ? "bg-green-700 text-white"
             : state.id === "CAPTURED" || state.id === "KNIGHT_ATTACKED"
             ? "bg-red-600 text-white"
             : state.id === "NOT_STARTED" || !targetSquare
             ? "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-100"
-            : "bg-yellow-700"
+            : "bg-yellow-700 text-white"
         )}
       >
         {state.id === "FINISHED" ? (
