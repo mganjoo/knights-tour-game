@@ -50,7 +50,7 @@ const DEFAULT_BEST_SCORES_MAP = {} as BestScoresMap
 interface UseBestScoresArgs {
   queenSquare: QueenSquare
   numMoves: number
-  elapsed: number
+  elapsedMs: number
 }
 
 export function useBestScores(key: string) {
@@ -92,7 +92,8 @@ export function useBestScores(key: string) {
   return {
     bestScoresMap: bestScoresMap || DEFAULT_BEST_SCORES_MAP,
     updateBestScores: (args: UseBestScoresArgs) => {
-      const { queenSquare, numMoves, elapsed } = args
+      const { queenSquare, numMoves, elapsedMs } = args
+      const elapsedSeconds = Math.round(elapsedMs / 1000)
       if (BestScoresMapType.guard(bestScoresMap)) {
         const bestScores = bestScoresMap[queenSquare]
         const newBestMoves =
@@ -100,8 +101,9 @@ export function useBestScores(key: string) {
             ? numMoves
             : bestScores.bestMoves
         const newBestSeconds =
-          !BestScoresType.guard(bestScores) || elapsed < bestScores.bestSeconds
-            ? elapsed
+          !BestScoresType.guard(bestScores) ||
+          elapsedSeconds < bestScores.bestSeconds
+            ? elapsedSeconds
             : bestScores.bestSeconds
         if (
           newBestMoves !== bestScores?.bestMoves ||
@@ -111,7 +113,7 @@ export function useBestScores(key: string) {
             ...bestScoresMap,
             [queenSquare]: {
               bestMoves: newBestMoves,
-              bestSeconds: elapsed,
+              bestSeconds: elapsedSeconds,
             },
           })
         }
@@ -120,7 +122,7 @@ export function useBestScores(key: string) {
           ...DEFAULT_BEST_SCORES_MAP,
           [queenSquare]: {
             bestMoves: numMoves,
-            bestSeconds: elapsed,
+            bestSeconds: elapsedSeconds,
           },
         })
       }

@@ -9,7 +9,10 @@ import useGameState from "./GameState"
 import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
 import { useHarmonicIntervalFn } from "react-use"
 
-function formatSeconds(seconds: number) {
+function formatSeconds(seconds?: number): string | undefined {
+  if (seconds === undefined || seconds < 0) {
+    return undefined
+  }
   const h = Math.floor(seconds / 3600)
   const m = ("0" + (Math.floor(seconds / 60) % 60)).slice(-2)
   const s = ("0" + Math.floor(seconds % 60)).slice(-2)
@@ -54,7 +57,7 @@ const App: React.FC = () => {
       updateBestScores({
         queenSquare: gameState.queenSquare,
         numMoves: gameState.numMoves,
-        elapsed: getElapsedMs(),
+        elapsedMs: getElapsedMs(),
       })
     }
   }, [
@@ -139,19 +142,11 @@ const App: React.FC = () => {
                 },
                 {
                   label: "Best time",
-                  value:
-                    bestScores?.bestSeconds !== undefined &&
-                    bestScores?.bestSeconds > 0
-                      ? formatSeconds(bestScores?.bestSeconds)
-                      : undefined,
+                  value: formatSeconds(bestScores?.bestSeconds),
                 },
                 {
                   label: "Best moves",
-                  value:
-                    bestScores?.bestMoves !== undefined &&
-                    bestScores?.bestSeconds > 0
-                      ? bestScores?.bestMoves
-                      : undefined,
+                  value: bestScores?.bestMoves,
                 },
               ]}
             />
