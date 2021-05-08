@@ -136,8 +136,7 @@ function _isSaveable(gameState: GameState) {
     // If knight is under attack with the end game setting on, no point saving
     (gameState.boardState.id === "KNIGHT_ATTACKED" &&
       !gameState.attackEndsGame) ||
-    // Only save games where a move has been made
-    (gameState.boardState.id === "PLAYING" && gameState.boardState.moved) ||
+    gameState.boardState.id === "PLAYING" ||
     // Save paused games so they are later restored as paused
     gameState.boardState.id === "PAUSED"
   )
@@ -420,7 +419,8 @@ export default function useGameState(
 
   // Save game state whenever we can (game state changes)
   useEffect(() => {
-    if (_isSaveable(gameState)) {
+    // Game must be in a saveable state, but have non-zero moves
+    if (_isSaveable(gameState) && gameState.numMoves > 0) {
       saveGameState()
     } else {
       removeSerializedGameState()
