@@ -14,6 +14,7 @@ interface CurrentMoveBoxProps {
 function getReactKey(state: BoardState, targetSquare: Square | undefined) {
   // Key determines which state changes get animated
   switch (state.id) {
+    case "PAUSED":
     case "PLAYING":
       return targetSquare ? `next_${targetSquare}` : "other"
     case "CAPTURED":

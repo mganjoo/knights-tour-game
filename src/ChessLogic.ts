@@ -378,3 +378,18 @@ export function getPuzzleKnightPath(
   fullPath.push(start)
   return fullPath
 }
+
+/**
+ * Default square for queen in the knights tour game.
+ */
+export const DEFAULT_QUEEN_SQUARE = "d5"
+
+/**
+ * Starting square for knight in the game.
+ */
+export const STARTING_KNIGHT_SQUARE: Square = "h8"
+
+/**
+ * Ending square for knight in the game.
+ */
+export const ENDING_KNIGHT_SQUARE: Square = "a1"

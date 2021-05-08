@@ -1,14 +1,19 @@
-import React, { useMemo, useEffect } from "react"
+import React, { useMemo, useEffect, useState } from "react"
 import Board from "./Board"
-import { attackedByQueen, SQUARES } from "./ChessLogic"
+import { attackedByQueen, SQUARES, DEFAULT_QUEEN_SQUARE } from "./ChessLogic"
 import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
 import SettingsToggle from "./SettingsToggle"
 import QueenSquareSelector from "./QueenSquareSelector"
-import useGameState, { DEFAULT_QUEEN_SQUARE } from "./GameState"
+import useGameState from "./GameState"
 import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
+import { useHarmonicIntervalFn } from "react-use"
 
-function formatSeconds(seconds: number) {
+function formatMillis(ms?: number): string | undefined {
+  if (ms === undefined || ms < 0) {
+    return undefined
+  }
+  const seconds = Math.round(ms / 1000)
   const h = Math.floor(seconds / 3600)
   const m = ("0" + (Math.floor(seconds / 60) % 60)).slice(-2)
   const s = ("0" + Math.floor(seconds % 60)).slice(-2)
@@ -25,18 +30,19 @@ const App: React.FC = () => {
   )
   const [attackEndsGame, setAttackEndsGame] = useFlag("v1.attack_ends_game")
   const [onboardingDone, setOnboardingDone] = useFlag("v1.onboarding_done")
-  const { gameState, doAction } = useGameState({
+  const { gameState, doAction, getElapsedMs } = useGameState({
     attackEndsGame: attackEndsGame,
     queenSquare: loadedQueenSquare,
   })
   const numSquares = useMemo(
-    // Minus 1 because queen also counts aas a square
+    // Minus 1 because queen also counts as a square
     () =>
       SQUARES.filter((s) => !attackedByQueen(s, gameState.queenSquare)).length -
       1,
     [gameState.queenSquare]
   )
-  const { bestScoresMap, updateBestScores } = useBestScores("v1.best_scores")
+  const { bestScoresMap, updateBestScores } = useBestScores()
+  const [elapsedMillis, setElapsedMillis] = useState<number>(0)
   const bestScores = bestScoresMap[gameState.queenSquare]
 
   useEffect(() => {
@@ -52,16 +58,20 @@ const App: React.FC = () => {
       updateBestScores({
         queenSquare: gameState.queenSquare,
         numMoves: gameState.numMoves,
-        elapsed: gameState.elapsed,
+        elapsedMs: getElapsedMs(),
       })
     }
   }, [
-    gameState.boardState,
-    gameState.elapsed,
+    gameState.boardState.id,
     gameState.numMoves,
     gameState.queenSquare,
+    getElapsedMs,
     updateBestScores,
   ])
+
+  useHarmonicIntervalFn(() => {
+    setElapsedMillis(getElapsedMs())
+  }, 1000)
 
   return (
     <div className="min-h-screen bg-blue-gray-100 text-blue-gray-900 dark:bg-blue-gray-800 dark:text-white">
@@ -69,7 +79,7 @@ const App: React.FC = () => {
         <main className="grid pt-4 pb-6 md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6 md:items-center">
           <div className="col-start-1 row-start-2 md:row-start-1 md:row-span-5 md:col-span-2">
             <Board
-              state={gameState.boardState}
+              boardState={gameState.boardState}
               knightSquare={gameState.knightSquare}
               queenSquare={
                 gameState.boardState.id === "CAPTURED"
@@ -110,7 +120,7 @@ const App: React.FC = () => {
               </button>
             </div>
             <div className="row-start-2 col-start-2 text-base font-semibold tabular-nums md:text-lg lg:text-xl">
-              {formatSeconds(gameState.elapsed)}
+              {formatMillis(elapsedMillis)}
             </div>
           </div>
           <div className="md:col-start-3">
@@ -133,17 +143,11 @@ const App: React.FC = () => {
                 },
                 {
                   label: "Best time",
-                  value:
-                    bestScores?.bestSeconds && bestScores?.bestSeconds > 0
-                      ? formatSeconds(bestScores?.bestSeconds)
-                      : "-",
+                  value: formatMillis(bestScores?.bestElapsedMs),
                 },
                 {
                   label: "Best moves",
-                  value:
-                    bestScores?.bestMoves && bestScores?.bestSeconds > 0
-                      ? bestScores?.bestMoves
-                      : undefined,
+                  value: bestScores?.bestNumMoves,
                 },
               ]}
             />

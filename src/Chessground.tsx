@@ -39,7 +39,7 @@ export function useChessground(
   }, [ground, initialConfig])
 
   return {
-    el: el,
-    set: set,
+    el,
+    set,
   }
 }
