@@ -74,7 +74,7 @@ const App: React.FC = () => {
   }, 1000)
 
   return (
-    <div className="min-h-screen bg-blue-gray-100 text-blue-gray-900 dark:bg-blue-gray-800 dark:text-white">
+    <div className="min-h-screen bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white">
       <div className="max-w-lg mx-auto px-4 md:px-6 md:max-w-screen-lg">
         <main className="grid pt-4 pb-6 md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6 md:items-center">
           <div className="col-start-1 row-start-2 md:row-start-1 md:row-span-5 md:col-span-2">
@@ -111,7 +111,7 @@ const App: React.FC = () => {
             </div>
             <div className="row-start-1 col-start-2 md:row-start-2 md:col-start-1">
               <button
-                className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-light-blue-700 hover:bg-light-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-light-blue-500 lg:px-4 lg:text-base"
+                className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-blue-700 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 lg:px-4 lg:text-base"
                 onClick={() => {
                   doAction({ type: "beginRestarting" })
                 }}
@@ -177,7 +177,7 @@ const App: React.FC = () => {
             />
           </div>
         </main>
-        <footer className="text-xs mx-5 pt-4 pb-12 flex items-center justify-center space-x-1 border-t border-blue-gray-400 text-blue-gray-700 md:text-sm md:mx-0 dark:border-blue-gray-300 dark:text-blue-gray-200">
+        <footer className="text-xs mx-5 pt-4 pb-12 flex items-center justify-center space-x-1 border-t border-gray-400 text-gray-700 md:text-sm md:mx-0 dark:border-gray-300 dark:text-gray-200">
           <span>
             By{" "}
             <a href="https://github.com/mganjoo" className="link-default">

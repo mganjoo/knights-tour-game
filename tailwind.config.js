@@ -4,11 +4,13 @@ module.exports = {
   purge: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
   darkMode: "media",
   theme: {
-    extend: {
-      colors: {
-        "light-blue": colors.lightBlue,
-        "blue-gray": colors.blueGray,
-      },
+    colors: {
+      blue: colors.lightBlue,
+      green: colors.green,
+      red: colors.red,
+      yellow: colors.yellow,
+      gray: colors.blueGray,
+      white: colors.white,
     },
   },
   variants: {

@@ -1,9 +1,12 @@
 import preval from "preval.macro"
-import { TailwindConfig } from "tailwindcss/tailwind-config"
+import { TailwindColorConfig } from "tailwindcss/tailwind-config"
 
-export const myConfig: TailwindConfig = preval`
+/**
+ * Export resolved Tailwind config (such as colors)
+ */
+export const colors: TailwindColorConfig = preval`
 const myConfig = require("../tailwind.config.js")
 const resolveConfig = require("tailwindcss/resolveConfig")
 const fullConfig = resolveConfig(myConfig)
-module.exports = fullConfig
+module.exports = fullConfig.theme.colors
 `

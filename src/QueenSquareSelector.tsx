@@ -18,11 +18,11 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
         <div className="flex justify-center items-center">
           <div className="w-16 md:w-20">
             <div className="relative">
-              <Listbox.Button className="relative w-full py-2 pl-3 pr-10 text-blue-gray-900 text-sm bg-white rounded-lg text-left shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-light-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-gray-100 md:text-base">
+              <Listbox.Button className="relative w-full py-2 pl-3 pr-10 text-gray-900 text-sm bg-white rounded-lg text-left shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 md:text-base">
                 <span className="block">{selected}</span>
                 <span className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
                   <SelectorIcon
-                    className="w-5 h-5 text-blue-gray-400"
+                    className="w-5 h-5 text-gray-400"
                     aria-hidden="true"
                   />
                 </span>
@@ -36,7 +36,7 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
               >
                 <Listbox.Options
                   static
-                  className="absolute w-full py-1 mb-1 bottom-full overflow-auto bg-white rounded-md shadow-lg text-sm max-h-72 ring-1 ring-black ring-opacity-5 focus:outline-none md:text-base"
+                  className="absolute w-full py-1 mb-1 bottom-full overflow-auto bg-white rounded-md shadow-lg text-sm max-h-72 ring-1 ring-gray-900 ring-opacity-5 focus:outline-none md:text-base"
                 >
                   {CANDIDATE_QUEEN_SQUARES.map((square) => (
                     <Listbox.Option
@@ -44,8 +44,8 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
                       className={({ active }) =>
                         classNames(
                           active
-                            ? "text-light-blue-900 bg-light-blue-200"
-                            : "text-blue-gray-900",
+                            ? "text-blue-900 bg-blue-200"
+                            : "text-gray-900",
                           "cursor-default select-none relative text-right py-2 pl-10 pr-4"
                         )
                       }
@@ -62,7 +62,7 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
                             {square}
                           </span>
                           {selected ? (
-                            <span className="text-light-blue-600 absolute inset-y-0 left-0 flex items-center pl-3">
+                            <span className="text-blue-600 absolute inset-y-0 left-0 flex items-center pl-3">
                               <CheckIcon
                                 className="w-5 h-5"
                                 aria-hidden="true"
