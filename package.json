@@ -22,7 +22,11 @@
     "build": "craco build",
     "test": "craco test",
     "prepare": "husky install",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\""
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "check": "npm run check:types && npm run check:lint",
+    "check:types": "tsc --noEmit",
+    "check:lint": "eslint --cache --ignore-path .gitignore . --ext ts --ext tsx --ext js --ext jsx",
+    "check:lint:fix": "npm run check:lint -- --fix"
   },
   "eslintConfig": {
     "extends": [
