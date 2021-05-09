@@ -1,13 +1,13 @@
 import React, { useMemo, useEffect, useState } from "react"
+import { useHarmonicIntervalFn } from "react-use"
 import Board from "./Board"
 import { attackedByQueen, SQUARES, DEFAULT_QUEEN_SQUARE } from "./ChessLogic"
-import Scoreboard from "./Scoreboard"
 import CurrentMoveBox from "./CurrentMoveBox"
-import SettingsToggle from "./SettingsToggle"
-import QueenSquareSelector from "./QueenSquareSelector"
 import useGameState from "./GameState"
+import QueenSquareSelector from "./QueenSquareSelector"
+import Scoreboard from "./Scoreboard"
 import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
-import { useHarmonicIntervalFn } from "react-use"
+import SettingsToggle from "./SettingsToggle"
 
 function formatMillis(ms?: number): string | undefined {
   if (ms === undefined || ms < 0) {

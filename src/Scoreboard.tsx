@@ -1,5 +1,5 @@
-import React from "react"
 import { motion, useReducedMotion } from "framer-motion"
+import React from "react"
 
 interface ScoreboardProps {
   tickers: {

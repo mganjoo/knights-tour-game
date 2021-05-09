@@ -1,5 +1,7 @@
-import { String, Number, Record, Static, Optional } from "runtypes"
 import { List as ImmutableList } from "immutable"
+import { useCallback, useEffect, useReducer } from "react"
+import { useLocalStorage } from "react-use"
+import { String, Number, Record, Static, Optional } from "runtypes"
 import {
   attackedByQueen,
   getSquareIncrement,
@@ -12,8 +14,6 @@ import {
   STARTING_KNIGHT_SQUARE,
   ENDING_KNIGHT_SQUARE,
 } from "./ChessLogic"
-import { useCallback, useEffect, useReducer } from "react"
-import { useLocalStorage } from "react-use"
 
 export type BoardState =
   | { id: "NOT_STARTED" }

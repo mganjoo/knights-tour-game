@@ -1,3 +1,5 @@
+import { Chessground } from "chessground"
+import * as fc from "fast-check"
 import {
   attackedByQueen,
   getKnightDests,
@@ -7,8 +9,6 @@ import {
   Square,
   SQUARES,
 } from "./ChessLogic"
-import * as fc from "fast-check"
-import { Chessground } from "chessground"
 
 describe("getPuzzleFen()", () => {
   test("generates correct puzzle FEN with knight and queen", () => {

@@ -1,9 +1,9 @@
-import { RefObject, useCallback, useEffect, useRef, useState } from "react"
 import { Chessground } from "chessground"
-import "./Board.css"
 import { Api as ChessgroundApi } from "chessground/api"
 import { Config } from "chessground/config"
 import { DrawShape } from "chessground/draw"
+import { RefObject, useCallback, useEffect, useRef, useState } from "react"
+import "./Board.css"
 
 interface ChessgroundFunctions {
   el: RefObject<HTMLDivElement>

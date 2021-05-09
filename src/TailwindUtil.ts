@@ -1,4 +1,5 @@
 import preval from "preval.macro"
+// eslint-disable-next-line
 import { TailwindColorConfig } from "tailwindcss/tailwind-config"
 
 /**

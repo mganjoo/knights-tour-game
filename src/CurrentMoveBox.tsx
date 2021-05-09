@@ -1,9 +1,9 @@
-import React from "react"
-import { motion, useReducedMotion } from "framer-motion"
-import { BoardState } from "./GameState"
-import { Square } from "./ChessLogic"
-import classNames from "classnames"
 import { ChevronDoubleUpIcon } from "@heroicons/react/solid"
+import classNames from "classnames"
+import { motion, useReducedMotion } from "framer-motion"
+import React from "react"
+import { Square } from "./ChessLogic"
+import { BoardState } from "./GameState"
 
 interface CurrentMoveBoxProps {
   state: BoardState

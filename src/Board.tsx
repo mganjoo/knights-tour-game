@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect, useMemo } from "react"
 import "./Board.css"
-import * as cg from "chessground/types"
 import { Config } from "chessground/config"
-import { getPuzzleFen, getKnightDests, Square } from "./ChessLogic"
-import { List as ImmutableList } from "immutable"
-import { useChessground } from "./Chessground"
 import { DrawShape } from "chessground/draw"
+import * as cg from "chessground/types"
 import { useReducedMotion } from "framer-motion"
-import { colors } from "./TailwindUtil"
+import { List as ImmutableList } from "immutable"
+import React, { useCallback, useEffect, useMemo } from "react"
+import { getPuzzleFen, getKnightDests, Square } from "./ChessLogic"
+import { useChessground } from "./Chessground"
 import { BoardState } from "./GameState"
+import { colors } from "./TailwindUtil"
 
 type BoardProps = {
   /**
