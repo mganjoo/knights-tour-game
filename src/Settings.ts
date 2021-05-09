@@ -157,7 +157,7 @@ export function useBestScores() {
           ...bestScoresMapResolved,
           [queenSquare]: {
             bestNumMoves: newBestNumMoves,
-            bestElapsedMs: elapsedMs,
+            bestElapsedMs: newBestElapsedMs,
           },
         })
       }
