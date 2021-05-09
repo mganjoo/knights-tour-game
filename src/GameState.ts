@@ -40,51 +40,15 @@ export interface GameState {
   attackEndsGame: boolean
 }
 
-type SetQueenSquareAction = {
-  type: "setQueenSquare"
-  square: QueenSquare
-}
-
-type BeginRestartingAction = {
-  type: "beginRestarting"
-}
-
-type FinishRestartingAction = {
-  type: "finishRestarting"
-}
-
-type MoveAction = {
-  type: "move"
-  from: Square
-  to: Square
-}
-
-type HandleKnightAttackAction = {
-  type: "handleKnightAttack"
-}
-
-type PauseAction = {
-  type: "pause"
-}
-
-type UnpauseAction = {
-  type: "unpause"
-}
-
-type SetAttackEndsGame = {
-  type: "setAttackEndsGame"
-  value: boolean
-}
-
 type GameAction =
-  | SetQueenSquareAction
-  | BeginRestartingAction
-  | FinishRestartingAction
-  | MoveAction
-  | HandleKnightAttackAction
-  | PauseAction
-  | UnpauseAction
-  | SetAttackEndsGame
+  | { type: "setQueenSquare"; square: QueenSquare }
+  | { type: "beginRestarting" }
+  | { type: "finishRestarting" }
+  | { type: "move"; from: Square; to: Square }
+  | { type: "handleKnightAttack" }
+  | { type: "pause" }
+  | { type: "unpause" }
+  | { type: "setAttackEndsGame"; value: boolean }
 
 const SquareType = String.withGuard(isSquare)
 const QueenSquareType = String.withGuard(isQueenSquare)
