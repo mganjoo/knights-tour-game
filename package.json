@@ -70,6 +70,7 @@
     "@types/preval.macro": "^3.0.0",
     "@types/react": "^17.0.4",
     "@types/react-dom": "^17.0.3",
+    "@xstate/inspect": "^0.4.1",
     "autoprefixer": "^9.8.6",
     "eslint-plugin-import": "^2.22.1",
     "fast-check": "^2.14.0",
