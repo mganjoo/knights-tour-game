@@ -16,17 +16,13 @@ export function useFlag(key: string): [boolean, (b: boolean) => void] {
   return [Boolean.guard(flag) ? flag : false, setFlag]
 }
 
-const NonNegative = Number.withConstraint((n) => n >= 0)
+const Positive = Number.withConstraint((n) => n > 0)
 
-export function useNonNegative(
+function usePositive(
   key: string
 ): [number | undefined, (n: number) => void, () => void] {
   const [number, setNumber, deleteNumber] = useLocalStorage(key)
-  return [
-    NonNegative.guard(number) ? number : undefined,
-    setNumber,
-    deleteNumber,
-  ]
+  return [Positive.guard(number) ? number : undefined, setNumber, deleteNumber]
 }
 
 const QueenSquareType = String.withGuard(isQueenSquare)
@@ -40,8 +36,8 @@ export function useQueenSquareChoice(
 }
 
 const BestScoresV1Type = Record({
-  bestMoves: NonNegative,
-  bestSeconds: NonNegative,
+  bestMoves: Positive,
+  bestSeconds: Positive,
 })
 const BestScoresMapV1Type = Dictionary(
   Optional(BestScoresV1Type),
@@ -49,8 +45,8 @@ const BestScoresMapV1Type = Dictionary(
 )
 
 const BestScoresType = Record({
-  bestNumMoves: NonNegative,
-  bestElapsedMs: NonNegative,
+  bestNumMoves: Positive,
+  bestElapsedMs: Positive,
 })
 const BestScoresMapType = Dictionary(Optional(BestScoresType), QueenSquareType)
 
@@ -71,10 +67,8 @@ export function useBestScores() {
   const [v1BestScoresMap, , deleteV1BestScoresMap] = useLocalStorage(
     "v1.best_scores"
   )
-  const [v1BestSeconds, , deleteV1BestSeconds] = useNonNegative(
-    "v1.best_seconds"
-  )
-  const [v1BestMoves, , deleteV1BestMoves] = useNonNegative("v1.best_num_moves")
+  const [v1BestSeconds, , deleteV1BestSeconds] = usePositive("v1.best_seconds")
+  const [v1BestMoves, , deleteV1BestMoves] = usePositive("v1.best_num_moves")
 
   // One-time upgrade from v1 format of single scores
   useEffect(() => {
