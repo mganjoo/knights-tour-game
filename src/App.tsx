@@ -3,7 +3,7 @@ import { useHarmonicIntervalFn } from "react-use"
 import Board from "./Board"
 import { attackedByQueen, SQUARES, DEFAULT_QUEEN_SQUARE } from "./ChessLogic"
 import CurrentMoveBox from "./CurrentMoveBox"
-import useGameState from "./GameState"
+import useNewGameState from "./NewGameState"
 import QueenSquareSelector from "./QueenSquareSelector"
 import Scoreboard from "./Scoreboard"
 import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
@@ -30,44 +30,38 @@ const App: React.FC = () => {
   )
   const [attackEndsGame, setAttackEndsGame] = useFlag("v1.attack_ends_game")
   const [onboardingDone, setOnboardingDone] = useFlag("v1.onboarding_done")
-  const { gameState, doAction, getElapsedMs } = useGameState({
+  const { state, send, getElapsedMs } = useNewGameState({
     attackEndsGame: attackEndsGame,
     queenSquare: loadedQueenSquare,
   })
   const numSquares = useMemo(
     // Minus 1 because queen also counts as a square
     () =>
-      SQUARES.filter((s) => !attackedByQueen(s, gameState.queenSquare)).length -
-      1,
-    [gameState.queenSquare]
+      SQUARES.filter((s) => !attackedByQueen(s, state.context.queenSquare))
+        .length - 1,
+    [state.context.queenSquare]
   )
   const { bestScoresMap, updateBestScores } = useBestScores()
   const [elapsedMillis, setElapsedMillis] = useState<number>(0)
-  const bestScores = bestScoresMap[gameState.queenSquare]
+  const bestScores = bestScoresMap[state.context.queenSquare]
 
   useEffect(() => {
-    if (gameState.visitedSquares.size >= 3) {
+    if (state.context.visitedSquares.size >= 3) {
       // After three successful square visits, mark user
       // as onboarded (stop showing arrows)
       setOnboardingDone(true)
     }
-  }, [gameState.visitedSquares, setOnboardingDone])
+  }, [state.context.visitedSquares, setOnboardingDone])
 
   useEffect(() => {
-    if (gameState.boardState.id === "FINISHED") {
+    if (state.matches("finished")) {
       updateBestScores({
-        queenSquare: gameState.queenSquare,
-        numMoves: gameState.numMoves,
+        queenSquare: state.context.queenSquare,
+        numMoves: state.context.numMoves,
         elapsedMs: getElapsedMs(),
       })
     }
-  }, [
-    gameState.boardState.id,
-    gameState.numMoves,
-    gameState.queenSquare,
-    getElapsedMs,
-    updateBestScores,
-  ])
+  }, [state, getElapsedMs, updateBestScores])
 
   useHarmonicIntervalFn(() => {
     setElapsedMillis(getElapsedMs())
@@ -79,21 +73,21 @@ const App: React.FC = () => {
         <main className="grid pt-4 pb-6 md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6 md:items-center">
           <div className="col-start-1 row-start-2 md:row-start-1 md:row-span-5 md:col-span-2">
             <Board
-              boardState={gameState.boardState}
-              knightSquare={gameState.knightSquare}
+              gameState={state}
+              knightSquare={state.context.knightSquare}
               queenSquare={
-                gameState.boardState.id === "CAPTURED"
-                  ? gameState.knightSquare
-                  : gameState.queenSquare
+                state.matches("captured")
+                  ? state.context.knightSquare
+                  : state.context.queenSquare
               }
-              visitedSquares={gameState.visitedSquares}
-              targetSquare={gameState.targetSquare}
-              onKnightMove={(from, to) => doAction({ type: "move", from, to })}
+              visitedSquares={state.context.visitedSquares}
+              targetSquare={state.context.targetSquare}
+              onKnightMove={(square) => send({ type: "MOVE_KNIGHT", square })}
               hideVisitedSquares={hideVisitedSquares}
               // Show target arrow the first time the user plays,
               // for their first move
               showTargetArrow={
-                !onboardingDone && gameState.visitedSquares.size < 2
+                !onboardingDone && state.context.visitedSquares.size < 2
               }
               showInitialGuideArrows={!onboardingDone}
             />
@@ -113,7 +107,7 @@ const App: React.FC = () => {
               <button
                 className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-blue-700 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 lg:px-4 lg:text-base"
                 onClick={() => {
-                  doAction({ type: "beginRestarting" })
+                  send({ type: "START" })
                 }}
               >
                 New game
@@ -125,8 +119,8 @@ const App: React.FC = () => {
           </div>
           <div className="md:col-start-3">
             <CurrentMoveBox
-              state={gameState.boardState}
-              targetSquare={gameState.targetSquare}
+              state={state}
+              targetSquare={state.context.targetSquare}
               attackEndsGame={attackEndsGame}
             />
           </div>
@@ -135,11 +129,11 @@ const App: React.FC = () => {
               tickers={[
                 {
                   label: "Squares left",
-                  value: numSquares - gameState.visitedSquares.size,
+                  value: numSquares - state.context.visitedSquares.size,
                 },
                 {
                   label: "Moves",
-                  value: gameState.numMoves,
+                  value: state.context.numMoves,
                 },
                 {
                   label: "Best time",
@@ -154,9 +148,9 @@ const App: React.FC = () => {
           </div>
           <div className="pt-1 pb-2 md:col-start-3">
             <QueenSquareSelector
-              selected={gameState.queenSquare}
+              selected={state.context.queenSquare}
               setSelected={(square) => {
-                doAction({ type: "setQueenSquare", square })
+                send({ type: "MOVE_QUEEN", square })
                 setLoadedQueenSquare(square)
               }}
             />

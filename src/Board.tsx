@@ -7,14 +7,14 @@ import { List as ImmutableList } from "immutable"
 import React, { useCallback, useEffect, useMemo } from "react"
 import { getPuzzleFen, getKnightDests, Square } from "./ChessLogic"
 import { useChessground } from "./Chessground"
-import { BoardState } from "./GameState"
+import { GameStateWrapper } from "./NewGameState"
 import { colors } from "./TailwindUtil"
 
 type BoardProps = {
   /**
-   * Current state of the board
+   * Current state of the game.
    */
-  boardState: BoardState
+  gameState: GameStateWrapper
   /**
    * Square on which knight is placed.
    */
@@ -26,7 +26,7 @@ type BoardProps = {
   /**
    * Callback when a valid knight move is attempted.
    */
-  onKnightMove: (from: Square, to: Square) => void
+  onKnightMove: (square: Square) => void
   /**
    * Squares already visited (marked with check).
    */
@@ -91,7 +91,7 @@ function makeInitialConfig(shouldReduceMotion: boolean | null): Config {
 }
 
 const Board: React.FC<BoardProps> = ({
-  boardState,
+  gameState,
   knightSquare,
   queenSquare,
   onKnightMove,
@@ -129,27 +129,28 @@ const Board: React.FC<BoardProps> = ({
         orig !== "a0" &&
         dest !== "a0"
       ) {
-        onKnightMove(orig, dest)
+        onKnightMove(dest)
       }
     },
     [dests, onKnightMove]
   )
   const shapes = useMemo<DrawShape[]>(() => {
     const onboardingShapes: DrawShape[] =
-      boardState.id === "NOT_STARTED" && showInitialGuideArrows
+      gameState.matches("notStarted") && showInitialGuideArrows
         ? [
             { orig: knightSquare, dest: "a8", brush: "blue" },
             { orig: "h7", dest: "a7", brush: "blue" },
           ]
         : []
     const targetShapes: DrawShape[] =
-      targetSquare &&
-      (boardState.id === "PLAYING" || boardState.id === "KNIGHT_ATTACKED")
+      targetSquare && gameState.matches("playing")
         ? [{ orig: targetSquare, customSvg: TARGET_SVG }]
         : []
 
     const targetArrowShapes: DrawShape[] =
-      targetSquare && showTargetArrow && boardState.id === "PLAYING"
+      targetSquare &&
+      showTargetArrow &&
+      gameState.matches({ playing: "moving" })
         ? [
             {
               orig: knightSquare,
@@ -159,20 +160,21 @@ const Board: React.FC<BoardProps> = ({
             },
           ]
         : []
-    const queenShapes: DrawShape[] =
-      boardState.id === "KNIGHT_ATTACKED"
-        ? [
-            { orig: queenSquare, customSvg: undefined, brush: "yellow" },
-            {
-              orig: queenSquare,
-              dest: knightSquare,
-              customSvg: undefined,
-              brush: "yellow",
-            },
-          ]
-        : []
+    const queenShapes: DrawShape[] = gameState.matches({
+      playing: "knightAttacked",
+    })
+      ? [
+          { orig: queenSquare, customSvg: undefined, brush: "yellow" },
+          {
+            orig: queenSquare,
+            dest: knightSquare,
+            customSvg: undefined,
+            brush: "yellow",
+          },
+        ]
+      : []
     const visitedShapes: DrawShape[] =
-      hideVisitedSquares || boardState.id === "NOT_STARTED"
+      hideVisitedSquares || gameState.matches("notStarted")
         ? []
         : visitedSquares
             .map((s) => ({
@@ -187,7 +189,7 @@ const Board: React.FC<BoardProps> = ({
       .concat(visitedShapes)
   }, [
     targetSquare,
-    boardState.id,
+    gameState,
     showTargetArrow,
     showInitialGuideArrows,
     knightSquare,
@@ -198,11 +200,13 @@ const Board: React.FC<BoardProps> = ({
 
   useEffect(() => {
     // If the puzzle is ongoing, select current knight square by default
-    const selected = boardState.id === "PLAYING" ? knightSquare : undefined
+    const selected = gameState.matches({ playing: "moving" })
+      ? knightSquare
+      : undefined
     const config: Config = {
       fen: fen,
       // Allow moves only in playing state
-      viewOnly: boardState.id !== "PLAYING",
+      viewOnly: !gameState.matches({ playing: "moving" }),
       // Always white to move
       turnColor: "white",
       selected,
@@ -227,7 +231,7 @@ const Board: React.FC<BoardProps> = ({
   }, [
     set,
     fen,
-    boardState.id,
+    gameState,
     knightSquare,
     shouldReduceMotion,
     dests,
