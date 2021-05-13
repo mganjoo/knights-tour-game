@@ -1,7 +1,9 @@
+import { useMachine } from "@xstate/react"
 import { List as ImmutableList } from "immutable"
-import { useCallback, useEffect, useReducer } from "react"
+import { useEffect } from "react"
 import { useLocalStorage } from "react-use"
-import { String, Number, Record, Static, Optional } from "runtypes"
+import { String, Number, Record, Static } from "runtypes"
+import { assign, createMachine, State, StateMachine } from "xstate"
 import {
   attackedByQueen,
   getSquareIncrement,
@@ -10,45 +12,127 @@ import {
   isSquare,
   QueenSquare,
   Square,
-  DEFAULT_QUEEN_SQUARE,
   STARTING_KNIGHT_SQUARE,
   ENDING_KNIGHT_SQUARE,
+  getKnightDests,
 } from "./ChessLogic"
 
-export type BoardState =
-  | { id: "NOT_STARTED" }
-  | { id: "RESTARTING" }
-  | { id: "PLAYING" }
-  | {
-      id: "KNIGHT_ATTACKED"
-      previousSquare: Square
-    }
-  | { id: "FINISHED" }
-  | { id: "CAPTURED" }
-  | { id: "PAUSED" }
-
-export interface GameState {
-  boardState: BoardState
+interface GameContext {
+  /**
+   * Current square for queen.
+   */
   queenSquare: QueenSquare
+  /**
+   * Current square for knight.
+   */
   knightSquare: Square
-  visitedSquares: ImmutableList<Square>
-  targetSquare: Square | undefined
+  /**
+   * Current target square for knight.
+   */
+  targetSquare: Square
+  /**
+   * Final target square for knight to finish the puzzle.
+   * Depends on queen location.
+   */
   finalTargetSquare: Square
+  /**
+   * List of already visited squares.
+   */
+  visitedSquares: ImmutableList<Square>
+  /**
+   * Number of moves made by knight so far.
+   */
   numMoves: number
-  startTimeMs: number | undefined
-  endTimeMs: number | undefined
+  /**
+   * Starting time for the game. May be adjusted for previously saved
+   * elapsed game time e.g. if previously T milliseconds had been played,
+   * then T would be subtraced from the actual startTimeMs value.
+   */
+  startTimeMs?: number
+  /**
+   * Ending time (when game is over).
+   */
+  endTimeMs?: number
+  /**
+   * Elapsed time that was previously saved (e.g. when game was paused).
+   */
+  previouslyElapsedMs?: number
+  /**
+   * Previous square the knight was on. Usually only set when game is in
+   * progress - way to track previous square and deal with knight attacks.
+   */
+  previousKnightSquare?: Square
+  /**
+   * Whether an attack by the queen should end the gamewith a capture, or
+   * whether the game should continue.
+   */
   attackEndsGame: boolean
 }
 
-type GameAction =
-  | { type: "setQueenSquare"; square: QueenSquare }
-  | { type: "beginRestarting" }
-  | { type: "finishRestarting" }
-  | { type: "move"; from: Square; to: Square }
-  | { type: "handleKnightAttack" }
-  | { type: "pause" }
-  | { type: "unpause" }
-  | { type: "setAttackEndsGame"; value: boolean }
+type GameEvent =
+  | { type: "START" }
+  | { type: "MOVE_KNIGHT"; square: Square }
+  | { type: "HANDLE_KNIGHT_ATTACK" }
+  | { type: "MOVE_QUEEN"; square: QueenSquare }
+  | { type: "PAUSE" }
+  | { type: "SET.ATTACK_ENDS_GAME"; value: boolean }
+  | { type: "PAUSE" }
+  | { type: "UNPAUSE" }
+
+type GameState =
+  | {
+      value: "notStarted"
+      context: GameContext & {
+        startTimeMs: undefined
+        endTimeMs: undefined
+        previousKnightSquare: undefined
+      }
+    }
+  | {
+      value: "restarting"
+      context: GameContext & {
+        previousKnightSquare: undefined
+      }
+    }
+  | {
+      value: "playing" | { playing: "moving" }
+      context: GameContext & {
+        startTimeMs: number
+        endTimeMs: undefined
+        previousKnightSquare: undefined
+      }
+    }
+  | {
+      value:
+        | { playing: "knightAttacked" }
+        | {
+            playing:
+              | { knightAttacked: "toBeCaptured" }
+              | { knightAttacked: "toReturn" }
+          }
+      context: GameContext & {
+        startTimeMs: number
+        endTimeMs: undefined
+        previousKnightSquare: Square
+      }
+    }
+  | {
+      value: "captured" | "finished"
+      context: GameContext & {
+        startTimeMs: number
+        endTimeMs: number
+      }
+    }
+  | {
+      value: "paused"
+      context: GameContext & {
+        previouslyElapsedMs: number
+        startTimeMs: undefined
+        endTimeMs: undefined
+      }
+    }
+
+export type GameStateWrapper = State<GameContext, GameEvent, any, GameState>
 
 const SquareType = String.withGuard(isSquare)
 const QueenSquareType = String.withGuard(isQueenSquare)
@@ -58,29 +142,60 @@ const SerializedGameStateSchema = Record({
   queenSquare: QueenSquareType,
   knightSquare: SquareType,
   lastVisitedSquare: SquareType,
-  targetSquare: Optional(SquareType),
+  targetSquare: SquareType,
   numMoves: NonNegative,
   previouslyElapsedMs: NonNegative,
 })
 
 export type SerializedGameState = Static<typeof SerializedGameStateSchema>
 
-function _assertNever(x: never): never {
-  throw new Error(`unexpected action: ${x}`)
+function makeSerializedGameState(context: GameContext): SerializedGameState {
+  return {
+    queenSquare: context.queenSquare,
+    knightSquare: context.knightSquare,
+    lastVisitedSquare: context.visitedSquares.last(context.knightSquare),
+    targetSquare: context.targetSquare,
+    numMoves: context.numMoves,
+    previouslyElapsedMs: _getElapsedMs(context.startTimeMs, context.endTimeMs),
+  }
 }
 
-function _resetGameState(state: GameState): GameState {
+function setQueenSquare(
+  queenSquare: QueenSquare
+): Pick<GameContext, "queenSquare" | "finalTargetSquare"> {
+  return {
+    queenSquare: queenSquare,
+    finalTargetSquare: incrementWhileAttacked(
+      ENDING_KNIGHT_SQUARE,
+      queenSquare,
+      "next"
+    ),
+  }
+}
+
+function resetKnight(
+  queenSquare: QueenSquare
+): Pick<
+  GameContext,
+  | "knightSquare"
+  | "previousKnightSquare"
+  | "targetSquare"
+  | "visitedSquares"
+  | "numMoves"
+  | "startTimeMs"
+  | "endTimeMs"
+> {
   const startingSquare = incrementWhileAttacked(
     STARTING_KNIGHT_SQUARE,
-    state.queenSquare,
+    queenSquare,
     "previous"
   )
   return {
-    ...state,
     knightSquare: startingSquare,
+    previousKnightSquare: undefined,
     targetSquare: incrementWhileAttacked(
       getSquareIncrement(startingSquare, "previous"),
-      state.queenSquare,
+      queenSquare,
       "previous"
     ),
     visitedSquares: ImmutableList([startingSquare]),
@@ -103,164 +218,29 @@ function _getElapsedMs(
   }
 }
 
-/**
- * Whether the game should be saved when browsing away etc.
- */
-function _isSaveable(gameState: GameState) {
-  return (
-    // If knight is under attack with the end game setting on, no point saving
-    (gameState.boardState.id === "KNIGHT_ATTACKED" &&
-      !gameState.attackEndsGame) ||
-    gameState.boardState.id === "PLAYING" ||
-    // Save paused games so they are later restored as paused
-    gameState.boardState.id === "PAUSED"
-  )
-}
-
-function handleAction(state: GameState, action: GameAction): GameState {
-  switch (action.type) {
-    case "setQueenSquare":
-      if (state.queenSquare === action.square) {
-        return state
-      } else {
-        const stateWithNewQueen = _resetGameState({
-          ...state,
-          queenSquare: action.square,
-          finalTargetSquare: incrementWhileAttacked(
-            ENDING_KNIGHT_SQUARE,
-            action.square,
-            "next"
-          ),
-        })
-        return {
-          ...stateWithNewQueen,
-          boardState:
-            // Restart in-progress game, or just set to not started state
-            state.boardState.id === "PLAYING" ||
-            state.boardState.id === "KNIGHT_ATTACKED"
-              ? { id: "RESTARTING" }
-              : { id: "NOT_STARTED" },
-        }
-      }
-    case "beginRestarting":
-      return { ...state, boardState: { id: "RESTARTING" } }
-    case "finishRestarting":
-      return {
-        ..._resetGameState(state),
-        boardState: { id: "PLAYING" },
-        startTimeMs: Date.now(),
-      }
-    case "move":
-      const newBaseState: GameState = {
-        ...state,
-        knightSquare: action.to,
-        numMoves: state.numMoves + 1,
-        boardState: { id: "PLAYING" },
-      }
-
-      if (attackedByQueen(action.to, state.queenSquare)) {
-        // If the knight is attacked, we may need to reset back to original square
-        return {
-          ...newBaseState,
-          boardState: { id: "KNIGHT_ATTACKED", previousSquare: action.from },
-        }
-      } else if (action.to === state.targetSquare) {
-        const stateWithMove = {
-          ...newBaseState,
-          visitedSquares: state.visitedSquares.push(action.to),
-          targetSquare:
-            state.targetSquare === state.finalTargetSquare
-              ? undefined
-              : incrementWhileAttacked(
-                  getSquareIncrement(state.targetSquare, "previous"),
-                  state.queenSquare,
-                  "previous"
-                ),
-        }
-        if (state.targetSquare === state.finalTargetSquare) {
-          return {
-            ...stateWithMove,
-            boardState: { id: "FINISHED" },
-            endTimeMs: Date.now(),
-          }
-        } else {
-          return stateWithMove
-        }
-      } else {
-        return newBaseState
-      }
-    case "handleKnightAttack":
-      if (state.boardState.id === "KNIGHT_ATTACKED") {
-        if (state.attackEndsGame) {
-          return {
-            ...state,
-            boardState: { id: "CAPTURED" },
-            endTimeMs: Date.now(),
-          }
-        } else {
-          return {
-            ...state,
-            knightSquare: state.boardState.previousSquare,
-            boardState: { id: "PLAYING" },
-          }
-        }
-      } else {
-        return state
-      }
-    case "pause":
-      if (_isSaveable(state)) {
-        return {
-          ...state,
-          endTimeMs: Date.now(),
-          boardState: { id: "PAUSED" },
-        }
-      } else {
-        return state
-      }
-    case "unpause":
-      if (state.boardState.id === "PAUSED") {
-        const previouslyElapsedMs = _getElapsedMs(
-          state.startTimeMs,
-          state.endTimeMs
-        )
-        return {
-          ...state,
-          boardState: { id: "PLAYING" },
-          startTimeMs: Date.now() - previouslyElapsedMs,
-          endTimeMs: undefined,
-        }
-      } else {
-        return state
-      }
-    case "setAttackEndsGame":
-      return {
-        ...state,
-        attackEndsGame: action.value,
-      }
-    default:
-      _assertNever(action)
-  }
-}
-
 interface MakeInitialStateArgs {
   attackEndsGame: boolean
+  queenSquare: QueenSquare
   serializedGameState: unknown
 }
 
-function makeInitialState(args: MakeInitialStateArgs): GameState {
+function createGameMachine(
+  args: MakeInitialStateArgs
+): StateMachine<GameContext, any, GameEvent, GameState> {
   const serializedGameState = SerializedGameStateSchema.guard(
     args.serializedGameState
   )
     ? args.serializedGameState
     : undefined
 
-  const queenSquare = serializedGameState?.queenSquare || DEFAULT_QUEEN_SQUARE
-
-  let visitedSquares: ImmutableList<Square> = ImmutableList()
-  if (serializedGameState) {
+  let initialContext: GameContext
+  if (serializedGameState !== undefined) {
+    const queenSquare = serializedGameState.queenSquare
+    const knightSquare = serializedGameState.knightSquare
+    let visitedSquares: ImmutableList<Square> = ImmutableList()
     const startingSquare = incrementWhileAttacked(
       STARTING_KNIGHT_SQUARE,
-      serializedGameState.queenSquare,
+      queenSquare,
       "previous"
     )
     for (
@@ -275,32 +255,225 @@ function makeInitialState(args: MakeInitialStateArgs): GameState {
       visitedSquares = visitedSquares.push(visitedSquare)
     }
     visitedSquares = visitedSquares.push(serializedGameState.lastVisitedSquare)
+
+    initialContext = {
+      ...setQueenSquare(queenSquare),
+      knightSquare,
+      visitedSquares,
+      targetSquare: serializedGameState.targetSquare,
+      numMoves: serializedGameState.numMoves,
+      previouslyElapsedMs: serializedGameState.previouslyElapsedMs,
+      attackEndsGame: args.attackEndsGame,
+    }
+  } else {
+    initialContext = {
+      ...setQueenSquare(args.queenSquare),
+      ...resetKnight(args.queenSquare),
+      attackEndsGame: args.attackEndsGame,
+    }
   }
 
-  return {
-    boardState:
-      serializedGameState === undefined
-        ? { id: "NOT_STARTED" }
-        : { id: "PLAYING" },
-    queenSquare: queenSquare,
-    knightSquare:
-      serializedGameState?.knightSquare ||
-      incrementWhileAttacked(STARTING_KNIGHT_SQUARE, queenSquare, "previous"),
-    visitedSquares: visitedSquares,
-    targetSquare: serializedGameState?.targetSquare,
-    finalTargetSquare: incrementWhileAttacked(
-      ENDING_KNIGHT_SQUARE,
-      queenSquare,
-      "next"
-    ),
-    numMoves: serializedGameState?.numMoves || 0,
-    startTimeMs:
-      serializedGameState !== undefined
-        ? Date.now() - serializedGameState.previouslyElapsedMs
-        : undefined,
-    endTimeMs: undefined,
-    attackEndsGame: args.attackEndsGame,
-  }
+  return createMachine<GameContext, GameEvent, GameState>(
+    {
+      id: "game",
+      context: initialContext,
+      initial: serializedGameState ? "playing" : "notStarted",
+      states: {
+        notStarted: {
+          on: {
+            START: {
+              target: "playing",
+            },
+            MOVE_QUEEN: {
+              target: "notStarted",
+              actions: "moveQueen",
+            },
+          },
+        },
+        restarting: {
+          after: {
+            RESTART_DELAY: {
+              target: "playing",
+              actions: assign((context) => ({
+                ...context,
+                ...resetKnight(context.queenSquare),
+              })),
+            },
+          },
+        },
+        playing: {
+          entry: assign((context) => ({
+            ...context,
+            startTimeMs: Date.now() - (context.previouslyElapsedMs || 0),
+            endTimeMs: undefined,
+            previouslyElapsedMs: undefined,
+          })),
+          on: {
+            PAUSE: {
+              target: "paused",
+              actions: assign((context) => ({
+                ...context,
+                startTimeMs: undefined,
+                endTimeMs: undefined,
+                previouslyElapsedMs: Date.now() - (context.startTimeMs || 0),
+              })),
+            },
+            MOVE_QUEEN: {
+              target: "restarting",
+              cond: "queenSquareChanged",
+              actions: "moveQueen",
+            },
+          },
+          initial: "moving",
+          states: {
+            moving: {
+              on: {
+                MOVE_KNIGHT: {
+                  target: "moving",
+                  cond: "validKnightMove",
+                  actions: assign({
+                    knightSquare: (_, event) => event.square,
+                    previousKnightSquare: (context) => context.knightSquare,
+                    numMoves: (context) => context.numMoves + 1,
+                  }),
+                },
+              },
+              always: [
+                {
+                  target: "moving",
+                  cond: "knightReachedTarget",
+                  actions: assign({
+                    visitedSquares: (context) =>
+                      context.visitedSquares.push(context.targetSquare),
+                    targetSquare: (context) =>
+                      incrementWhileAttacked(
+                        getSquareIncrement(context.targetSquare, "previous"),
+                        context.queenSquare,
+                        "previous"
+                      ),
+                  }),
+                },
+                {
+                  target: "knightAttacked.toReturn",
+                  cond: "queenAttacksKnight",
+                },
+                {
+                  target: "knightAttacked.toBeCaptured",
+                  cond: "queenAttacksAndCapturesKnight",
+                },
+                {
+                  target: "#game.finished",
+                  cond: "knightReachedFinalTarget",
+                },
+              ],
+            },
+            knightAttacked: {
+              states: {
+                toBeCaptured: {
+                  on: {
+                    // Cannot pause/resume game in this imminent capture state
+                    PAUSE: undefined,
+                  },
+                  after: {
+                    KNIGHT_ATTACK_DELAY: { target: "#game.captured" },
+                  },
+                },
+                toReturn: {
+                  after: {
+                    KNIGHT_ATTACK_DELAY: {
+                      target: "#game.playing.moving",
+                      actions: assign({
+                        knightSquare: (context) =>
+                          context.previousKnightSquare || context.knightSquare,
+                        previousKnightSquare: (_) => undefined,
+                      }),
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        paused: {
+          on: {
+            UNPAUSE: "playing.moving",
+          },
+        },
+        captured: {
+          entry: "stopClock",
+          on: {
+            MOVE_QUEEN: {
+              target: "notStarted",
+              cond: "queenSquareChanged",
+              actions: "moveQueen",
+            },
+          },
+        },
+        finished: {
+          entry: "stopClock",
+          on: {
+            MOVE_QUEEN: {
+              target: "notStarted",
+              cond: "queenSquareChanged",
+              actions: "moveQueen",
+            },
+          },
+        },
+      },
+      on: {
+        "SET.ATTACK_ENDS_GAME": {
+          actions: assign({
+            attackEndsGame: (_, event) => event.value,
+          }),
+        },
+        START: "restarting",
+      },
+    },
+    {
+      actions: {
+        moveQueen: assign((context, event) =>
+          event.type === "MOVE_QUEEN" && isQueenSquare(event.square)
+            ? {
+                ...context,
+                queenSquare: event.square,
+                finalTargetSquare: incrementWhileAttacked(
+                  ENDING_KNIGHT_SQUARE,
+                  event.square,
+                  "next"
+                ),
+                ...resetKnight(event.square),
+              }
+            : context
+        ),
+        stopClock: assign({ endTimeMs: (_) => Date.now() }),
+      },
+      guards: {
+        queenSquareChanged: (context, event) =>
+          event.type === "MOVE_QUEEN" &&
+          isQueenSquare(event.square) &&
+          context.queenSquare !== event.square,
+        validKnightMove: (context, event) =>
+          event.type === "MOVE_KNIGHT" &&
+          getKnightDests(context.knightSquare, {
+            queenSquare: context.queenSquare,
+          }).includes(event.square),
+        queenAttacksKnight: (context) =>
+          attackedByQueen(context.knightSquare, context.queenSquare) &&
+          !context.attackEndsGame,
+        queenAttacksAndCapturesKnight: (context) =>
+          attackedByQueen(context.knightSquare, context.queenSquare) &&
+          !!context.attackEndsGame,
+        knightReachedTarget: (context) =>
+          context.targetSquare === context.knightSquare,
+        knightReachedFinalTarget: (context) =>
+          context.finalTargetSquare === context.knightSquare,
+      },
+      delays: {
+        KNIGHT_ATTACK_DELAY: 800,
+        RESTART_DELAY: 50,
+      },
+    }
+  )
 }
 
 interface UseGameStateArgs {
@@ -308,99 +481,57 @@ interface UseGameStateArgs {
   queenSquare: QueenSquare
 }
 
-interface UseGameStateResponse {
-  gameState: GameState
-  doAction: (action: GameAction) => void
-  getElapsedMs: () => number
-}
-
-export default function useGameState(
-  args: UseGameStateArgs
-): UseGameStateResponse {
+export default function useGameState(args: UseGameStateArgs) {
+  const { attackEndsGame, queenSquare } = args
   const [
     serializedGameState,
     setSerializedGameState,
     removeSerializedGameState,
   ] = useLocalStorage("v1.game_state")
-  const [gameState, doAction] = useReducer(
-    handleAction,
-    { attackEndsGame: args.attackEndsGame, serializedGameState },
-    makeInitialState
+
+  const [state, send] = useMachine(
+    () =>
+      createGameMachine({ queenSquare, attackEndsGame, serializedGameState }),
+    {
+      devTools: process.env.NODE_ENV === "development",
+    }
   )
 
-  const getElapsedMs = useCallback(() => {
-    return _getElapsedMs(gameState.startTimeMs, gameState.endTimeMs)
-  }, [gameState.startTimeMs, gameState.endTimeMs])
+  useEffect(() => {
+    send({ type: "SET.ATTACK_ENDS_GAME", value: args.attackEndsGame })
+  }, [args.attackEndsGame, send])
 
-  const saveGameState = useCallback(() => {
-    const serialized: SerializedGameState = {
-      queenSquare: gameState.queenSquare,
-      knightSquare: gameState.knightSquare,
-      lastVisitedSquare: gameState.visitedSquares.last(gameState.knightSquare),
-      targetSquare: gameState.targetSquare,
-      numMoves: gameState.numMoves,
-      previouslyElapsedMs: _getElapsedMs(
-        gameState.startTimeMs,
-        gameState.endTimeMs
-      ),
-    }
-    setSerializedGameState(serialized)
-  }, [
-    gameState.endTimeMs,
-    gameState.knightSquare,
-    gameState.numMoves,
-    gameState.queenSquare,
-    gameState.startTimeMs,
-    gameState.targetSquare,
-    gameState.visitedSquares,
-    setSerializedGameState,
-  ])
+  useEffect(() => {
+    send({ type: "MOVE_QUEEN", square: args.queenSquare })
+  }, [args.queenSquare, send])
 
   useEffect(() => {
     const handleVisibilityChange = () =>
-      doAction({
-        type: document.visibilityState === "hidden" ? "pause" : "unpause",
+      send({
+        type: document.visibilityState === "hidden" ? "PAUSE" : "UNPAUSE",
       })
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [])
-
-  useEffect(() => {
-    if (gameState.boardState.id === "RESTARTING") {
-      const timeout = setTimeout(() => {
-        doAction({ type: "finishRestarting" })
-      }, 50)
-      return () => clearTimeout(timeout)
-    }
-  }, [gameState.boardState.id])
-
-  useEffect(() => {
-    if (gameState.boardState.id === "KNIGHT_ATTACKED") {
-      const timeout = setTimeout(() => {
-        doAction({ type: "handleKnightAttack" })
-      }, 800)
-      return () => clearTimeout(timeout)
-    }
-  }, [gameState.boardState.id])
-
-  useEffect(() => {
-    doAction({ type: "setAttackEndsGame", value: args.attackEndsGame })
-  }, [args.attackEndsGame])
-
-  useEffect(() => {
-    doAction({ type: "setQueenSquare", square: args.queenSquare })
-  }, [gameState.queenSquare, args.queenSquare])
+  }, [send])
 
   // Save game state whenever we can (game state changes)
   useEffect(() => {
     // Game must be in a saveable state, but have non-zero moves
-    if (_isSaveable(gameState) && gameState.numMoves > 0) {
-      saveGameState()
+    if (
+      (state.matches({ playing: "moving" }) || state.matches("paused")) &&
+      state.context.numMoves > 0
+    ) {
+      setSerializedGameState(makeSerializedGameState(state.context))
     } else {
       removeSerializedGameState()
     }
-  }, [gameState, removeSerializedGameState, saveGameState])
+  }, [state, setSerializedGameState, removeSerializedGameState])
 
-  return { gameState, doAction, getElapsedMs }
+  return {
+    state,
+    send,
+    getElapsedMs: () =>
+      _getElapsedMs(state.context.startTimeMs, state.context.endTimeMs),
+  }
 }

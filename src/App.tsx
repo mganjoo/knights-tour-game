@@ -3,7 +3,7 @@ import { useHarmonicIntervalFn } from "react-use"
 import Board from "./Board"
 import { attackedByQueen, SQUARES, DEFAULT_QUEEN_SQUARE } from "./ChessLogic"
 import CurrentMoveBox from "./CurrentMoveBox"
-import useNewGameState from "./NewGameState"
+import useGameState from "./GameState"
 import QueenSquareSelector from "./QueenSquareSelector"
 import Scoreboard from "./Scoreboard"
 import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
@@ -30,7 +30,7 @@ const App: React.FC = () => {
   )
   const [attackEndsGame, setAttackEndsGame] = useFlag("v1.attack_ends_game")
   const [onboardingDone, setOnboardingDone] = useFlag("v1.onboarding_done")
-  const { state, send, getElapsedMs } = useNewGameState({
+  const { state, send, getElapsedMs } = useGameState({
     attackEndsGame: attackEndsGame,
     queenSquare: loadedQueenSquare,
   })

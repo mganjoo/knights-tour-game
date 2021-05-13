@@ -3,7 +3,7 @@ import classNames from "classnames"
 import { motion, useReducedMotion } from "framer-motion"
 import React from "react"
 import { Square } from "./ChessLogic"
-import { GameStateWrapper } from "./NewGameState"
+import { GameStateWrapper } from "./GameState"
 
 interface CurrentMoveBoxProps {
   state: GameStateWrapper

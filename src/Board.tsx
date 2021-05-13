@@ -7,7 +7,7 @@ import { List as ImmutableList } from "immutable"
 import React, { useCallback, useEffect, useMemo } from "react"
 import { getPuzzleFen, getKnightDests, Square } from "./ChessLogic"
 import { useChessground } from "./Chessground"
-import { GameStateWrapper } from "./NewGameState"
+import { GameStateWrapper } from "./GameState"
 import { colors } from "./TailwindUtil"
 
 type BoardProps = {
