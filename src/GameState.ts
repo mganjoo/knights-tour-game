@@ -1,6 +1,6 @@
 import { useMachine } from "@xstate/react"
 import { List as ImmutableList } from "immutable"
-import { useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import { useLocalStorage } from "react-use"
 import { String, Number, Record, Static } from "runtypes"
 import { assign, createMachine, State, StateMachine } from "xstate"
@@ -496,6 +496,10 @@ export default function useGameState(args: UseGameStateArgs) {
       devTools: process.env.NODE_ENV === "development",
     }
   )
+  const getElapsedMs = useCallback(
+    () => _getElapsedMs(state.context.startTimeMs, state.context.endTimeMs),
+    [state.context.startTimeMs, state.context.endTimeMs]
+  )
 
   useEffect(() => {
     send({ type: "SET.ATTACK_ENDS_GAME", value: args.attackEndsGame })
@@ -531,7 +535,6 @@ export default function useGameState(args: UseGameStateArgs) {
   return {
     state,
     send,
-    getElapsedMs: () =>
-      _getElapsedMs(state.context.startTimeMs, state.context.endTimeMs),
+    getElapsedMs,
   }
 }
