@@ -1,7 +1,12 @@
-import React, { useMemo, useEffect, useState } from "react"
+import React, { useMemo, useEffect, useState, useCallback } from "react"
 import { useHarmonicIntervalFn } from "react-use"
 import Board from "./Board"
-import { attackedByQueen, SQUARES, DEFAULT_QUEEN_SQUARE } from "./ChessLogic"
+import {
+  attackedByQueen,
+  SQUARES,
+  DEFAULT_QUEEN_SQUARE,
+  Square,
+} from "./ChessLogic"
 import CurrentMoveBox from "./CurrentMoveBox"
 import useGameState from "./GameState"
 import QueenSquareSelector from "./QueenSquareSelector"
@@ -40,6 +45,10 @@ const App: React.FC = () => {
       SQUARES.filter((s) => !attackedByQueen(s, state.context.queenSquare))
         .length - 1,
     [state.context.queenSquare]
+  )
+  const onKnightMove = useCallback(
+    (square: Square) => send({ type: "MOVE_KNIGHT", square }),
+    [send]
   )
   const { bestScoresMap, updateBestScores } = useBestScores()
   const [elapsedMillis, setElapsedMillis] = useState<number>(0)
@@ -82,7 +91,7 @@ const App: React.FC = () => {
               }
               visitedSquares={state.context.visitedSquares}
               targetSquare={state.context.targetSquare}
-              onKnightMove={(square) => send({ type: "MOVE_KNIGHT", square })}
+              onKnightMove={onKnightMove}
               hideVisitedSquares={hideVisitedSquares}
               // Show target arrow the first time the user plays,
               // for their first move
