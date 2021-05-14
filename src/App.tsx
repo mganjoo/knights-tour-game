@@ -14,6 +14,9 @@ import Scoreboard from "./Scoreboard"
 import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
 import SettingsToggle from "./SettingsToggle"
 
+/**
+ * Format a millisecond timestamp as a string.
+ */
 function formatMillis(ms?: number): string | undefined {
   if (ms === undefined || ms < 0) {
     return undefined
@@ -40,8 +43,8 @@ const App: React.FC = () => {
     queenSquare: loadedQueenSquare,
   })
   const numSquares = useMemo(
-    // Minus 1 because queen also counts as a square
     () =>
+      // Minus 1 because queen also counts as a square
       SQUARES.filter((s) => !attackedByQueen(s, state.context.queenSquare))
         .length - 1,
     [state.context.queenSquare]
