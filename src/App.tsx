@@ -118,11 +118,7 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="md:col-start-3">
-            <CurrentMoveBox
-              state={state}
-              targetSquare={state.context.targetSquare}
-              attackEndsGame={attackEndsGame}
-            />
+            <CurrentMoveBox state={state} />
           </div>
           <div className="md:col-start-3">
             <Scoreboard

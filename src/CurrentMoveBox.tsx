@@ -7,18 +7,15 @@ import { GameStateWrapper } from "./GameState"
 
 interface CurrentMoveBoxProps {
   state: GameStateWrapper
-  targetSquare?: Square
-  attackEndsGame?: boolean
 }
 
-function getReactKey(
-  state: GameStateWrapper,
-  targetSquare: Square | undefined
-) {
-  // Key determines which state changes get animated
-
+/**
+ * The key determines which state changes get animated. Changes in the
+ * key represent a change in the box and thus is animated.
+ */
+function getReactKey(state: GameStateWrapper, targetSquare: Square) {
   if (state.matches("paused") || state.matches({ playing: "moving" })) {
-    return targetSquare ? `next_${targetSquare}` : "other"
+    return `next_${targetSquare}`
   }
 
   if (
@@ -35,20 +32,15 @@ function getReactKey(
   return "other"
 }
 
-const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
-  state,
-  targetSquare,
-  attackEndsGame,
-}) => {
-  // Reduce animation of box transition if user has enabled reduce motion
+const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({ state }) => {
   const shouldReduceMotion = useReducedMotion()
-  const key = getReactKey(state, targetSquare)
-  const targetStyle = { opacity: 1, y: 0, scale: 1 }
+  const targetSquare = state.context.targetSquare
   return (
     <div className="flex justify-center">
       <motion.div
-        key={key}
+        key={getReactKey(state, targetSquare)}
         initial={
+          // Reduce animation of box transition if user has enabled reduce motion
           state.matches("notStarted") || shouldReduceMotion
             ? { opacity: 0, y: 0, scale: 0.9 }
             : {
@@ -57,7 +49,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
                 scale: 0.4,
               }
         }
-        animate={targetStyle}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
         className={classNames(
           "py-2 px-4 text-sm font-medium flex items-center lg:text-base",
           state.matches("finished")
@@ -65,7 +57,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
             : state.matches("captured") ||
               state.matches({ playing: "knightAttacked" })
             ? "bg-red-600 text-white"
-            : state.matches("notStarted") || !targetSquare
+            : state.matches("notStarted")
             ? "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-100"
             : "bg-yellow-700 text-white"
         )}
@@ -78,8 +70,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
             <span>Puzzle complete. Nicely done!</span>
           </>
         ) : state.matches("captured") ||
-          (state.matches({ playing: { knightAttacked: "toBeCaptured" } }) &&
-            attackEndsGame) ? (
+          state.matches({ playing: { knightAttacked: "toBeCaptured" } }) ? (
           <>Oops, game over! Try again.</>
         ) : state.matches({ playing: { knightAttacked: "toReturn" } }) ? (
           <>Oops, can't go there!</>
@@ -88,9 +79,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
             <ChevronDoubleUpIcon className="w-4 h-4 mr-2" aria-hidden />
             <span>Next square to visit</span>
             <span className="ml-4">
-              {state.matches("notStarted") || !targetSquare
-                ? "-"
-                : targetSquare}
+              {state.matches("notStarted") ? "-" : targetSquare}
             </span>
           </>
         )}
