@@ -69,7 +69,7 @@ function makeInitialConfig(shouldReduceMotion: boolean | null): Config {
       lastMove: false,
     },
     animation: {
-      enabled: !!!shouldReduceMotion,
+      enabled: !shouldReduceMotion,
     },
     movable: {
       free: false,
@@ -207,7 +207,7 @@ const Board: React.FC<BoardProps> = ({
       turnColor: "white",
       selected,
       animation: {
-        enabled: !!!shouldReduceMotion,
+        enabled: !shouldReduceMotion,
       },
       movable: {
         dests: dests,
