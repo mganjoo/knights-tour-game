@@ -3,7 +3,7 @@ import { List as ImmutableList } from "immutable"
 import { useCallback, useEffect } from "react"
 import { useLocalStorage } from "react-use"
 import { String, Number, Record, Static } from "runtypes"
-import { assign, createMachine, State, StateMachine } from "xstate"
+import { assign, createMachine, StateMachine } from "xstate"
 import {
   attackedByQueen,
   getSquareIncrement,
