@@ -349,7 +349,7 @@ function createGameMachine(
               always: [
                 {
                   target: "moving",
-                  cond: "knightReachedTarget",
+                  cond: "knightReachedNonFinalTarget",
                   actions: assign({
                     visitedSquares: (context) =>
                       context.visitedSquares.push(context.targetSquare),
@@ -372,6 +372,10 @@ function createGameMachine(
                 {
                   target: "#game.finished",
                   cond: "knightReachedFinalTarget",
+                  actions: assign({
+                    visitedSquares: (context) =>
+                      context.visitedSquares.push(context.targetSquare),
+                  }),
                 },
               ],
             },
@@ -471,10 +475,12 @@ function createGameMachine(
         queenAttacksAndCapturesKnight: (context) =>
           attackedByQueen(context.knightSquare, context.queenSquare) &&
           !!context.attackEndsGame,
-        knightReachedTarget: (context) =>
-          context.targetSquare === context.knightSquare,
+        knightReachedNonFinalTarget: (context) =>
+          context.targetSquare === context.knightSquare &&
+          context.targetSquare !== context.finalTargetSquare,
         knightReachedFinalTarget: (context) =>
-          context.finalTargetSquare === context.knightSquare,
+          context.targetSquare === context.knightSquare &&
+          context.targetSquare === context.finalTargetSquare,
       },
       delays: {
         KNIGHT_ATTACK_DELAY: 800,
