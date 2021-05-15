@@ -173,7 +173,7 @@ function setQueenSquare(
     finalTargetSquare: incrementWhileAttacked(
       ENDING_KNIGHT_SQUARE,
       queenSquare,
-      "next"
+      "nextFile"
     ),
     numTotalSquares:
       // Minus 1 because queen also counts as a square
@@ -196,15 +196,15 @@ function resetKnight(
   const startingSquare = incrementWhileAttacked(
     STARTING_KNIGHT_SQUARE,
     queenSquare,
-    "previous"
+    "previousFile"
   )
   return {
     knightSquare: startingSquare,
     previousKnightSquare: undefined,
     targetSquare: incrementWhileAttacked(
-      getSquareIncrement(startingSquare, "previous"),
+      getSquareIncrement(startingSquare, "previousFile"),
       queenSquare,
-      "previous"
+      "previousFile"
     ),
     visitedSquares: ImmutableList([startingSquare]),
     numMoves: 0,
@@ -249,15 +249,15 @@ function createGameMachine(
     const startingSquare = incrementWhileAttacked(
       STARTING_KNIGHT_SQUARE,
       queenSquare,
-      "previous"
+      "previousFile"
     )
     for (
       let visitedSquare = startingSquare;
       visitedSquare !== serializedGameState.lastVisitedSquare;
       visitedSquare = incrementWhileAttacked(
-        getSquareIncrement(visitedSquare, "previous"),
+        getSquareIncrement(visitedSquare, "previousFile"),
         serializedGameState.queenSquare,
-        "previous"
+        "previousFile"
       )
     ) {
       visitedSquares = visitedSquares.push(visitedSquare)
@@ -355,9 +355,12 @@ function createGameMachine(
                       context.visitedSquares.push(context.targetSquare),
                     targetSquare: (context) =>
                       incrementWhileAttacked(
-                        getSquareIncrement(context.targetSquare, "previous"),
+                        getSquareIncrement(
+                          context.targetSquare,
+                          "previousFile"
+                        ),
                         context.queenSquare,
-                        "previous"
+                        "previousFile"
                       ),
                   }),
                 },
@@ -451,7 +454,7 @@ function createGameMachine(
                 finalTargetSquare: incrementWhileAttacked(
                   ENDING_KNIGHT_SQUARE,
                   event.square,
-                  "next"
+                  "nextFile"
                 ),
                 ...resetKnight(event.square),
               }
