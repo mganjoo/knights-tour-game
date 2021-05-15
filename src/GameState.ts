@@ -15,6 +15,7 @@ import {
   STARTING_KNIGHT_SQUARE,
   ENDING_KNIGHT_SQUARE,
   getKnightDests,
+  SQUARES,
 } from "./ChessLogic"
 
 interface GameContext {
@@ -39,6 +40,10 @@ interface GameContext {
    * List of already visited squares.
    */
   visitedSquares: ImmutableList<Square>
+  /**
+   * Total number of squares that the knight must visit.
+   */
+  numTotalSquares: number
   /**
    * Number of moves made by knight so far.
    */
@@ -132,7 +137,7 @@ type GameState =
       }
     }
 
-export type GameStateWrapper = State<GameContext, GameEvent, any, GameState>
+export type GameStateType = GameState["value"]
 
 const SquareType = String.withGuard(isSquare)
 const QueenSquareType = String.withGuard(isQueenSquare)
@@ -162,7 +167,7 @@ function makeSerializedGameState(context: GameContext): SerializedGameState {
 
 function setQueenSquare(
   queenSquare: QueenSquare
-): Pick<GameContext, "queenSquare" | "finalTargetSquare"> {
+): Pick<GameContext, "queenSquare" | "finalTargetSquare" | "numTotalSquares"> {
   return {
     queenSquare: queenSquare,
     finalTargetSquare: incrementWhileAttacked(
@@ -170,6 +175,9 @@ function setQueenSquare(
       queenSquare,
       "next"
     ),
+    numTotalSquares:
+      // Minus 1 because queen also counts as a square
+      SQUARES.filter((s) => !attackedByQueen(s, queenSquare)).length - 1,
   }
 }
 

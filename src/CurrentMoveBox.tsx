@@ -3,45 +3,48 @@ import classNames from "classnames"
 import { motion, useReducedMotion } from "framer-motion"
 import React from "react"
 import { Square } from "./ChessLogic"
-import { GameStateWrapper } from "./GameState"
+import { GameStateType } from "./GameState"
 
 interface CurrentMoveBoxProps {
-  state: GameStateWrapper
+  stateMatches: (state: GameStateType) => boolean
+  targetSquare: Square
 }
 
 /**
  * The key determines which state changes get animated. Changes in the
  * key represent a change in the box and thus is animated.
  */
-function getReactKey(state: GameStateWrapper, targetSquare: Square) {
-  if (state.matches("paused") || state.matches({ playing: "moving" })) {
+function getReactKey(
+  stateMatches: (state: GameStateType) => boolean,
+  targetSquare: Square
+) {
+  if (stateMatches("paused") || stateMatches({ playing: "moving" })) {
     return `next_${targetSquare}`
   }
 
-  if (
-    state.matches("captured") ||
-    state.matches({ playing: "knightAttacked" })
-  ) {
+  if (stateMatches("captured") || stateMatches({ playing: "knightAttacked" })) {
     return "attacked"
   }
 
-  if (state.matches("finished")) {
+  if (stateMatches("finished")) {
     return "finished"
   }
 
   return "other"
 }
 
-const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({ state }) => {
+const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
+  stateMatches,
+  targetSquare,
+}) => {
   const shouldReduceMotion = useReducedMotion()
-  const targetSquare = state.context.targetSquare
   return (
     <div className="flex justify-center">
       <motion.div
-        key={getReactKey(state, targetSquare)}
+        key={getReactKey(stateMatches, targetSquare)}
         initial={
           // Reduce animation of box transition if user has enabled reduce motion
-          state.matches("notStarted") || shouldReduceMotion
+          stateMatches("notStarted") || shouldReduceMotion
             ? { opacity: 0, y: 0, scale: 0.9 }
             : {
                 opacity: 0,
@@ -52,34 +55,34 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({ state }) => {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         className={classNames(
           "py-2 px-4 text-sm font-medium flex items-center lg:text-base",
-          state.matches("finished")
+          stateMatches("finished")
             ? "bg-green-700 text-white"
-            : state.matches("captured") ||
-              state.matches({ playing: "knightAttacked" })
+            : stateMatches("captured") ||
+              stateMatches({ playing: "knightAttacked" })
             ? "bg-red-600 text-white"
-            : state.matches("notStarted")
+            : stateMatches("notStarted")
             ? "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-100"
             : "bg-yellow-700 text-white"
         )}
       >
-        {state.matches("finished") ? (
+        {stateMatches("finished") ? (
           <>
             <span className="mr-2" aria-hidden>
               🎉
             </span>
             <span>Puzzle complete. Nicely done!</span>
           </>
-        ) : state.matches("captured") ||
-          state.matches({ playing: { knightAttacked: "toBeCaptured" } }) ? (
+        ) : stateMatches("captured") ||
+          stateMatches({ playing: { knightAttacked: "toBeCaptured" } }) ? (
           <>Oops, game over! Try again.</>
-        ) : state.matches({ playing: { knightAttacked: "toReturn" } }) ? (
+        ) : stateMatches({ playing: { knightAttacked: "toReturn" } }) ? (
           <>Oops, can't go there!</>
         ) : (
           <>
             <ChevronDoubleUpIcon className="w-4 h-4 mr-2" aria-hidden />
             <span>Next square to visit</span>
             <span className="ml-4">
-              {state.matches("notStarted") ? "-" : targetSquare}
+              {stateMatches("notStarted") ? "-" : targetSquare}
             </span>
           </>
         )}

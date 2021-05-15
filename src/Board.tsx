@@ -7,14 +7,14 @@ import { List as ImmutableList } from "immutable"
 import React, { useCallback, useEffect, useMemo } from "react"
 import { getPuzzleFen, getKnightDests, Square } from "./ChessLogic"
 import { useChessground } from "./Chessground"
-import { GameStateWrapper } from "./GameState"
+import { GameStateType } from "./GameState"
 import { colors } from "./TailwindUtil"
 
 type BoardProps = {
   /**
-   * Current state of the game.
+   * Matcher to determine current state of game. Returns true if game is in `state`.
    */
-  gameState: GameStateWrapper
+  stateMatches: (state: GameStateType) => boolean
   /**
    * Square on which knight is placed.
    */
@@ -91,7 +91,7 @@ function makeInitialConfig(shouldReduceMotion: boolean | null): Config {
 }
 
 const Board: React.FC<BoardProps> = ({
-  gameState,
+  stateMatches,
   knightSquare,
   queenSquare,
   onKnightMove,
@@ -136,21 +136,19 @@ const Board: React.FC<BoardProps> = ({
   )
   const shapes = useMemo<DrawShape[]>(() => {
     const onboardingShapes: DrawShape[] =
-      gameState.matches("notStarted") && showInitialGuideArrows
+      stateMatches("notStarted") && showInitialGuideArrows
         ? [
             { orig: knightSquare, dest: "a8", brush: "blue" },
             { orig: "h7", dest: "a7", brush: "blue" },
           ]
         : []
     const targetShapes: DrawShape[] =
-      targetSquare && gameState.matches("playing")
+      targetSquare && stateMatches("playing")
         ? [{ orig: targetSquare, customSvg: TARGET_SVG }]
         : []
 
     const targetArrowShapes: DrawShape[] =
-      targetSquare &&
-      showTargetArrow &&
-      gameState.matches({ playing: "moving" })
+      targetSquare && showTargetArrow && stateMatches({ playing: "moving" })
         ? [
             {
               orig: knightSquare,
@@ -160,7 +158,7 @@ const Board: React.FC<BoardProps> = ({
             },
           ]
         : []
-    const queenShapes: DrawShape[] = gameState.matches({
+    const queenShapes: DrawShape[] = stateMatches({
       playing: "knightAttacked",
     })
       ? [
@@ -174,7 +172,7 @@ const Board: React.FC<BoardProps> = ({
         ]
       : []
     const visitedShapes: DrawShape[] =
-      hideVisitedSquares || gameState.matches("notStarted")
+      hideVisitedSquares || stateMatches("notStarted")
         ? []
         : visitedSquares
             .map((s) => ({
@@ -189,7 +187,7 @@ const Board: React.FC<BoardProps> = ({
       .concat(visitedShapes)
   }, [
     targetSquare,
-    gameState,
+    stateMatches,
     showTargetArrow,
     showInitialGuideArrows,
     knightSquare,
@@ -200,13 +198,13 @@ const Board: React.FC<BoardProps> = ({
 
   useEffect(() => {
     // If the puzzle is ongoing, select current knight square by default
-    const selected = gameState.matches({ playing: "moving" })
+    const selected = stateMatches({ playing: "moving" })
       ? knightSquare
       : undefined
     const config: Config = {
       fen: fen,
       // Allow moves only in playing state
-      viewOnly: !gameState.matches({ playing: "moving" }),
+      viewOnly: !stateMatches({ playing: "moving" }),
       // Always white to move
       turnColor: "white",
       selected,
@@ -231,7 +229,7 @@ const Board: React.FC<BoardProps> = ({
   }, [
     set,
     fen,
-    gameState,
+    stateMatches,
     knightSquare,
     shouldReduceMotion,
     dests,

@@ -1,12 +1,7 @@
-import React, { useMemo, useEffect, useState, useCallback } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { useHarmonicIntervalFn } from "react-use"
 import Board from "./Board"
-import {
-  attackedByQueen,
-  SQUARES,
-  DEFAULT_QUEEN_SQUARE,
-  Square,
-} from "./ChessLogic"
+import { DEFAULT_QUEEN_SQUARE, Square } from "./ChessLogic"
 import CurrentMoveBox from "./CurrentMoveBox"
 import useGameState from "./GameState"
 import QueenSquareSelector from "./QueenSquareSelector"
@@ -42,13 +37,6 @@ const App: React.FC = () => {
     attackEndsGame: attackEndsGame,
     queenSquare: loadedQueenSquare,
   })
-  const numSquares = useMemo(
-    () =>
-      // Minus 1 because queen also counts as a square
-      SQUARES.filter((s) => !attackedByQueen(s, state.context.queenSquare))
-        .length - 1,
-    [state.context.queenSquare]
-  )
   const onKnightMove = useCallback(
     (square: Square) => send({ type: "MOVE_KNIGHT", square }),
     [send]
@@ -58,12 +46,12 @@ const App: React.FC = () => {
   const bestScores = bestScoresMap[state.context.queenSquare]
 
   useEffect(() => {
+    // After three successful square visits, mark user
+    // as onboarded (stop showing arrows)
     if (state.context.visitedSquares.size >= 3) {
-      // After three successful square visits, mark user
-      // as onboarded (stop showing arrows)
       setOnboardingDone(true)
     }
-  }, [state.context.visitedSquares, setOnboardingDone])
+  }, [state.context.visitedSquares.size, setOnboardingDone])
 
   useEffect(() => {
     if (state.matches("finished")) {
@@ -73,7 +61,7 @@ const App: React.FC = () => {
         elapsedMs: getElapsedMs(),
       })
     }
-  }, [state, getElapsedMs, updateBestScores])
+  }, [state, state.context.queenSquare, getElapsedMs, updateBestScores])
 
   useHarmonicIntervalFn(() => {
     setElapsedMillis(getElapsedMs())
@@ -85,7 +73,7 @@ const App: React.FC = () => {
         <main className="grid pt-4 pb-6 md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6 md:items-center">
           <div className="col-start-1 row-start-2 md:row-start-1 md:row-span-5 md:col-span-2">
             <Board
-              gameState={state}
+              stateMatches={state.matches}
               knightSquare={state.context.knightSquare}
               queenSquare={
                 state.matches("captured")
@@ -130,14 +118,19 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="md:col-start-3">
-            <CurrentMoveBox state={state} />
+            <CurrentMoveBox
+              stateMatches={state.matches}
+              targetSquare={state.context.targetSquare}
+            />
           </div>
           <div className="md:col-start-3">
             <Scoreboard
               tickers={[
                 {
                   label: "Squares left",
-                  value: numSquares - state.context.visitedSquares.size,
+                  value:
+                    state.context.numTotalSquares -
+                    state.context.visitedSquares.size,
                 },
                 {
                   label: "Moves",
