@@ -292,6 +292,7 @@ export function createGameMachine(
             },
             "SET.QUEEN_SQUARE": {
               target: "notStarted",
+              cond: "queenSquareChanged",
               actions: "moveQueen",
             },
           },
@@ -448,12 +449,7 @@ export function createGameMachine(
           event.type === "SET.QUEEN_SQUARE" && isQueenSquare(event.square)
             ? {
                 ...context,
-                queenSquare: event.square,
-                finalTargetSquare: incrementWhileAttacked(
-                  ENDING_KNIGHT_SQUARE,
-                  event.square,
-                  "nextFile"
-                ),
+                ...setQueenSquare(event.square),
                 ...resetKnight(event.square),
               }
             : context
