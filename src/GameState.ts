@@ -164,15 +164,17 @@ function makeSerializedGameState(context: GameContext): SerializedGameState {
 }
 
 function setQueenSquare(
-  queenSquare: QueenSquare
+  queenSquare: QueenSquare,
+  startingKnightSquareUnsafe?: Square,
+  endingKnightSquareUnsafe?: Square
 ): Pick<GameContext, "queenSquare" | "finalTargetSquare" | "numTotalSquares"> {
   const startingSquare = incrementWhileAttacked(
-    STARTING_KNIGHT_SQUARE,
+    startingKnightSquareUnsafe || STARTING_KNIGHT_SQUARE,
     queenSquare,
     "previousFile"
   )
   const finalTargetSquare = incrementWhile(
-    ENDING_KNIGHT_SQUARE,
+    endingKnightSquareUnsafe || ENDING_KNIGHT_SQUARE,
     (s) =>
       attackedByQueen(s, queenSquare) ||
       s === queenSquare ||
@@ -200,7 +202,8 @@ function setQueenSquare(
 }
 
 function resetKnight(
-  queenSquare: QueenSquare
+  queenSquare: QueenSquare,
+  startingKnightSquareUnsafe?: Square
 ): Pick<
   GameContext,
   | "knightSquare"
@@ -212,7 +215,7 @@ function resetKnight(
   | "endTimeMs"
 > {
   const startingSquare = incrementWhileAttacked(
-    STARTING_KNIGHT_SQUARE,
+    startingKnightSquareUnsafe || STARTING_KNIGHT_SQUARE,
     queenSquare,
     "previousFile"
   )
@@ -248,6 +251,8 @@ interface CreateGameMachineArgs {
   attackEndsGame: boolean
   queenSquare: QueenSquare
   serializedGameState?: unknown
+  startingKnightSquareUnsafe?: Square
+  endingKnightSquareUnsafe?: Square
 }
 
 export function createGameMachine(
@@ -260,12 +265,15 @@ export function createGameMachine(
     : undefined
 
   let initialContext: GameContext
-  if (serializedGameState !== undefined) {
+  if (
+    serializedGameState !== undefined &&
+    args.queenSquare === serializedGameState.queenSquare
+  ) {
     const queenSquare = serializedGameState.queenSquare
     const knightSquare = serializedGameState.knightSquare
     let visitedSquares: ImmutableList<Square> = ImmutableList()
     const startingSquare = incrementWhileAttacked(
-      STARTING_KNIGHT_SQUARE,
+      args.startingKnightSquareUnsafe || STARTING_KNIGHT_SQUARE,
       queenSquare,
       "previousFile"
     )
@@ -283,7 +291,11 @@ export function createGameMachine(
     visitedSquares = visitedSquares.push(serializedGameState.lastVisitedSquare)
 
     initialContext = {
-      ...setQueenSquare(queenSquare),
+      ...setQueenSquare(
+        queenSquare,
+        args.startingKnightSquareUnsafe,
+        args.endingKnightSquareUnsafe
+      ),
       knightSquare,
       visitedSquares,
       targetSquare: serializedGameState.targetSquare,
@@ -293,8 +305,12 @@ export function createGameMachine(
     }
   } else {
     initialContext = {
-      ...setQueenSquare(args.queenSquare),
-      ...resetKnight(args.queenSquare),
+      ...setQueenSquare(
+        args.queenSquare,
+        args.startingKnightSquareUnsafe,
+        args.endingKnightSquareUnsafe
+      ),
+      ...resetKnight(args.queenSquare, args.startingKnightSquareUnsafe),
       attackEndsGame: args.attackEndsGame,
     }
   }
@@ -323,7 +339,10 @@ export function createGameMachine(
               target: "playing",
               actions: assign((context) => ({
                 ...context,
-                ...resetKnight(context.queenSquare),
+                ...resetKnight(
+                  context.queenSquare,
+                  args.startingKnightSquareUnsafe
+                ),
               })),
             },
           },
@@ -469,8 +488,12 @@ export function createGameMachine(
           event.type === "SET.QUEEN_SQUARE" && isQueenSquare(event.square)
             ? {
                 ...context,
-                ...setQueenSquare(event.square),
-                ...resetKnight(event.square),
+                ...setQueenSquare(
+                  event.square,
+                  args.startingKnightSquareUnsafe,
+                  args.endingKnightSquareUnsafe
+                ),
+                ...resetKnight(event.square, args.startingKnightSquareUnsafe),
               }
             : context
         ),

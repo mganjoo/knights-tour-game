@@ -400,7 +400,7 @@ export function getPuzzleKnightPath(
 /**
  * Default square for queen in the knights tour game.
  */
-export const DEFAULT_QUEEN_SQUARE = "d5"
+export const DEFAULT_QUEEN_SQUARE: QueenSquare = "d5"
 
 /**
  * Starting square for knight in the game.
