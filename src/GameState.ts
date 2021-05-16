@@ -228,10 +228,10 @@ function _getElapsedMs(
 interface MakeInitialStateArgs {
   attackEndsGame: boolean
   queenSquare: QueenSquare
-  serializedGameState: unknown
+  serializedGameState?: unknown
 }
 
-function createGameMachine(
+export function createGameMachine(
   args: MakeInitialStateArgs
 ): StateMachine<GameContext, any, GameEvent, GameState> {
   const serializedGameState = SerializedGameStateSchema.guard(
