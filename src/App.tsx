@@ -3,7 +3,7 @@ import { useHarmonicIntervalFn } from "react-use"
 import Board from "./Board"
 import { DEFAULT_QUEEN_SQUARE, Square } from "./ChessLogic"
 import CurrentMoveBox from "./CurrentMoveBox"
-import useGameState from "./GameState"
+import useGameState, { getElapsedMs } from "./GameState"
 import QueenSquareSelector from "./QueenSquareSelector"
 import Scoreboard from "./Scoreboard"
 import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
@@ -33,13 +33,40 @@ const App: React.FC = () => {
   )
   const [attackEndsGame, setAttackEndsGame] = useFlag("v1.attack_ends_game")
   const [onboardingDone, setOnboardingDone] = useFlag("v1.onboarding_done")
-  const { state, start, handleKnightMove, getElapsedMs } = useGameState({
+  const { state, send } = useGameState({
     attackEndsGame: attackEndsGame,
     queenSquare: loadedQueenSquare,
   })
   const { bestScoresMap, updateBestScores } = useBestScores()
   const [elapsedMillis, setElapsedMillis] = useState<number>(0)
   const bestScores = bestScoresMap[state.context.queenSquare]
+  const getGameElapsedMs = useCallback(
+    () => getElapsedMs(state.context.startTimeMs, state.context.endTimeMs),
+    [state.context.startTimeMs, state.context.endTimeMs]
+  )
+  const handleKnightMove = useCallback(
+    (square: Square) => send({ type: "MOVE_KNIGHT", square }),
+    [send]
+  )
+  const start = useCallback(() => send({ type: "START" }), [send])
+
+  useEffect(() => {
+    send({ type: "SET.ATTACK_ENDS_GAME", value: attackEndsGame })
+  }, [attackEndsGame, send])
+
+  useEffect(() => {
+    send({ type: "SET.QUEEN_SQUARE", square: loadedQueenSquare })
+  }, [loadedQueenSquare, send])
+
+  useEffect(() => {
+    const handleVisibilityChange = () =>
+      send({
+        type: document.visibilityState === "hidden" ? "PAUSE" : "UNPAUSE",
+      })
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+  }, [send])
 
   useEffect(() => {
     // After three successful square visits, mark user
@@ -54,13 +81,13 @@ const App: React.FC = () => {
       updateBestScores({
         queenSquare: state.context.queenSquare,
         numMoves: state.context.numMoves,
-        elapsedMs: getElapsedMs(),
+        elapsedMs: getGameElapsedMs(),
       })
     }
-  }, [state, state.context.queenSquare, getElapsedMs, updateBestScores])
+  }, [state, state.context.queenSquare, getGameElapsedMs, updateBestScores])
 
   useHarmonicIntervalFn(() => {
-    setElapsedMillis(getElapsedMs())
+    setElapsedMillis(getGameElapsedMs())
   }, 1000)
 
   return (

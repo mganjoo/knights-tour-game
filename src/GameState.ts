@@ -1,6 +1,6 @@
 import { useMachine } from "@xstate/react"
 import { List as ImmutableList } from "immutable"
-import { useCallback, useEffect } from "react"
+import { useEffect } from "react"
 import { useLocalStorage } from "react-use"
 import { String, Number, Record, Static } from "runtypes"
 import { assign, createMachine, StateMachine } from "xstate"
@@ -159,7 +159,7 @@ function makeSerializedGameState(context: GameContext): SerializedGameState {
     lastVisitedSquare: context.visitedSquares.last(context.knightSquare),
     targetSquare: context.targetSquare,
     numMoves: context.numMoves,
-    previouslyElapsedMs: _getElapsedMs(context.startTimeMs, context.endTimeMs),
+    previouslyElapsedMs: getElapsedMs(context.startTimeMs, context.endTimeMs),
   }
 }
 
@@ -211,7 +211,7 @@ function resetKnight(
   }
 }
 
-function _getElapsedMs(
+export function getElapsedMs(
   startTimeMs: number | undefined,
   endTimeMs: number | undefined
 ) {
@@ -224,14 +224,14 @@ function _getElapsedMs(
   }
 }
 
-interface MakeInitialStateArgs {
+interface CreateGameMachineArgs {
   attackEndsGame: boolean
   queenSquare: QueenSquare
   serializedGameState?: unknown
 }
 
 export function createGameMachine(
-  args: MakeInitialStateArgs
+  args: CreateGameMachineArgs
 ): StateMachine<GameContext, any, GameEvent, GameState> {
   const serializedGameState = SerializedGameStateSchema.guard(
     args.serializedGameState
@@ -511,33 +511,6 @@ export default function useGameState(args: UseGameStateArgs) {
       devTools: process.env.NODE_ENV === "development",
     }
   )
-  const getElapsedMs = useCallback(
-    () => _getElapsedMs(state.context.startTimeMs, state.context.endTimeMs),
-    [state.context.startTimeMs, state.context.endTimeMs]
-  )
-  const handleKnightMove = useCallback(
-    (square: Square) => send({ type: "MOVE_KNIGHT", square }),
-    [send]
-  )
-  const start = useCallback(() => send({ type: "START" }), [send])
-
-  useEffect(() => {
-    send({ type: "SET.ATTACK_ENDS_GAME", value: attackEndsGame })
-  }, [attackEndsGame, send])
-
-  useEffect(() => {
-    send({ type: "SET.QUEEN_SQUARE", square: queenSquare })
-  }, [queenSquare, send])
-
-  useEffect(() => {
-    const handleVisibilityChange = () =>
-      send({
-        type: document.visibilityState === "hidden" ? "PAUSE" : "UNPAUSE",
-      })
-    document.addEventListener("visibilitychange", handleVisibilityChange)
-    return () =>
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [send])
 
   // Save game state whenever we can (game state changes)
   useEffect(() => {
@@ -552,10 +525,5 @@ export default function useGameState(args: UseGameStateArgs) {
     }
   }, [state, setSerializedGameState, removeSerializedGameState])
 
-  return {
-    state,
-    handleKnightMove,
-    start,
-    getElapsedMs,
-  }
+  return { state, send }
 }
