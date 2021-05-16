@@ -33,14 +33,10 @@ const App: React.FC = () => {
   )
   const [attackEndsGame, setAttackEndsGame] = useFlag("v1.attack_ends_game")
   const [onboardingDone, setOnboardingDone] = useFlag("v1.onboarding_done")
-  const { state, send, getElapsedMs } = useGameState({
+  const { state, start, handleKnightMove, getElapsedMs } = useGameState({
     attackEndsGame: attackEndsGame,
     queenSquare: loadedQueenSquare,
   })
-  const onKnightMove = useCallback(
-    (square: Square) => send({ type: "MOVE_KNIGHT", square }),
-    [send]
-  )
   const { bestScoresMap, updateBestScores } = useBestScores()
   const [elapsedMillis, setElapsedMillis] = useState<number>(0)
   const bestScores = bestScoresMap[state.context.queenSquare]
@@ -82,7 +78,7 @@ const App: React.FC = () => {
               }
               visitedSquares={state.context.visitedSquares}
               targetSquare={state.context.targetSquare}
-              onKnightMove={onKnightMove}
+              onKnightMove={handleKnightMove}
               hideVisitedSquares={hideVisitedSquares}
               // Show target arrow the first time the user plays,
               // for their first move
@@ -106,9 +102,7 @@ const App: React.FC = () => {
             <div className="row-start-1 col-start-2 md:row-start-2 md:col-start-1">
               <button
                 className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-blue-700 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 lg:px-4 lg:text-base"
-                onClick={() => {
-                  send({ type: "START" })
-                }}
+                onClick={start}
               >
                 New game
               </button>
@@ -150,10 +144,7 @@ const App: React.FC = () => {
           <div className="pt-1 pb-2 md:col-start-3">
             <QueenSquareSelector
               selected={state.context.queenSquare}
-              setSelected={(square) => {
-                send({ type: "MOVE_QUEEN", square })
-                setLoadedQueenSquare(square)
-              }}
+              setSelected={setLoadedQueenSquare}
             />
           </div>
           <div className="md:col-start-3">

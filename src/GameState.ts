@@ -77,11 +77,10 @@ interface GameContext {
 type GameEvent =
   | { type: "START" }
   | { type: "MOVE_KNIGHT"; square: Square }
-  | { type: "MOVE_QUEEN"; square: QueenSquare }
-  | { type: "PAUSE" }
-  | { type: "SET.ATTACK_ENDS_GAME"; value: boolean }
   | { type: "PAUSE" }
   | { type: "UNPAUSE" }
+  | { type: "SET.QUEEN_SQUARE"; square: QueenSquare }
+  | { type: "SET.ATTACK_ENDS_GAME"; value: boolean }
 
 type GameState =
   | {
@@ -291,7 +290,7 @@ export function createGameMachine(
             START: {
               target: "playing",
             },
-            MOVE_QUEEN: {
+            "SET.QUEEN_SQUARE": {
               target: "notStarted",
               actions: "moveQueen",
             },
@@ -325,7 +324,7 @@ export function createGameMachine(
                 previouslyElapsedMs: Date.now() - (context.startTimeMs || 0),
               })),
             },
-            MOVE_QUEEN: {
+            "SET.QUEEN_SQUARE": {
               target: "restarting",
               cond: "queenSquareChanged",
               actions: "moveQueen",
@@ -416,7 +415,7 @@ export function createGameMachine(
         captured: {
           entry: "stopClock",
           on: {
-            MOVE_QUEEN: {
+            "SET.QUEEN_SQUARE": {
               target: "notStarted",
               cond: "queenSquareChanged",
               actions: "moveQueen",
@@ -426,7 +425,7 @@ export function createGameMachine(
         finished: {
           entry: "stopClock",
           on: {
-            MOVE_QUEEN: {
+            "SET.QUEEN_SQUARE": {
               target: "notStarted",
               cond: "queenSquareChanged",
               actions: "moveQueen",
@@ -446,7 +445,7 @@ export function createGameMachine(
     {
       actions: {
         moveQueen: assign((context, event) =>
-          event.type === "MOVE_QUEEN" && isQueenSquare(event.square)
+          event.type === "SET.QUEEN_SQUARE" && isQueenSquare(event.square)
             ? {
                 ...context,
                 queenSquare: event.square,
@@ -463,7 +462,7 @@ export function createGameMachine(
       },
       guards: {
         queenSquareChanged: (context, event) =>
-          event.type === "MOVE_QUEEN" &&
+          event.type === "SET.QUEEN_SQUARE" &&
           isQueenSquare(event.square) &&
           context.queenSquare !== event.square,
         validKnightMove: (context, event) =>
@@ -516,13 +515,18 @@ export default function useGameState(args: UseGameStateArgs) {
     () => _getElapsedMs(state.context.startTimeMs, state.context.endTimeMs),
     [state.context.startTimeMs, state.context.endTimeMs]
   )
+  const handleKnightMove = useCallback(
+    (square: Square) => send({ type: "MOVE_KNIGHT", square }),
+    [send]
+  )
+  const start = useCallback(() => send({ type: "START" }), [send])
 
   useEffect(() => {
     send({ type: "SET.ATTACK_ENDS_GAME", value: attackEndsGame })
   }, [attackEndsGame, send])
 
   useEffect(() => {
-    send({ type: "MOVE_QUEEN", square: queenSquare })
+    send({ type: "SET.QUEEN_SQUARE", square: queenSquare })
   }, [queenSquare, send])
 
   useEffect(() => {
@@ -550,7 +554,8 @@ export default function useGameState(args: UseGameStateArgs) {
 
   return {
     state,
-    send,
+    handleKnightMove,
+    start,
     getElapsedMs,
   }
 }
