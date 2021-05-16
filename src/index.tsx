@@ -1,9 +1,17 @@
+import { inspect } from "@xstate/inspect"
 import React from "react"
 import ReactDOM from "react-dom"
 import "./index.css"
 import App from "./App"
 import reportWebVitals from "./reportWebVitals"
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration"
+
+if (process.env.NODE_ENV === "development") {
+  inspect({
+    url: "https://statecharts.io/inspect",
+    iframe: false,
+  })
+}
 
 ReactDOM.render(
   <React.StrictMode>

@@ -109,7 +109,7 @@ const QUEEN_ATTACKS: (0 | 1)[] = [
   1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0,
 ]
 
-type IncrementDirection = "previous" | "next"
+type IncrementDirection = "previousFile" | "nextFile"
 
 /**
  * Returns potential target squares for a knight from the current square.
@@ -219,13 +219,13 @@ export function getSquareIncrement(
   direction: IncrementDirection
 ): Square {
   const x88Idx = SQUARES_MAP[square]
-  const increment = direction === "previous" ? -1 : 1
+  const increment = direction === "previousFile" ? -1 : 1
   let nextX88Idx = x88Idx + increment
   if (nextX88Idx & 0x88) {
     // End of previous rank
-    nextX88Idx = nextX88Idx + (direction === "previous" ? 1 : -1) * 24
+    nextX88Idx = nextX88Idx + (direction === "previousFile" ? 1 : -1) * 24
     if (nextX88Idx & 0x88) {
-      return direction === "previous" ? "h8" : "a1"
+      return direction === "previousFile" ? "h8" : "a1"
     }
   }
   return INVERSE_SQUARES_MAP[nextX88Idx]
@@ -348,12 +348,12 @@ export function getPuzzleKnightPath(
   const finalStartingSquare = incrementWhileAttacked(
     startingSquare,
     queenSquare,
-    "previous"
+    "previousFile"
   )
   const finalEndingSquare = incrementWhileAttacked(
     endingSquare,
     queenSquare,
-    "next"
+    "nextFile"
   )
 
   let start = finalStartingSquare
@@ -361,9 +361,9 @@ export function getPuzzleKnightPath(
 
   while (start !== finalEndingSquare) {
     const end = incrementWhileAttacked(
-      getSquareIncrement(start, "previous"),
+      getSquareIncrement(start, "previousFile"),
       queenSquare,
-      "previous"
+      "previousFile"
     )
 
     const path = getShortestKnightPath(start, end, queenSquare)

@@ -154,7 +154,7 @@ describe("getSquareIncrement()", () => {
             newRank = 8
           }
         }
-        expect(getSquareIncrement(square, "previous")).toEqual(
+        expect(getSquareIncrement(square, "previousFile")).toEqual(
           toSquare(newRank, newFile)
         )
       })
@@ -175,7 +175,7 @@ describe("getSquareIncrement()", () => {
             newRank = 1
           }
         }
-        expect(getSquareIncrement(square, "next")).toEqual(
+        expect(getSquareIncrement(square, "nextFile")).toEqual(
           toSquare(newRank, newFile)
         )
       })

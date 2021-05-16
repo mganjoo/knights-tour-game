@@ -3,45 +3,48 @@ import classNames from "classnames"
 import { motion, useReducedMotion } from "framer-motion"
 import React from "react"
 import { Square } from "./ChessLogic"
-import { BoardState } from "./GameState"
+import { GameStateType } from "./GameState"
 
 interface CurrentMoveBoxProps {
-  state: BoardState
-  targetSquare?: Square
-  attackEndsGame?: boolean
+  stateMatches: (state: GameStateType) => boolean
+  targetSquare: Square
 }
 
-function getReactKey(state: BoardState, targetSquare: Square | undefined) {
-  // Key determines which state changes get animated
-  switch (state.id) {
-    case "PAUSED":
-    case "PLAYING":
-      return targetSquare ? `next_${targetSquare}` : "other"
-    case "CAPTURED":
-    case "KNIGHT_ATTACKED":
-      return "attacked"
-    case "FINISHED":
-      return "finished"
-    default:
-      return "other"
+/**
+ * The key determines which state changes get animated. Changes in the
+ * key represent a change in the box and thus is animated.
+ */
+function getReactKey(
+  stateMatches: (state: GameStateType) => boolean,
+  targetSquare: Square
+) {
+  if (stateMatches("paused") || stateMatches({ playing: "moving" })) {
+    return `next_${targetSquare}`
   }
+
+  if (stateMatches("captured") || stateMatches({ playing: "knightAttacked" })) {
+    return "attacked"
+  }
+
+  if (stateMatches("finished")) {
+    return "finished"
+  }
+
+  return "other"
 }
 
 const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
-  state,
+  stateMatches,
   targetSquare,
-  attackEndsGame,
 }) => {
-  // Reduce animation of box transition if user has enabled reduce motion
   const shouldReduceMotion = useReducedMotion()
-  const key = getReactKey(state, targetSquare)
-  const targetStyle = { opacity: 1, y: 0, scale: 1 }
   return (
     <div className="flex justify-center">
       <motion.div
-        key={key}
+        key={getReactKey(stateMatches, targetSquare)}
         initial={
-          state.id === "NOT_STARTED" || shouldReduceMotion
+          // Reduce animation of box transition if user has enabled reduce motion
+          stateMatches("notStarted") || shouldReduceMotion
             ? { opacity: 0, y: 0, scale: 0.9 }
             : {
                 opacity: 0,
@@ -49,36 +52,37 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
                 scale: 0.4,
               }
         }
-        animate={targetStyle}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
         className={classNames(
           "py-2 px-4 text-sm font-medium flex items-center lg:text-base",
-          state.id === "FINISHED"
+          stateMatches("finished")
             ? "bg-green-700 text-white"
-            : state.id === "CAPTURED" || state.id === "KNIGHT_ATTACKED"
+            : stateMatches("captured") ||
+              stateMatches({ playing: "knightAttacked" })
             ? "bg-red-600 text-white"
-            : state.id === "NOT_STARTED" || !targetSquare
+            : stateMatches("notStarted")
             ? "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-100"
             : "bg-yellow-700 text-white"
         )}
       >
-        {state.id === "FINISHED" ? (
+        {stateMatches("finished") ? (
           <>
             <span className="mr-2" aria-hidden>
               🎉
             </span>
             <span>Puzzle complete. Nicely done!</span>
           </>
-        ) : state.id === "CAPTURED" ||
-          (state.id === "KNIGHT_ATTACKED" && attackEndsGame) ? (
+        ) : stateMatches("captured") ||
+          stateMatches({ playing: { knightAttacked: "toBeCaptured" } }) ? (
           <>Oops, game over! Try again.</>
-        ) : state.id === "KNIGHT_ATTACKED" ? (
+        ) : stateMatches({ playing: { knightAttacked: "toReturn" } }) ? (
           <>Oops, can't go there!</>
         ) : (
           <>
             <ChevronDoubleUpIcon className="w-4 h-4 mr-2" aria-hidden />
             <span>Next square to visit</span>
             <span className="ml-4">
-              {state.id === "NOT_STARTED" || !targetSquare ? "-" : targetSquare}
+              {stateMatches("notStarted") ? "-" : targetSquare}
             </span>
           </>
         )}
