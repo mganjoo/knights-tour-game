@@ -232,6 +232,27 @@ export function getSquareIncrement(
 }
 
 /**
+ * Increments square using getSquareIncrement() while the predicate evaluates
+ * to true.
+ *
+ * @param square square to increment
+ * @param predicate predicate that, as long as it is true, causes square to be incremented
+ * @param direction previous (decreasing rank/file) or next (increasing)
+ * @returns first previous or next square that does not meet predicate
+ */
+export function incrementWhile(
+  square: Square,
+  predicate: (s: Square) => boolean,
+  direction: IncrementDirection
+): Square {
+  let finalSquare = square
+  while (predicate(finalSquare)) {
+    finalSquare = getSquareIncrement(finalSquare, direction)
+  }
+  return finalSquare
+}
+
+/**
  * Increments square using getSquareIncrement() while the square is attacked
  * by a queen on `queenSquare`.
  *
@@ -245,14 +266,11 @@ export function incrementWhileAttacked(
   queenSquare: Square,
   direction: IncrementDirection
 ): Square {
-  let finalSquare = square
-  while (
-    attackedByQueen(finalSquare, queenSquare) ||
-    finalSquare === queenSquare
-  ) {
-    finalSquare = getSquareIncrement(finalSquare, direction)
-  }
-  return finalSquare
+  return incrementWhile(
+    square,
+    (s) => attackedByQueen(s, queenSquare) || s === queenSquare,
+    direction
+  )
 }
 
 interface BfsNode<T> {

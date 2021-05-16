@@ -7,6 +7,7 @@ import { assign, createMachine, StateMachine } from "xstate"
 import {
   attackedByQueen,
   getSquareIncrement,
+  incrementWhile,
   incrementWhileAttacked,
   isQueenSquare,
   isSquare,
@@ -15,7 +16,6 @@ import {
   STARTING_KNIGHT_SQUARE,
   ENDING_KNIGHT_SQUARE,
   getKnightDests,
-  SQUARES,
 } from "./ChessLogic"
 
 interface GameContext {
@@ -166,16 +166,36 @@ function makeSerializedGameState(context: GameContext): SerializedGameState {
 function setQueenSquare(
   queenSquare: QueenSquare
 ): Pick<GameContext, "queenSquare" | "finalTargetSquare" | "numTotalSquares"> {
-  return {
-    queenSquare: queenSquare,
-    finalTargetSquare: incrementWhileAttacked(
-      ENDING_KNIGHT_SQUARE,
+  const startingSquare = incrementWhileAttacked(
+    STARTING_KNIGHT_SQUARE,
+    queenSquare,
+    "previousFile"
+  )
+  const finalTargetSquare = incrementWhile(
+    ENDING_KNIGHT_SQUARE,
+    (s) =>
+      attackedByQueen(s, queenSquare) ||
+      s === queenSquare ||
+      s === startingSquare,
+    "nextFile"
+  )
+  // Additional square to include starting square
+  let numTotalSquares = 1
+  for (
+    let s = startingSquare;
+    s !== finalTargetSquare;
+    s = incrementWhileAttacked(
+      getSquareIncrement(s, "previousFile"),
       queenSquare,
-      "nextFile"
-    ),
-    numTotalSquares:
-      // Minus 1 because queen also counts as a square
-      SQUARES.filter((s) => !attackedByQueen(s, queenSquare)).length - 1,
+      "previousFile"
+    )
+  ) {
+    numTotalSquares += 1
+  }
+  return {
+    queenSquare,
+    finalTargetSquare,
+    numTotalSquares,
   }
 }
 
