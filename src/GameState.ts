@@ -144,7 +144,6 @@ const NonNegative = Number.withConstraint((n) => n >= 0)
 const SerializedGameStateSchema = Record({
   queenSquare: QueenSquareType,
   knightSquare: SquareType,
-  lastVisitedSquare: SquareType,
   targetSquare: SquareType,
   numMoves: NonNegative,
   previouslyElapsedMs: NonNegative,
@@ -156,7 +155,6 @@ function makeSerializedGameState(context: GameContext): SerializedGameState {
   return {
     queenSquare: context.queenSquare,
     knightSquare: context.knightSquare,
-    lastVisitedSquare: context.visitedSquares.last(context.knightSquare),
     targetSquare: context.targetSquare,
     numMoves: context.numMoves,
     previouslyElapsedMs: getElapsedMs(context.startTimeMs, context.endTimeMs),
@@ -267,6 +265,8 @@ export function createGameMachine(
   let initialContext: GameContext
   if (
     serializedGameState !== undefined &&
+    // If saved queen square is different from configured queen square,
+    // ignore saved game information and treat as new game
     args.queenSquare === serializedGameState.queenSquare
   ) {
     const queenSquare = serializedGameState.queenSquare
@@ -279,7 +279,7 @@ export function createGameMachine(
     )
     for (
       let visitedSquare = startingSquare;
-      visitedSquare !== serializedGameState.lastVisitedSquare;
+      visitedSquare !== serializedGameState.targetSquare;
       visitedSquare = incrementWhileAttacked(
         getSquareIncrement(visitedSquare, "previousFile"),
         serializedGameState.queenSquare,
@@ -288,7 +288,6 @@ export function createGameMachine(
     ) {
       visitedSquares = visitedSquares.push(visitedSquare)
     }
-    visitedSquares = visitedSquares.push(serializedGameState.lastVisitedSquare)
 
     initialContext = {
       ...setQueenSquare(
