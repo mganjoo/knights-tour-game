@@ -77,7 +77,6 @@ interface GameContext {
 type GameEvent =
   | { type: "START" }
   | { type: "MOVE_KNIGHT"; square: Square }
-  | { type: "HANDLE_KNIGHT_ATTACK" }
   | { type: "MOVE_QUEEN"; square: QueenSquare }
   | { type: "PAUSE" }
   | { type: "SET.ATTACK_ENDS_GAME"; value: boolean }
