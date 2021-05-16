@@ -518,12 +518,12 @@ export default function useGameState(args: UseGameStateArgs) {
   )
 
   useEffect(() => {
-    send({ type: "SET.ATTACK_ENDS_GAME", value: args.attackEndsGame })
-  }, [args.attackEndsGame, send])
+    send({ type: "SET.ATTACK_ENDS_GAME", value: attackEndsGame })
+  }, [attackEndsGame, send])
 
   useEffect(() => {
-    send({ type: "MOVE_QUEEN", square: args.queenSquare })
-  }, [args.queenSquare, send])
+    send({ type: "MOVE_QUEEN", square: queenSquare })
+  }, [queenSquare, send])
 
   useEffect(() => {
     const handleVisibilityChange = () =>
