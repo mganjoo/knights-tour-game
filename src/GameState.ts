@@ -130,8 +130,8 @@ type GameState =
       value: "paused"
       context: GameContext & {
         previouslyElapsedMs: number
-        startTimeMs: undefined
-        endTimeMs: undefined
+        startTimeMs: number
+        endTimeMs: number
       }
     }
 
@@ -356,12 +356,9 @@ export function createGameMachine(
           on: {
             PAUSE: {
               target: "paused",
-              actions: assign((context) => ({
-                ...context,
-                startTimeMs: undefined,
-                endTimeMs: undefined,
-                previouslyElapsedMs: Date.now() - (context.startTimeMs || 0),
-              })),
+              actions: assign({
+                endTimeMs: (_) => Date.now(),
+              }),
             },
             "SET.QUEEN_SQUARE": {
               target: "restarting",
@@ -448,7 +445,13 @@ export function createGameMachine(
         },
         paused: {
           on: {
-            UNPAUSE: "playing.moving",
+            UNPAUSE: {
+              target: "playing.moving",
+              actions: assign({
+                previouslyElapsedMs: (context) =>
+                  (context.endTimeMs || 0) - (context.startTimeMs || 0),
+              }),
+            },
           },
         },
         captured: {
@@ -550,17 +553,21 @@ export default function useGameState(args: UseGameStateArgs) {
     }
   )
 
-  // Save game state whenever we can (game state changes)
+  // Save game state whenever window closes
   useEffect(() => {
-    // Game must be in a saveable state, but have non-zero moves
-    if (
-      (state.matches({ playing: "moving" }) || state.matches("paused")) &&
-      state.context.numMoves > 0
-    ) {
-      setSerializedGameState(makeSerializedGameState(state.context))
-    } else {
-      removeSerializedGameState()
+    const handleSave = () => {
+      // Game must be in a saveable state, but have non-zero moves
+      if (
+        (state.matches({ playing: "moving" }) || state.matches("paused")) &&
+        state.context.numMoves > 0
+      ) {
+        setSerializedGameState(makeSerializedGameState(state.context))
+      } else {
+        removeSerializedGameState()
+      }
     }
+    window.addEventListener("beforeunload", handleSave)
+    return () => window.removeEventListener("beforeunload", handleSave)
   }, [state, setSerializedGameState, removeSerializedGameState])
 
   return { state, send }

@@ -60,9 +60,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleVisibilityChange = () =>
-      send({
-        type: document.visibilityState === "hidden" ? "PAUSE" : "UNPAUSE",
-      })
+      send(document.visibilityState === "hidden" ? "PAUSE" : "UNPAUSE")
     document.addEventListener("visibilitychange", handleVisibilityChange)
     return () =>
       document.removeEventListener("visibilitychange", handleVisibilityChange)
