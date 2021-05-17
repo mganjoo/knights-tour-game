@@ -264,7 +264,11 @@ export function createGameMachine(
     args.serializedGameState !== undefined &&
     // If saved queen square is different from configured queen square,
     // ignore saved game information and treat as new game
-    args.queenSquare === args.serializedGameState.queenSquare
+    args.queenSquare === args.serializedGameState.queenSquare &&
+    args.queenSquare !== args.serializedGameState.knightSquare &&
+    args.queenSquare !== args.serializedGameState.targetSquare &&
+    !attackedByQueen(args.serializedGameState.knightSquare, args.queenSquare) &&
+    !attackedByQueen(args.serializedGameState.targetSquare, args.queenSquare)
   ) {
     const queenSquare = args.serializedGameState.queenSquare
     const knightSquare = args.serializedGameState.knightSquare

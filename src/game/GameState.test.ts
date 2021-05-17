@@ -22,7 +22,7 @@ function makeService(args?: Partial<CreateGameMachineArgs>) {
   return service
 }
 
-describe("Game squares initialization", () => {
+describe("Game initialization", () => {
   test("sets up initial context correctly", () => {
     expect(
       createGameMachine({ queenSquare: "d2", attackEndsGame: false }).context
@@ -165,6 +165,121 @@ describe("Game squares initialization", () => {
       previouslyElapsedMs: undefined,
       previousKnightSquare: undefined,
       attackEndsGame: true,
+    })
+  })
+  test("restores serialized state correctly", () => {
+    expect(
+      createGameMachine({
+        queenSquare: "d4",
+        attackEndsGame: false,
+        serializedGameState: {
+          queenSquare: "d4",
+          knightSquare: "e6",
+          numMoves: 13,
+          targetSquare: "c8",
+          previouslyElapsedMs: 50000,
+        },
+      }).context
+    ).toEqual({
+      queenSquare: "d4",
+      knightSquare: "e6",
+      targetSquare: "c8",
+      finalTargetSquare: "b1",
+      visitedSquares: ImmutableList(["g8", "f8", "e8"]),
+      numTotalSquares: 36,
+      numMoves: 13,
+      startTimeMs: undefined,
+      endTimeMs: undefined,
+      previouslyElapsedMs: 50000,
+      previousKnightSquare: undefined,
+      attackEndsGame: false,
+    })
+  })
+
+  test("ignores serialized state if queen square differs from serialized version", () => {
+    expect(
+      createGameMachine({
+        queenSquare: "d5",
+        attackEndsGame: false,
+        serializedGameState: {
+          queenSquare: "d4",
+          knightSquare: "e6",
+          numMoves: 13,
+          targetSquare: "c8",
+          previouslyElapsedMs: 50000,
+        },
+      }).context
+    ).toEqual({
+      queenSquare: "d5",
+      knightSquare: "h8",
+      targetSquare: "f8",
+      finalTargetSquare: "a1",
+      visitedSquares: ImmutableList(["h8"]),
+      numTotalSquares: 36,
+      numMoves: 0,
+      startTimeMs: undefined,
+      endTimeMs: undefined,
+      previouslyElapsedMs: undefined,
+      previousKnightSquare: undefined,
+      attackEndsGame: false,
+    })
+  })
+
+  test("ignores serialized state if knight square is not legal", () => {
+    expect(
+      createGameMachine({
+        queenSquare: "d5",
+        attackEndsGame: false,
+        serializedGameState: {
+          queenSquare: "d5",
+          knightSquare: "f7",
+          numMoves: 5,
+          targetSquare: "f8",
+          previouslyElapsedMs: 50000,
+        },
+      }).context
+    ).toEqual({
+      queenSquare: "d5",
+      knightSquare: "h8",
+      targetSquare: "f8",
+      finalTargetSquare: "a1",
+      visitedSquares: ImmutableList(["h8"]),
+      numTotalSquares: 36,
+      numMoves: 0,
+      startTimeMs: undefined,
+      endTimeMs: undefined,
+      previouslyElapsedMs: undefined,
+      previousKnightSquare: undefined,
+      attackEndsGame: false,
+    })
+  })
+
+  test("ignores serialized state if target square is not legal", () => {
+    expect(
+      createGameMachine({
+        queenSquare: "d5",
+        attackEndsGame: false,
+        serializedGameState: {
+          queenSquare: "d5",
+          knightSquare: "g6",
+          numMoves: 5,
+          targetSquare: "f7",
+          previouslyElapsedMs: 50000,
+        },
+      }).context
+    ).toEqual({
+      queenSquare: "d5",
+      knightSquare: "h8",
+      targetSquare: "f8",
+      finalTargetSquare: "a1",
+      visitedSquares: ImmutableList(["h8"]),
+      numTotalSquares: 36,
+      numMoves: 0,
+      startTimeMs: undefined,
+      endTimeMs: undefined,
+      previouslyElapsedMs: undefined,
+      previousKnightSquare: undefined,
+      attackEndsGame: false,
     })
   })
 })
@@ -524,5 +639,3 @@ describe("getElapsedMs()", () => {
     })
   })
 })
-
-// TODO: Starting from existing serialized state
