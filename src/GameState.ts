@@ -586,10 +586,16 @@ export default function useGameState(args: UseGameStateArgs) {
   const [state, send] = useMachine(
     () =>
       createGameMachine({ queenSquare, attackEndsGame, serializedGameState }),
-    {
-      devTools: process.env.NODE_ENV === "development",
-    }
+    { devTools: process.env.NODE_ENV === "development" }
   )
+
+  // Ensure that further changes to input args are handled appopriately
+  useEffect(() => {
+    send({ type: "SET.ATTACK_ENDS_GAME", value: attackEndsGame })
+  }, [attackEndsGame, send])
+  useEffect(() => {
+    send({ type: "SET.QUEEN_SQUARE", square: queenSquare })
+  }, [queenSquare, send])
 
   // Save game state whenever window closes
   useEffect(() => {

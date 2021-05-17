@@ -51,14 +51,6 @@ const App: React.FC = () => {
   const start = useCallback(() => send({ type: "START" }), [send])
 
   useEffect(() => {
-    send({ type: "SET.ATTACK_ENDS_GAME", value: attackEndsGame })
-  }, [attackEndsGame, send])
-
-  useEffect(() => {
-    send({ type: "SET.QUEEN_SQUARE", square: loadedQueenSquare })
-  }, [loadedQueenSquare, send])
-
-  useEffect(() => {
     const handleVisibilityChange = () =>
       send(document.visibilityState === "hidden" ? "PAUSE" : "UNPAUSE")
     document.addEventListener("visibilitychange", handleVisibilityChange)
