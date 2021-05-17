@@ -25,22 +25,20 @@ function formatMillis(ms?: number): string | undefined {
 }
 
 const App: React.FC = () => {
-  const [loadedQueenSquare, setLoadedQueenSquare] = useQueenSquareChoice(
+  const [queenSquare, setQueenSquare] = useQueenSquareChoice(
     "v1.loaded_queen_square",
     DEFAULT_QUEEN_SQUARE
   )
-  const [hideVisitedSquares, setHideVisitedSquares] = useFlag(
-    "v1.hide_visited_squares"
-  )
+  const [hideVisited, setHideVisited] = useFlag("v1.hide_visited_squares")
   const [attackEndsGame, setAttackEndsGame] = useFlag("v1.attack_ends_game")
   const [onboardingDone, setOnboardingDone] = useFlag("v1.onboarding_done")
   const { state, send } = useGameState({
-    attackEndsGame: attackEndsGame,
-    queenSquare: loadedQueenSquare,
+    attackEndsGame,
+    queenSquare,
   })
   const { bestScoresMap, updateBestScores } = useBestScores()
-  const [elapsedMillis, setElapsedMillis] = useState<number>(0)
   const bestScores = bestScoresMap[state.context.queenSquare]
+  const [elapsedMillis, setElapsedMillis] = useState<number>(0)
   const getGameElapsedMs = useCallback(
     () => getElapsedMs(state.context.startTimeMs, state.context.endTimeMs),
     [state.context.startTimeMs, state.context.endTimeMs]
@@ -97,7 +95,7 @@ const App: React.FC = () => {
               visitedSquares={state.context.visitedSquares}
               targetSquare={state.context.targetSquare}
               onKnightMove={handleKnightMove}
-              hideVisitedSquares={hideVisitedSquares}
+              hideVisitedSquares={hideVisited}
               // Show target arrow the first time the user plays,
               // for their first move
               showTargetArrow={
@@ -161,8 +159,8 @@ const App: React.FC = () => {
           </div>
           <div className="pt-1 pb-2 md:col-start-3">
             <QueenSquareSelector
-              selected={state.context.queenSquare}
-              setSelected={setLoadedQueenSquare}
+              selected={queenSquare}
+              setSelected={setQueenSquare}
             />
           </div>
           <div className="md:col-start-3">
@@ -171,8 +169,8 @@ const App: React.FC = () => {
             </h2>
             <SettingsToggle
               label="Hide already visited squares"
-              enabled={!!hideVisitedSquares}
-              onToggle={setHideVisitedSquares}
+              enabled={!!hideVisited}
+              onToggle={setHideVisited}
             />
             <SettingsToggle
               label="End game if knight moves to an attacked square"
