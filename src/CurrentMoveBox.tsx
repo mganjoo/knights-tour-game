@@ -18,7 +18,10 @@ function getReactKey(
   stateMatches: (state: GameStateType) => boolean,
   targetSquare: Square
 ) {
-  if (stateMatches("paused") || stateMatches({ playing: "moving" })) {
+  if (
+    stateMatches({ playing: "paused" }) ||
+    stateMatches({ playing: "moving" })
+  ) {
     return `next_${targetSquare}`
   }
 

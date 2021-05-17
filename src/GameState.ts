@@ -1,9 +1,10 @@
 import { useMachine } from "@xstate/react"
 import { List as ImmutableList } from "immutable"
 import { useEffect } from "react"
-import { useLocalStorage } from "react-use"
+import { useDeepCompareEffect, useLocalStorage } from "react-use"
 import { String, Number, Record, Static } from "runtypes"
 import { assign, createMachine, StateMachine } from "xstate"
+import { choose } from "xstate/lib/actions"
 import {
   attackedByQueen,
   getSquareIncrement,
@@ -72,6 +73,11 @@ interface GameContext {
    * whether the game should continue.
    */
   attackEndsGame: boolean
+  /**
+   * A potential serialized representation of the current game state. Only
+   * set in certain states, on certain transitions.
+   */
+  serializableState?: SerializedGameState
 }
 
 type GameEvent =
@@ -120,18 +126,18 @@ type GameState =
       }
     }
   | {
-      value: "captured" | "finished"
+      value: { playing: "paused" }
       context: GameContext & {
         startTimeMs: number
         endTimeMs: number
       }
     }
   | {
-      value: "paused"
+      value: "captured" | "finished"
       context: GameContext & {
-        previouslyElapsedMs: number
         startTimeMs: number
         endTimeMs: number
+        previousKnightSquare: undefined
       }
     }
 
@@ -347,18 +353,28 @@ export function createGameMachine(
           },
         },
         playing: {
-          entry: assign((context) => ({
-            ...context,
-            startTimeMs: Date.now() - (context.previouslyElapsedMs || 0),
-            endTimeMs: undefined,
-            previouslyElapsedMs: undefined,
-          })),
+          entry: assign({
+            startTimeMs: (context) =>
+              Date.now() - (context.previouslyElapsedMs || 0),
+            endTimeMs: (_) => undefined,
+            previouslyElapsedMs: (_) => undefined,
+          }),
+          exit: [
+            assign({
+              previousKnightSquare: (_) => undefined,
+            }),
+            "clearState",
+          ],
           on: {
             PAUSE: {
-              target: "paused",
-              actions: assign({
-                endTimeMs: (_) => Date.now(),
-              }),
+              target: ".paused",
+              internal: true,
+              actions: [
+                assign({
+                  endTimeMs: (_) => Date.now(),
+                }),
+                "serializeState",
+              ],
             },
             "SET.QUEEN_SQUARE": {
               target: "restarting",
@@ -373,11 +389,19 @@ export function createGameMachine(
                 MOVE_KNIGHT: {
                   target: "moving",
                   cond: "validKnightMove",
-                  actions: assign({
-                    knightSquare: (_, event) => event.square,
-                    previousKnightSquare: (context) => context.knightSquare,
-                    numMoves: (context) => context.numMoves + 1,
-                  }),
+                  actions: [
+                    assign({
+                      knightSquare: (_, event) => event.square,
+                      previousKnightSquare: (context) => context.knightSquare,
+                      numMoves: (context) => context.numMoves + 1,
+                    }),
+                    choose([
+                      {
+                        cond: "moveIsQueenSafe",
+                        actions: "serializeState",
+                      },
+                    ]),
+                  ],
                 },
               },
               always: [
@@ -431,26 +455,33 @@ export function createGameMachine(
                   after: {
                     KNIGHT_ATTACK_DELAY: {
                       target: "#game.playing.moving",
-                      actions: assign({
-                        knightSquare: (context) =>
-                          context.previousKnightSquare || context.knightSquare,
-                        previousKnightSquare: (_) => undefined,
-                      }),
+                      actions: [
+                        assign({
+                          knightSquare: (context) =>
+                            context.previousKnightSquare ||
+                            context.knightSquare,
+                          previousKnightSquare: (_) => undefined,
+                        }),
+                        "serializeState",
+                      ],
                     },
                   },
                 },
               },
             },
-          },
-        },
-        paused: {
-          on: {
-            UNPAUSE: {
-              target: "playing.moving",
-              actions: assign({
-                previouslyElapsedMs: (context) =>
-                  (context.endTimeMs || 0) - (context.startTimeMs || 0),
-              }),
+            paused: {
+              on: {
+                PAUSE: undefined,
+                UNPAUSE: {
+                  target: "#game.playing.moving",
+                  actions: assign({
+                    startTimeMs: (context) =>
+                      Date.now() -
+                      getElapsedMs(context.startTimeMs, context.endTimeMs),
+                    endTimeMs: (_) => undefined,
+                  }),
+                },
+              },
             },
           },
         },
@@ -500,6 +531,10 @@ export function createGameMachine(
             : context
         ),
         stopClock: assign({ endTimeMs: (_) => Date.now() }),
+        serializeState: assign({
+          serializableState: (context) => makeSerializedGameState(context),
+        }),
+        clearState: assign({ serializableState: (_) => undefined }),
       },
       guards: {
         queenSquareChanged: (context, event) =>
@@ -511,6 +546,9 @@ export function createGameMachine(
           getKnightDests(context.knightSquare, {
             queenSquare: context.queenSquare,
           }).includes(event.square),
+        moveIsQueenSafe: (context, event) =>
+          event.type === "MOVE_KNIGHT" &&
+          !attackedByQueen(event.square, context.queenSquare),
         queenAttacksKnight: (context) =>
           attackedByQueen(context.knightSquare, context.queenSquare) &&
           !context.attackEndsGame,
@@ -556,19 +594,27 @@ export default function useGameState(args: UseGameStateArgs) {
   // Save game state whenever window closes
   useEffect(() => {
     const handleSave = () => {
-      // Game must be in a saveable state, but have non-zero moves
-      if (
-        (state.matches({ playing: "moving" }) || state.matches("paused")) &&
-        state.context.numMoves > 0
-      ) {
+      // Currently moving, with move count > 0
+      if (state.matches({ playing: "moving" }) && state.context.numMoves > 0) {
         setSerializedGameState(makeSerializedGameState(state.context))
-      } else {
-        removeSerializedGameState()
       }
     }
     window.addEventListener("beforeunload", handleSave)
     return () => window.removeEventListener("beforeunload", handleSave)
-  }, [state, setSerializedGameState, removeSerializedGameState])
+  }, [state, setSerializedGameState])
+
+  // Save game state whenever internal serialized copy changes
+  useDeepCompareEffect(() => {
+    if (state.context.serializableState) {
+      setSerializedGameState(state.context.serializableState)
+    } else {
+      removeSerializedGameState()
+    }
+  }, [
+    state.context.serializableState,
+    setSerializedGameState,
+    removeSerializedGameState,
+  ])
 
   return { state, send }
 }
