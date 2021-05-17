@@ -22,6 +22,7 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
+    "prebuild": "npm test -- --watchAll=false",
     "test": "craco test",
     "prepare": "husky install",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
