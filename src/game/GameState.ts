@@ -251,7 +251,7 @@ export function getElapsedMs(
   }
 }
 
-interface CreateGameMachineArgs {
+export interface CreateGameMachineArgs {
   attackEndsGame: boolean
   queenSquare: QueenSquare
   serializedGameState?: unknown
@@ -446,6 +446,11 @@ export function createGameMachine(
                   on: {
                     // Cannot pause/resume game in this imminent capture state
                     PAUSE: undefined,
+                    "SET.QUEEN_SQUARE": {
+                      target: "#game.notStarted",
+                      cond: "queenSquareChanged",
+                      actions: "moveQueen",
+                    },
                   },
                   after: {
                     KNIGHT_ATTACK_DELAY: { target: "#game.captured" },
@@ -518,7 +523,9 @@ export function createGameMachine(
     {
       actions: {
         moveQueen: assign((context, event) =>
-          event.type === "SET.QUEEN_SQUARE" && isQueenSquare(event.square)
+          event.type === "SET.QUEEN_SQUARE" &&
+          isQueenSquare(event.square) &&
+          context.queenSquare !== event.square
             ? {
                 ...context,
                 ...setQueenSquare(
