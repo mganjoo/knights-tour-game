@@ -18,6 +18,7 @@ import {
   ENDING_KNIGHT_SQUARE,
   getKnightDests,
 } from "./ChessLogic"
+import { QueenSquareType } from "./Settings"
 
 interface GameContext {
   /**
@@ -144,7 +145,6 @@ type GameState =
 export type GameStateType = GameState["value"]
 
 const SquareType = String.withGuard(isSquare)
-const QueenSquareType = String.withGuard(isQueenSquare)
 const NonNegative = Number.withConstraint((n) => n >= 0)
 
 const SerializedGameStateSchema = Record({

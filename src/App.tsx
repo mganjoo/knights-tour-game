@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useCallback } from "react"
 import { useHarmonicIntervalFn } from "react-use"
+import { useBestScores } from "./BestScores"
 import Board from "./Board"
 import { DEFAULT_QUEEN_SQUARE, Square } from "./ChessLogic"
 import CurrentMoveBox from "./CurrentMoveBox"
 import useGameState, { getElapsedMs } from "./GameState"
 import QueenSquareSelector from "./QueenSquareSelector"
 import Scoreboard from "./Scoreboard"
-import { useBestScores, useFlag, useQueenSquareChoice } from "./Settings"
+import { useFlag, useQueenSquareChoice } from "./Settings"
 import SettingsToggle from "./SettingsToggle"
 
 /**
