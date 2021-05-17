@@ -1,3 +1,5 @@
+import { String } from "runtypes"
+
 /**
  * The 0x88 representation of the board.
  *
@@ -58,11 +60,6 @@ export const CANDIDATE_QUEEN_SQUARES = [
 ] as const
 
 /**
- * Type alias for queen squares.
- */
-export type QueenSquare = typeof CANDIDATE_QUEEN_SQUARES[number]
-
-/**
  * Type guard to check that a string corresponds to a queen square.
  *
  * @param s a string that might be a QueenSquare
@@ -71,6 +68,16 @@ export type QueenSquare = typeof CANDIDATE_QUEEN_SQUARES[number]
 export function isQueenSquare(s: string): s is QueenSquare {
   return CANDIDATE_QUEEN_SQUARES.includes(s as QueenSquare)
 }
+
+/**
+ * Type alias for queen squares.
+ */
+export type QueenSquare = typeof CANDIDATE_QUEEN_SQUARES[number]
+
+/**
+ * Runtypes specification for QueenSquares
+ */
+export const QueenSquareType = String.withGuard(isQueenSquare)
 
 /**
  * 0x88Diff offsets that knight can move to.

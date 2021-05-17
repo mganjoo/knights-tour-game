@@ -3,14 +3,16 @@ import { Api as ChessgroundApi } from "chessground/api"
 import { Config } from "chessground/config"
 import { DrawShape } from "chessground/draw"
 import { RefObject, useCallback, useEffect, useRef, useState } from "react"
-import "./Board.css"
 
 interface ChessgroundFunctions {
   el: RefObject<HTMLDivElement>
   set: (config: Config, shapes?: DrawShape[]) => void
 }
 
-export function useChessground(
+/**
+ * Hook that returns wrapper functions around the Chessground library.
+ */
+export default function useChessground(
   initialConfig: () => Config
 ): ChessgroundFunctions {
   const el = useRef<HTMLDivElement>(null)

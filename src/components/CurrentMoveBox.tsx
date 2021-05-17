@@ -2,8 +2,8 @@ import { ChevronDoubleUpIcon } from "@heroicons/react/solid"
 import classNames from "classnames"
 import { motion, useReducedMotion } from "framer-motion"
 import React from "react"
-import { Square } from "./ChessLogic"
-import { GameStateType } from "./GameState"
+import { Square } from "../game/ChessLogic"
+import { GameStateType } from "../game/GameState"
 
 interface CurrentMoveBoxProps {
   stateMatches: (state: GameStateType) => boolean

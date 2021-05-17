@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useCallback } from "react"
 import { useHarmonicIntervalFn } from "react-use"
-import { useBestScores } from "./BestScores"
-import Board from "./Board"
-import { DEFAULT_QUEEN_SQUARE, Square } from "./ChessLogic"
-import CurrentMoveBox from "./CurrentMoveBox"
-import useGameState, { getElapsedMs } from "./GameState"
-import QueenSquareSelector from "./QueenSquareSelector"
-import Scoreboard from "./Scoreboard"
-import { useFlag, useQueenSquareChoice } from "./Settings"
-import SettingsToggle from "./SettingsToggle"
+import useBestScores from "./components/BestScores"
+import Board from "./components/Board"
+import CurrentMoveBox from "./components/CurrentMoveBox"
+import QueenSquareSelector from "./components/QueenSquareSelector"
+import Scoreboard from "./components/Scoreboard"
+import SettingsToggle from "./components/SettingsToggle"
+import { DEFAULT_QUEEN_SQUARE, Square } from "./game/ChessLogic"
+import useGameState, { getElapsedMs } from "./game/GameState"
+import { useFlag, useQueenSquareChoice } from "./util/SettingsHelpers"
 
 /**
  * Format a millisecond timestamp as a string.

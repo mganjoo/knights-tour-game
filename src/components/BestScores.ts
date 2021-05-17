@@ -1,8 +1,11 @@
 import { useEffect } from "react"
 import { useLocalStorage } from "react-use"
 import { Number, Dictionary, Record, Static, Optional } from "runtypes"
-import { QueenSquare, DEFAULT_QUEEN_SQUARE } from "./ChessLogic"
-import { QueenSquareType } from "./Settings"
+import {
+  QueenSquare,
+  QueenSquareType,
+  DEFAULT_QUEEN_SQUARE,
+} from "../game/ChessLogic"
 
 const Positive = Number.withConstraint((n) => n > 0)
 const BestScoresType = Record({
@@ -34,7 +37,7 @@ interface UseBestScoresArgs {
   elapsedMs: number
 }
 
-export function useBestScores() {
+export default function useBestScores() {
   const [bestScoresMap, setBestScoresMap] = useLocalStorage<BestScoresMap>(
     "v2.best_scores",
     DEFAULT_BEST_SCORES_MAP

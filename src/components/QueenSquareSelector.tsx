@@ -2,7 +2,7 @@ import { Listbox, Transition } from "@headlessui/react"
 import { CheckIcon, SelectorIcon } from "@heroicons/react/solid"
 import classNames from "classnames"
 import React, { Fragment } from "react"
-import { CANDIDATE_QUEEN_SQUARES, QueenSquare } from "./ChessLogic"
+import { CANDIDATE_QUEEN_SQUARES, QueenSquare } from "../game/ChessLogic"
 interface QueenSquareSelectorProps {
   selected: QueenSquare
   setSelected: (s: QueenSquare) => void

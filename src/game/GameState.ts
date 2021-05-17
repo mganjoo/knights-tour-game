@@ -13,12 +13,12 @@ import {
   isQueenSquare,
   isSquare,
   QueenSquare,
+  QueenSquareType,
   Square,
   STARTING_KNIGHT_SQUARE,
   ENDING_KNIGHT_SQUARE,
   getKnightDests,
 } from "./ChessLogic"
-import { QueenSquareType } from "./Settings"
 
 interface GameContext {
   /**

@@ -1,8 +1,6 @@
 import { useLocalStorage } from "react-use"
-import { Boolean, String } from "runtypes"
-import { isQueenSquare, QueenSquare } from "./ChessLogic"
-
-export const QueenSquareType = String.withGuard(isQueenSquare)
+import { Boolean } from "runtypes"
+import { QueenSquare, QueenSquareType } from "../game/ChessLogic"
 
 export function useFlag(key: string): [boolean, (b: boolean) => void] {
   const [flag, setFlag] = useLocalStorage(key, false)

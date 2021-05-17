@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react-hooks"
-import { useBestScores } from "./BestScores"
+import useBestScores from "./BestScores"
 
 describe("useBestScores()", () => {
   beforeEach(() => {

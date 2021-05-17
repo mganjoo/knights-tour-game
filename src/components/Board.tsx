@@ -5,10 +5,10 @@ import * as cg from "chessground/types"
 import { useReducedMotion } from "framer-motion"
 import { List as ImmutableList } from "immutable"
 import React, { useCallback, useEffect, useMemo } from "react"
-import { getPuzzleFen, getKnightDests, Square } from "./ChessLogic"
-import { useChessground } from "./Chessground"
-import { GameStateType } from "./GameState"
-import { colors } from "./TailwindUtil"
+import { getPuzzleFen, getKnightDests, Square } from "../game/ChessLogic"
+import { GameStateType } from "../game/GameState"
+import useChessground from "../util/Chessground"
+import { colors } from "../util/TailwindUtil"
 
 type BoardProps = {
   /**
