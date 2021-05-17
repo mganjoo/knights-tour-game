@@ -1,14 +1,19 @@
 import { List as ImmutableList } from "immutable"
+import MockDate from "mockdate"
 import waitForExpect from "wait-for-expect"
 import { interpret } from "xstate"
-import { createGameMachine, CreateGameMachineArgs } from "./GameState"
+import {
+  createGameMachine,
+  CreateGameMachineArgs,
+  getElapsedMs,
+} from "./GameState"
 
 function makeService(args?: Partial<CreateGameMachineArgs>) {
   const service = interpret(
     createGameMachine({
       queenSquare: args?.queenSquare || "d5",
       attackEndsGame: !!args?.attackEndsGame,
-      serializedGameState: !!args?.serializedGameState,
+      serializedGameState: args?.serializedGameState,
       startingKnightSquareUnsafe: args?.startingKnightSquareUnsafe,
       endingKnightSquareUnsafe: args?.endingKnightSquareUnsafe,
     }).withConfig({ delays: { RESTART_DELAY: 0, KNIGHT_ATTACK_DELAY: 0 } })
@@ -381,5 +386,143 @@ describe("SET.ATTACK_ENDS_GAME transition", () => {
   })
 })
 
-// TODO: Pausing/resuming behavior
+describe("getElapsedMs()", () => {
+  const START_DATE = new Date(2021, 5, 15, 10, 10, 0)
+  const addMs = (date: Date, ms: number) => new Date(date.valueOf() + ms)
+
+  beforeEach(() => {
+    MockDate.set(START_DATE)
+  })
+
+  afterEach(() => {
+    MockDate.reset()
+  })
+
+  test("tracks start time correctly on game start", async () => {
+    const service = makeService()
+    expect(getElapsedMs(service.state.context)).toEqual(0)
+    service.send("START")
+    await waitForExpect(() => {
+      expect(service.state.matches({ playing: "moving" })).toBeTruthy()
+      // Add 50s to current time
+      MockDate.set(addMs(START_DATE, 50000))
+      expect(getElapsedMs(service.state.context)).toEqual(50000)
+    })
+  })
+
+  test("returns frozen elapsed time after game is paused", async () => {
+    const service = makeService()
+    service.onTransition((state) => {
+      // Force 30s time jump after entering moving state
+      if (state.matches({ playing: "moving" })) {
+        MockDate.set(addMs(START_DATE, 30000))
+      }
+    })
+    expect(getElapsedMs(service.state.context)).toEqual(0)
+    service.send("START")
+    service.send("PAUSE")
+    await waitForExpect(() => {
+      expect(service.state.matches({ playing: "paused" })).toBeTruthy()
+      // Add 50s to current time
+      MockDate.set(addMs(START_DATE, 50000))
+      // Expect timer to still only show 30s after pause
+      expect(getElapsedMs(service.state.context)).toEqual(30000)
+    })
+  })
+
+  test("resumes counting time correctly after game is unpaused", async () => {
+    const service = makeService()
+    service.onTransition((state) => {
+      // Force 30s time jump after entering moving state
+      if (state.matches({ playing: "moving" })) {
+        MockDate.set(addMs(START_DATE, 30000))
+      }
+      // Another 40s time jump after entering paused state
+      if (state.matches({ playing: "paused" })) {
+        MockDate.set(addMs(START_DATE, 70000))
+      }
+    })
+    expect(getElapsedMs(service.state.context)).toEqual(0)
+    service.send("START")
+    service.send("PAUSE")
+    service.send("UNPAUSE")
+    await waitForExpect(() => {
+      expect(service.state.matches({ playing: "moving" })).toBeTruthy()
+      // Add 120s to start time
+      MockDate.set(addMs(START_DATE, 120000))
+      // Expect timer to show 30s (pre-pause) + 50s (after resume)
+      expect(getElapsedMs(service.state.context)).toEqual(80000)
+    })
+  })
+
+  test("returns frozen elapsed time after game ends in capture", async () => {
+    const service = makeService({ attackEndsGame: true })
+    service.onTransition((state) => {
+      // Force 30s time jump after entering moving state
+      if (state.matches({ playing: "moving" })) {
+        MockDate.set(addMs(START_DATE, 30000))
+      }
+    })
+    expect(getElapsedMs(service.state.context)).toEqual(0)
+    service.send("START")
+    service.send([
+      { type: "MOVE_KNIGHT", square: "g6" },
+      { type: "MOVE_KNIGHT", square: "e5" },
+    ])
+    await waitForExpect(() => {
+      expect(service.state.matches("captured")).toBeTruthy()
+      // Add 100s to current time
+      MockDate.set(addMs(START_DATE, 100000))
+      // Expect timer to still only show 30s after capture
+      expect(getElapsedMs(service.state.context)).toEqual(30000)
+    })
+  })
+
+  test("returns frozen elapsed time after game finishes", async () => {
+    const service = makeService({ endingKnightSquareUnsafe: "f8" })
+    service.onTransition((state) => {
+      // Force 20s time jump after entering moving state
+      if (state.matches({ playing: "moving" })) {
+        MockDate.set(addMs(START_DATE, 20000))
+      }
+    })
+    expect(getElapsedMs(service.state.context)).toEqual(0)
+    service.send("START")
+    service.send([
+      { type: "MOVE_KNIGHT", square: "g6" },
+      { type: "MOVE_KNIGHT", square: "f8" },
+    ])
+    await waitForExpect(() => {
+      expect(service.state.matches("finished")).toBeTruthy()
+      // Add 100s to current time
+      MockDate.set(addMs(START_DATE, 100000))
+      // Expect timer to still only show 20s after capture
+      expect(getElapsedMs(service.state.context)).toEqual(20000)
+    })
+  })
+
+  test("carries over previously elapsed time when game is initialized", async () => {
+    const service = makeService({
+      serializedGameState: {
+        queenSquare: "d5",
+        knightSquare: "h8",
+        targetSquare: "f8",
+        numMoves: 2,
+        previouslyElapsedMs: 45000,
+      },
+    })
+    service.onTransition((state) => {
+      // Force 20s time jump after entering moving state
+      if (state.matches({ playing: "moving" })) {
+        MockDate.set(addMs(START_DATE, 20000))
+      }
+    })
+    await waitForExpect(() => {
+      expect(service.state.matches({ playing: "moving" })).toBeTruthy()
+      // Expect timer to include previously elapsed time
+      expect(getElapsedMs(service.state.context)).toEqual(65000)
+    })
+  })
+})
+
 // TODO: Starting from existing serialized state

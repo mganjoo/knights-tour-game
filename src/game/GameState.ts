@@ -163,7 +163,7 @@ function makeSerializedGameState(context: GameContext): SerializedGameState {
     knightSquare: context.knightSquare,
     targetSquare: context.targetSquare,
     numMoves: context.numMoves,
-    previouslyElapsedMs: getElapsedMs(context.startTimeMs, context.endTimeMs),
+    previouslyElapsedMs: getElapsedMs(context),
   }
 }
 
@@ -238,23 +238,20 @@ function resetKnight(
   }
 }
 
-export function getElapsedMs(
-  startTimeMs: number | undefined,
-  endTimeMs: number | undefined
-) {
-  if (startTimeMs === undefined) {
+export function getElapsedMs(context: GameContext) {
+  if (context.startTimeMs === undefined) {
     return 0
-  } else if (endTimeMs === undefined) {
-    return Date.now() - startTimeMs
+  } else if (context.endTimeMs === undefined) {
+    return Date.now() - context.startTimeMs
   } else {
-    return endTimeMs - startTimeMs
+    return context.endTimeMs - context.startTimeMs
   }
 }
 
 export interface CreateGameMachineArgs {
   attackEndsGame: boolean
   queenSquare: QueenSquare
-  serializedGameState?: unknown
+  serializedGameState?: SerializedGameState | undefined
   startingKnightSquareUnsafe?: Square
   endingKnightSquareUnsafe?: Square
 }
@@ -262,21 +259,15 @@ export interface CreateGameMachineArgs {
 export function createGameMachine(
   args: CreateGameMachineArgs
 ): StateMachine<GameContext, any, GameEvent, GameState> {
-  const serializedGameState = SerializedGameStateSchema.guard(
-    args.serializedGameState
-  )
-    ? args.serializedGameState
-    : undefined
-
   let initialContext: GameContext
   if (
-    serializedGameState !== undefined &&
+    args.serializedGameState !== undefined &&
     // If saved queen square is different from configured queen square,
     // ignore saved game information and treat as new game
-    args.queenSquare === serializedGameState.queenSquare
+    args.queenSquare === args.serializedGameState.queenSquare
   ) {
-    const queenSquare = serializedGameState.queenSquare
-    const knightSquare = serializedGameState.knightSquare
+    const queenSquare = args.serializedGameState.queenSquare
+    const knightSquare = args.serializedGameState.knightSquare
     let visitedSquares: ImmutableList<Square> = ImmutableList()
     const startingSquare = incrementWhileAttacked(
       args.startingKnightSquareUnsafe || STARTING_KNIGHT_SQUARE,
@@ -285,10 +276,10 @@ export function createGameMachine(
     )
     for (
       let visitedSquare = startingSquare;
-      visitedSquare !== serializedGameState.targetSquare;
+      visitedSquare !== args.serializedGameState.targetSquare;
       visitedSquare = incrementWhileAttacked(
         getSquareIncrement(visitedSquare, "previousFile"),
-        serializedGameState.queenSquare,
+        args.serializedGameState.queenSquare,
         "previousFile"
       )
     ) {
@@ -303,9 +294,9 @@ export function createGameMachine(
       ),
       knightSquare,
       visitedSquares,
-      targetSquare: serializedGameState.targetSquare,
-      numMoves: serializedGameState.numMoves,
-      previouslyElapsedMs: serializedGameState.previouslyElapsedMs,
+      targetSquare: args.serializedGameState.targetSquare,
+      numMoves: args.serializedGameState.numMoves,
+      previouslyElapsedMs: args.serializedGameState.previouslyElapsedMs,
       attackEndsGame: args.attackEndsGame,
     }
   } else {
@@ -324,7 +315,7 @@ export function createGameMachine(
     {
       id: "game",
       context: initialContext,
-      initial: serializedGameState ? "playing" : "notStarted",
+      initial: args.serializedGameState ? "playing" : "notStarted",
       states: {
         notStarted: {
           on: {
@@ -481,8 +472,7 @@ export function createGameMachine(
                   target: "#game.playing.moving",
                   actions: assign({
                     startTimeMs: (context) =>
-                      Date.now() -
-                      getElapsedMs(context.startTimeMs, context.endTimeMs),
+                      Date.now() - getElapsedMs(context),
                     endTimeMs: (_) => undefined,
                   }),
                 },
@@ -592,7 +582,15 @@ export default function useGameState(args: UseGameStateArgs) {
 
   const [state, send] = useMachine(
     () =>
-      createGameMachine({ queenSquare, attackEndsGame, serializedGameState }),
+      createGameMachine({
+        queenSquare,
+        attackEndsGame,
+        serializedGameState: SerializedGameStateSchema.guard(
+          serializedGameState
+        )
+          ? serializedGameState
+          : undefined,
+      }),
     { devTools: process.env.NODE_ENV === "development" }
   )
 

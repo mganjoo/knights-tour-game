@@ -39,10 +39,6 @@ const App: React.FC = () => {
   const { bestScoresMap, updateBestScores } = useBestScores()
   const bestScores = bestScoresMap[state.context.queenSquare]
   const [elapsedMillis, setElapsedMillis] = useState<number>(0)
-  const getGameElapsedMs = useCallback(
-    () => getElapsedMs(state.context.startTimeMs, state.context.endTimeMs),
-    [state.context.startTimeMs, state.context.endTimeMs]
-  )
   const handleKnightMove = useCallback(
     (square: Square) => send({ type: "MOVE_KNIGHT", square }),
     [send]
@@ -70,13 +66,13 @@ const App: React.FC = () => {
       updateBestScores({
         queenSquare: state.context.queenSquare,
         numMoves: state.context.numMoves,
-        elapsedMs: getGameElapsedMs(),
+        elapsedMs: getElapsedMs(state.context),
       })
     }
-  }, [state, state.context.queenSquare, getGameElapsedMs, updateBestScores])
+  }, [state, updateBestScores])
 
   useHarmonicIntervalFn(() => {
-    setElapsedMillis(getGameElapsedMs())
+    setElapsedMillis(getElapsedMs(state.context))
   }, 1000)
 
   return (
