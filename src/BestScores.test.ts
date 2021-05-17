@@ -49,6 +49,20 @@ describe("useBestScores()", () => {
     })
   })
 
+  test("works with default empty map if stored map is invalid", () => {
+    global.localStorage.setItem(
+      "v2.best_scores",
+      JSON.stringify({
+        e5: {
+          bestElapsedMs: -500,
+          bestNumMoves: "abc",
+        },
+      })
+    )
+    const { result } = renderHook(() => useBestScores())
+    expect(result.current.bestScoresMap).toEqual({})
+  })
+
   test("updates scores correctly if elapsed time is lower", () => {
     const { result } = renderHook(() => useBestScores())
     act(() => {

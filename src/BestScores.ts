@@ -5,6 +5,13 @@ import { QueenSquare, DEFAULT_QUEEN_SQUARE } from "./ChessLogic"
 import { QueenSquareType } from "./Settings"
 
 const Positive = Number.withConstraint((n) => n > 0)
+const BestScoresType = Record({
+  bestNumMoves: Positive,
+  bestElapsedMs: Positive,
+})
+const BestScoresMapType = Dictionary(Optional(BestScoresType), QueenSquareType)
+const DEFAULT_BEST_SCORES_MAP = {} as BestScoresMap
+type BestScoresMap = Static<typeof BestScoresMapType>
 
 function usePositive(
   key: string
@@ -20,15 +27,6 @@ const BestScoresMapV1Type = Dictionary(
   Optional(BestScoresV1Type),
   QueenSquareType
 )
-const BestScoresType = Record({
-  bestNumMoves: Positive,
-  bestElapsedMs: Positive,
-})
-const BestScoresMapType = Dictionary(Optional(BestScoresType), QueenSquareType)
-
-export type BestScoresMap = Static<typeof BestScoresMapType>
-
-const DEFAULT_BEST_SCORES_MAP = {} as BestScoresMap
 
 interface UseBestScoresArgs {
   queenSquare: QueenSquare
@@ -41,13 +39,10 @@ export function useBestScores() {
     "v2.best_scores",
     DEFAULT_BEST_SCORES_MAP
   )
-  const [v1BestScoresMap, , deleteV1BestScoresMap] = useLocalStorage(
-    "v1.best_scores"
-  )
-  const [v1BestSeconds, , deleteV1BestSeconds] = usePositive("v1.best_seconds")
-  const [v1BestMoves, , deleteV1BestMoves] = usePositive("v1.best_num_moves")
 
   // One-time upgrade from v1 format of single scores
+  const [v1BestSeconds, , deleteV1BestSeconds] = usePositive("v1.best_seconds")
+  const [v1BestMoves, , deleteV1BestMoves] = usePositive("v1.best_num_moves")
   useEffect(() => {
     if (
       v1BestMoves &&
@@ -74,6 +69,9 @@ export function useBestScores() {
   ])
 
   // One-time upgrade from v1 format of combined scores map
+  const [v1BestScoresMap, , deleteV1BestScoresMap] = useLocalStorage(
+    "v1.best_scores"
+  )
   useEffect(() => {
     if (v1BestScoresMap && BestScoresMapV1Type.guard(v1BestScoresMap)) {
       const newBestScoresMap = Object.entries(v1BestScoresMap).reduce(
@@ -102,6 +100,7 @@ export function useBestScores() {
     v1BestScoresMap,
     v1BestSeconds,
   ])
+
   const bestScoresMapResolved = BestScoresMapType.guard(bestScoresMap)
     ? bestScoresMap
     : DEFAULT_BEST_SCORES_MAP
@@ -112,12 +111,11 @@ export function useBestScores() {
       const { queenSquare, numMoves, elapsedMs } = args
       const bestScores = bestScoresMapResolved[queenSquare]
       const newBestNumMoves =
-        !BestScoresType.guard(bestScores) || numMoves < bestScores.bestNumMoves
+        !bestScores || numMoves < bestScores.bestNumMoves
           ? numMoves
           : bestScores.bestNumMoves
       const newBestElapsedMs =
-        !BestScoresType.guard(bestScores) ||
-        elapsedMs < bestScores.bestElapsedMs
+        !bestScores || elapsedMs < bestScores.bestElapsedMs
           ? elapsedMs
           : bestScores.bestElapsedMs
       if (
