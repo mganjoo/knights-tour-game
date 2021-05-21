@@ -368,7 +368,12 @@ export function createGameMachine(
                 assign({
                   endTimeMs: (_) => Date.now(),
                 }),
-                "serializeState",
+                choose([
+                  {
+                    cond: "atLeastOneMoveMade",
+                    actions: "serializeState",
+                  },
+                ]),
               ],
             },
             "SET.QUEEN_SQUARE": {
@@ -562,6 +567,7 @@ export function createGameMachine(
         knightReachedFinalTarget: (context) =>
           context.targetSquare === context.knightSquare &&
           context.targetSquare === context.finalTargetSquare,
+        atLeastOneMoveMade: (context) => context.numMoves >= 1,
       },
       delays: {
         KNIGHT_ATTACK_DELAY: 800,
