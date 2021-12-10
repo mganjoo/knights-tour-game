@@ -21,14 +21,14 @@ const SettingsToggle: React.FC<SettingsToggleProps> = ({
           onChange={onToggle}
           className={classNames(
             enabled ? "bg-blue-700 dark:bg-blue-600" : "bg-gray-300",
-            "relative inline-flex items-center flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            "relative inline-flex items-center shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           )}
         >
           <span
             aria-hidden="true"
             className={classNames(
               enabled ? "translate-x-5" : "translate-x-0",
-              "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transform ring-0 transition ease-in-out duration-200"
+              "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition ease-in-out duration-200"
             )}
           />
         </Switch>
