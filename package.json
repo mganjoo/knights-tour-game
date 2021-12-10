@@ -20,7 +20,6 @@
     "xstate": "4.26.0"
   },
   "devDependencies": {
-    "@craco/craco": "6.4.3",
     "@testing-library/jest-dom": "5.15.0",
     "@testing-library/react": "12.1.2",
     "@testing-library/react-hooks": "7.0.2",
@@ -45,10 +44,10 @@
     "wait-for-expect": "3.0.2"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
     "prebuild": "npm run check && npm test -- --watchAll=false",
-    "test": "craco test",
+    "test": "react-scripts test",
     "prepare": "husky install",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "check": "npm run check:types && npm run check:lint",
