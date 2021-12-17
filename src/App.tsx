@@ -24,6 +24,18 @@ function formatMillis(ms?: number): string | undefined {
   return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`
 }
 
+interface LinkArgs {
+  href: string
+}
+const Link: React.FC<LinkArgs> = ({ href, children }) => (
+  <a
+    href={href}
+    className="underline focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-offset-2 focus-visible:ring-blue-500 focus-visible:ring-offset-gray-100 dark:focus-visible:ring-offset-gray-800"
+  >
+    {children}
+  </a>
+)
+
 const App: React.FC = () => {
   const [queenSquare, setQueenSquare] = useQueenSquareChoice(
     "v1.loaded_queen_square",
@@ -113,7 +125,7 @@ const App: React.FC = () => {
             </div>
             <div className="row-start-1 col-start-2 md:row-start-2 md:col-start-1">
               <button
-                className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-blue-700 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 lg:px-4 lg:text-base"
+                className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-blue-700 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-800 lg:px-4 lg:text-base"
                 onClick={start}
               >
                 New game
@@ -177,18 +189,12 @@ const App: React.FC = () => {
         </main>
         <footer className="text-xs mx-5 pt-4 pb-12 flex items-center justify-center space-x-1 border-t border-gray-400 text-gray-700 md:text-sm md:mx-0 dark:border-gray-300 dark:text-gray-200">
           <span>
-            By{" "}
-            <a href="https://github.com/mganjoo" className="link-default">
-              @mganjoo
-            </a>
+            By <Link href="https://github.com/mganjoo">@mganjoo</Link>
           </span>
           <span>&middot;</span>
-          <a
-            href="https://github.com/mganjoo/knights-tour-game"
-            className="link-default"
-          >
+          <Link href="https://github.com/mganjoo/knights-tour-game">
             View on GitHub
-          </a>
+          </Link>
         </footer>
       </div>
     </div>

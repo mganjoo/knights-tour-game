@@ -18,7 +18,7 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
         <div className="flex justify-center items-center">
           <div className="w-16 md:w-20">
             <div className="relative">
-              <Listbox.Button className="relative w-full py-2 pl-3 pr-10 text-gray-900 text-sm bg-white rounded-lg text-left shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 md:text-base">
+              <Listbox.Button className="relative w-full py-2 pl-3 pr-10 text-gray-900 text-sm bg-white rounded-lg text-left shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 dark:focus-visible:ring-offset-gray-800 md:text-base">
                 <span className="block">{selected}</span>
                 <span className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
                   <SelectorIcon

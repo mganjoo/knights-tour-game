@@ -21,7 +21,7 @@ const SettingsToggle: React.FC<SettingsToggleProps> = ({
           onChange={onToggle}
           className={classNames(
             enabled ? "bg-blue-700 dark:bg-blue-600" : "bg-gray-300",
-            "relative inline-flex items-center shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            "relative inline-flex items-center shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 dark:focus-visible:ring-offset-gray-800"
           )}
         >
           <span
