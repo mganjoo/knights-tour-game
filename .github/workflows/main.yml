@@ -23,6 +23,6 @@ jobs:
         env:
           CYPRESS_INSTALL_BINARY: 0
       - name: Check and lint
-        run: npm check
+        run: npm run check
       - name: Unit tests
         run: npm test
