@@ -51,7 +51,6 @@
     "start": "react-scripts start",
     "inspect": "REACT_APP_INSPECT_XSTATE=1 npm run start",
     "build": "react-scripts build",
-    "prebuild": "npm run check && npm test -- --watchAll=false",
     "test": "react-scripts test",
     "prepare": "husky install",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
