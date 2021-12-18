@@ -102,9 +102,10 @@ const Board: React.FC<BoardProps> = ({
   showInitialGuideArrows,
 }) => {
   const shouldReduceMotion = useReducedMotion()
-  const makeConfig = useCallback(() => makeInitialConfig(shouldReduceMotion), [
-    shouldReduceMotion,
-  ])
+  const makeConfig = useCallback(
+    () => makeInitialConfig(shouldReduceMotion),
+    [shouldReduceMotion]
+  )
   const { el, set } = useChessground(makeConfig)
   const fen = useMemo<string | undefined>(
     () => getPuzzleFen(knightSquare, queenSquare),

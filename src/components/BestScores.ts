@@ -72,9 +72,8 @@ export default function useBestScores() {
   ])
 
   // One-time upgrade from v1 format of combined scores map
-  const [v1BestScoresMap, , deleteV1BestScoresMap] = useLocalStorage(
-    "v1.best_scores"
-  )
+  const [v1BestScoresMap, , deleteV1BestScoresMap] =
+    useLocalStorage("v1.best_scores")
   useEffect(() => {
     if (v1BestScoresMap && BestScoresMapV1Type.guard(v1BestScoresMap)) {
       const newBestScoresMap = Object.entries(v1BestScoresMap).reduce(

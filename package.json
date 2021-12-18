@@ -53,7 +53,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "prepare": "husky install",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "format": "prettier --write .",
     "check": "npm run check:types && npm run check:lint",
     "check:types": "tsc --noEmit",
     "check:lint": "eslint --cache --ignore-path .gitignore . --ext ts --ext tsx --ext js --ext jsx",
@@ -92,7 +92,7 @@
     ]
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
+    "**/*.{js,jsx,ts,tsx,json,css,scss,md,yml}": [
       "prettier --write"
     ]
   },
