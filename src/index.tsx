@@ -6,9 +6,8 @@ import App from "./App"
 import reportWebVitals from "./reportWebVitals"
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration"
 
-if (process.env.NODE_ENV === "development") {
+if (process.env.REACT_APP_INSPECT_XSTATE === "1") {
   inspect({
-    url: "https://statecharts.io/inspect",
     iframe: false,
   })
 }

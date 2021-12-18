@@ -45,6 +45,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "inspect": "REACT_APP_INSPECT_XSTATE=1 npm run start",
     "build": "react-scripts build",
     "prebuild": "npm run check && npm test -- --watchAll=false",
     "test": "react-scripts test",
@@ -91,6 +92,7 @@
     ]
   },
   "prettier": {
-    "semi": false
+    "semi": false,
+    "proseWrap": "always"
   }
 }
