@@ -20,6 +20,7 @@
     "xstate": "4.26.1"
   },
   "devDependencies": {
+    "@testing-library/cypress": "8.0.2",
     "@testing-library/jest-dom": "5.16.1",
     "@testing-library/react": "12.1.2",
     "@testing-library/react-hooks": "7.0.2",
@@ -31,6 +32,9 @@
     "@types/react-dom": "17.0.11",
     "@xstate/inspect": "0.5.2",
     "autoprefixer": "10.4.0",
+    "cypress": "9.1.1",
+    "cypress-real-events": "1.6.0",
+    "eslint-plugin-cypress": "2.12.1",
     "eslint-plugin-import": "2.25.3",
     "fast-check": "2.20.0",
     "husky": "7.0.4",
@@ -45,15 +49,17 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "inspect": "REACT_APP_INSPECT_XSTATE=1 npm run start",
     "build": "react-scripts build",
-    "prebuild": "npm run check && npm test -- --watchAll=false",
     "test": "react-scripts test",
     "prepare": "husky install",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "format": "prettier --write .",
     "check": "npm run check:types && npm run check:lint",
     "check:types": "tsc --noEmit",
     "check:lint": "eslint --cache --ignore-path .gitignore . --ext ts --ext tsx --ext js --ext jsx",
-    "check:lint:fix": "npm run check:lint -- --fix"
+    "check:lint:fix": "npm run check:lint -- --fix",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run"
   },
   "eslintConfig": {
     "extends": [
@@ -86,11 +92,12 @@
     ]
   },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
+    "**/*.{js,jsx,ts,tsx,json,css,scss,md,yml}": [
       "prettier --write"
     ]
   },
   "prettier": {
-    "semi": false
+    "semi": false,
+    "proseWrap": "always"
   }
 }

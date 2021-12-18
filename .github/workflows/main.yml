@@ -1,0 +1,28 @@
+name: Run tests
+on: [push]
+jobs:
+  cypress:
+    name: Run Cypress tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run Cypress
+        uses: cypress-io/github-action@v2
+        with:
+          start: npm start
+          wait-on: "http://localhost:3000"
+  unit:
+    name: Lint and run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install NPM dependencies
+        uses: bahmutov/npm-install@v1
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+      - name: Check and lint
+        run: npm run check
+      - name: Unit tests
+        run: npm test
