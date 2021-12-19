@@ -88,10 +88,10 @@ const App: React.FC = () => {
   }, 1000)
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white">
-      <div className="max-w-lg mx-auto px-4 md:px-6 md:max-w-screen-lg">
-        <main className="grid pt-4 pb-6 md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6 md:items-center">
-          <div className="col-start-1 row-start-2 md:row-start-1 md:row-span-5 md:col-span-2">
+    <div className="min-h-screen grid place-items-center bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white">
+      <div className="max-w-lg px-4 md:max-w-5xl md:px-6">
+        <main className="grid pt-4 pb-6 items-center md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6">
+          <div className="row-start-2 md:row-start-1 md:row-span-5 md:col-span-2">
             <Board
               stateMatches={state.matches}
               knightSquare={state.context.knightSquare}
@@ -112,8 +112,8 @@ const App: React.FC = () => {
               showInitialGuideArrows={!onboardingDone}
             />
           </div>
-          <div className="row-start-1 col-start-1 grid justify-items-center gap-x-3 md:col-start-3 md:grid-cols-2 md:gap-x-0 md:gap-y-4 md:items-center lg:gap-y-5">
-            <div className="row-start-1 col-start-1 row-span-2 md:row-span-1 md:col-span-2">
+          <div className="grid justify-items-center gap-x-3 md:col-start-3 md:grid-cols-2 md:gap-x-0 md:gap-y-4 md:items-center lg:gap-y-5">
+            <div className="row-span-2 md:row-span-1 md:col-span-2">
               <h1 className="text-xl font-semibold mb-2 md:text-2xl lg:text-3xl">
                 Knight-Queen Tour
               </h1>
@@ -123,7 +123,7 @@ const App: React.FC = () => {
                 the queen!
               </p>
             </div>
-            <div className="row-start-1 col-start-2 md:row-start-2 md:col-start-1">
+            <div className="col-start-2 md:row-start-2 md:col-start-1">
               <button
                 className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-blue-700 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-800 lg:px-4 lg:text-base"
                 onClick={start}
@@ -165,14 +165,14 @@ const App: React.FC = () => {
               ]}
             />
           </div>
-          <div className="pt-1 pb-2 md:col-start-3">
+          <div className="py-2 md:col-start-3">
             <QueenSquareSelector
               selected={queenSquare}
               setSelected={setQueenSquare}
             />
           </div>
-          <div className="md:col-start-3">
-            <h2 className="mb-2 font-medium text-base text-center md:text-lg md:mb">
+          <div className="grid gap-y-2 md:col-start-3">
+            <h2 className="font-medium text-base text-center md:text-lg">
               Increase difficulty
             </h2>
             <SettingsToggle
@@ -187,7 +187,7 @@ const App: React.FC = () => {
             />
           </div>
         </main>
-        <footer className="text-xs mx-5 pt-4 pb-12 flex items-center justify-center space-x-1 border-t border-gray-400 text-gray-700 md:text-sm md:mx-0 dark:border-gray-300 dark:text-gray-200">
+        <footer className="mx-5 pt-4 pb-8 flex justify-center gap-x-1 border-t border-gray-400 text-gray-700 text-xs md:mx-0 md:text-sm dark:border-gray-300 dark:text-gray-200">
           <span>
             By <Link href="https://github.com/mganjoo">@mganjoo</Link>
           </span>

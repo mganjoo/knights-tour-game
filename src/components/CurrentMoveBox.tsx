@@ -57,7 +57,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
         }
         animate={{ opacity: 1, y: 0, scale: 1 }}
         className={classNames(
-          "py-2 px-4 text-sm font-medium flex items-center lg:text-base",
+          "flex px-4 py-2 text-sm font-medium items-center lg:text-base",
           stateMatches("finished")
             ? "bg-green-700 text-white"
             : stateMatches("captured") ||
