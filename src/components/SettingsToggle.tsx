@@ -15,12 +15,14 @@ const SettingsToggle: React.FC<SettingsToggleProps> = ({
 }) => {
   return (
     <Switch.Group>
-      <div className="flex items-center">
+      <div className="flex items-center gap-x-2 md:gap-x-3">
         <Switch
           checked={enabled}
           onChange={onToggle}
           className={classNames(
-            enabled ? "bg-blue-700 dark:bg-blue-600" : "bg-gray-300",
+            enabled
+              ? "bg-blue-700 dark:bg-blue-600"
+              : "bg-gray-300 dark:bg-gray-400",
             "relative inline-flex items-center shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 dark:focus-visible:ring-offset-gray-900"
           )}
         >
@@ -32,9 +34,7 @@ const SettingsToggle: React.FC<SettingsToggleProps> = ({
             )}
           />
         </Switch>
-        <Switch.Label className="ml-2 text-sm md:text-base md:ml-3">
-          {label}
-        </Switch.Label>
+        <Switch.Label className="text-sm md:text-base">{label}</Switch.Label>
       </div>
     </Switch.Group>
   )
