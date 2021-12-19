@@ -59,7 +59,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
         className={classNames(
           "flex px-4 py-2 text-sm font-medium items-center lg:text-base",
           stateMatches("finished")
-            ? "bg-green-700 text-white"
+            ? "bg-emerald-700 text-white"
             : stateMatches("captured") ||
               stateMatches({ playing: "knightAttacked" })
             ? "bg-red-600 text-white"
