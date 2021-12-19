@@ -25,9 +25,7 @@ serviceWorkerRegistration.register({
       "This website has been updated. Reload to display the latest version?"
     )
     if (reload) {
-      if (registration && registration.waiting) {
-        registration.waiting.postMessage({ type: "SKIP_WAITING" })
-      }
+      registration.waiting?.postMessage({ type: "SKIP_WAITING" })
       window.location.reload()
     }
   },
