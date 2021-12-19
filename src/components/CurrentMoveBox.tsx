@@ -1,7 +1,7 @@
 import { ChevronDoubleUpIcon } from "@heroicons/react/solid"
 import classNames from "classnames"
 import { motion, useReducedMotion } from "framer-motion"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { Square } from "../game/ChessLogic"
 import { GameStateType } from "../game/GameState"
 
@@ -10,26 +10,27 @@ interface CurrentMoveBoxProps {
   targetSquare: Square
 }
 
+type CurrentMoveBoxStatus =
+  | "notStarted"
+  | "active"
+  | "attacked"
+  | "captured"
+  | "finished"
+
 /**
  * The key determines which state changes get animated. Changes in the
  * key represent a change in the box and thus is animated.
  */
-function getReactKey(
-  stateMatches: (state: GameStateType) => boolean,
-  targetSquare: Square
-) {
-  if (
-    stateMatches({ playing: "paused" }) ||
-    stateMatches({ playing: "moving" })
-  ) {
+function getReactKey(boxStatus: CurrentMoveBoxStatus, targetSquare: Square) {
+  if (boxStatus === "active") {
     return `next_${targetSquare}`
   }
 
-  if (stateMatches("captured") || stateMatches({ playing: "knightAttacked" })) {
+  if (boxStatus === "attacked" || boxStatus === "captured") {
     return "attacked"
   }
 
-  if (stateMatches("finished")) {
+  if (boxStatus === "finished") {
     return "finished"
   }
 
@@ -41,13 +42,33 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
   targetSquare,
 }) => {
   const shouldReduceMotion = useReducedMotion()
+  const [boxStatus, setBoxStatus] = useState<CurrentMoveBoxStatus>("notStarted")
+  useEffect(() => {
+    if (
+      stateMatches({ playing: "paused" }) ||
+      stateMatches({ playing: "moving" })
+    ) {
+      setBoxStatus("active")
+    } else if (
+      stateMatches("captured") ||
+      stateMatches({ playing: { knightAttacked: "toBeCaptured" } })
+    ) {
+      setBoxStatus("captured")
+    } else if (stateMatches({ playing: { knightAttacked: "toReturn" } })) {
+      setBoxStatus("attacked")
+    } else if (stateMatches("finished")) {
+      setBoxStatus("finished")
+    } else {
+      setBoxStatus("notStarted")
+    }
+  }, [stateMatches])
   return (
     <div className="flex justify-center">
       <motion.div
-        key={getReactKey(stateMatches, targetSquare)}
+        key={getReactKey(boxStatus, targetSquare)}
         initial={
           // Reduce animation of box transition if user has enabled reduce motion
-          stateMatches("notStarted") || shouldReduceMotion
+          boxStatus === "notStarted" || shouldReduceMotion
             ? { opacity: 0, y: 0, scale: 0.9 }
             : {
                 opacity: 0,
@@ -58,34 +79,32 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         className={classNames(
           "flex px-4 py-2 text-sm font-medium items-center lg:text-base",
-          stateMatches("finished")
-            ? "bg-green-700 text-white"
-            : stateMatches("captured") ||
-              stateMatches({ playing: "knightAttacked" })
+          boxStatus === "finished"
+            ? "bg-emerald-800 dark:bg-emerald-700 text-white"
+            : boxStatus === "attacked" || boxStatus === "captured"
             ? "bg-red-600 text-white"
-            : stateMatches("notStarted")
-            ? "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-100"
-            : "bg-yellow-700 text-white"
+            : boxStatus === "active"
+            ? "bg-amber-400 text-amber-900 dark:bg-amber-700 dark:text-white"
+            : "bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-100"
         )}
       >
-        {stateMatches("finished") ? (
+        {boxStatus === "finished" ? (
           <>
             <span className="mr-2" aria-hidden>
               🎉
             </span>
             <span>Puzzle complete. Nicely done!</span>
           </>
-        ) : stateMatches("captured") ||
-          stateMatches({ playing: { knightAttacked: "toBeCaptured" } }) ? (
+        ) : boxStatus === "captured" ? (
           <>Oops, game over! Try again.</>
-        ) : stateMatches({ playing: { knightAttacked: "toReturn" } }) ? (
+        ) : boxStatus === "attacked" ? (
           <>Oops, can't go there!</>
         ) : (
           <>
             <ChevronDoubleUpIcon className="w-4 h-4 mr-2" aria-hidden />
             <span>Next square to visit</span>
             <span className="ml-4">
-              {stateMatches("notStarted") ? "-" : targetSquare}
+              {boxStatus === "notStarted" ? "-" : targetSquare}
             </span>
           </>
         )}
