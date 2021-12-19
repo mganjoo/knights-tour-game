@@ -85,7 +85,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
             ? "bg-red-600 text-white"
             : boxStatus === "active"
             ? "bg-amber-400 text-amber-900 dark:bg-amber-700 dark:text-white"
-            : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            : "bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-100"
         )}
       >
         {boxStatus === "finished" ? (

@@ -30,7 +30,7 @@ interface LinkArgs {
 const Link: React.FC<LinkArgs> = ({ href, children }) => (
   <a
     href={href}
-    className="underline focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-offset-2 focus-visible:ring-blue-500 focus-visible:ring-offset-gray-100 dark:focus-visible:ring-offset-gray-800"
+    className="underline focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-offset-2 focus-visible:ring-blue-400 focus-visible:ring-offset-gray-100 dark:focus-visible:ring-offset-gray-900"
   >
     {children}
   </a>
@@ -88,7 +88,7 @@ const App: React.FC = () => {
   }, 1000)
 
   return (
-    <div className="min-h-screen grid place-items-center bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white">
+    <div className="min-h-screen grid place-items-center bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-white">
       <div className="max-w-lg px-4 md:max-w-5xl md:px-6">
         <main className="grid pt-4 pb-6 items-center md:grid-cols-3 gap-y-4 md:pt-6 md:gap-x-6 md:gap-y-6">
           <div className="row-start-2 md:row-start-1 md:row-span-5 md:col-span-2">
@@ -125,7 +125,7 @@ const App: React.FC = () => {
             </div>
             <div className="col-start-2 md:row-start-2 md:col-start-1">
               <button
-                className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-blue-700 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-800 lg:px-4 lg:text-base"
+                className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-blue-700 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 focus:ring-offset-gray-100 dark:bg-blue-600 dark:hover:bg-blue-500 dark:shadow-gray-500/25 dark:focus:ring-offset-gray-900 lg:px-4 lg:text-base"
                 onClick={start}
               >
                 New game
