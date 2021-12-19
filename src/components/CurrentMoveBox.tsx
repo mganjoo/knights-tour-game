@@ -80,11 +80,11 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
         className={classNames(
           "flex px-4 py-2 text-sm font-medium items-center lg:text-base",
           boxStatus === "finished"
-            ? "bg-emerald-600 text-white"
+            ? "bg-emerald-800 dark:bg-emerald-700 text-white"
             : boxStatus === "attacked" || boxStatus === "captured"
             ? "bg-red-600 text-white"
             : boxStatus === "active"
-            ? "bg-yellow-700 text-white"
+            ? "bg-amber-400 text-amber-900 dark:bg-amber-700 dark:text-white"
             : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-100"
         )}
       >
