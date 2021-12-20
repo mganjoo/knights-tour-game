@@ -15,11 +15,11 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
   return (
     <Listbox value={selected} onChange={setSelected}>
       {({ open }) => (
-        <div className="flex justify-center items-center">
+        <div className="flex justify-center items-center gap-x-2 py-2 md:gap-x-3">
           <div className="w-16 md:w-20">
             <div className="relative">
               <Listbox.Button className="relative w-full pl-3 pr-10 py-2 text-gray-900 text-sm bg-white rounded-lg text-left shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 dark:bg-gray-600 dark:text-white dark:shadow-none dark:focus-visible:ring-offset-gray-900 md:text-base">
-                <span className="block">{selected}</span>
+                <span>{selected}</span>
                 <span className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
                   <SelectorIcon
                     className="w-5 h-5 text-gray-400 dark:text-gray-300"
@@ -36,7 +36,7 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
               >
                 <Listbox.Options
                   static
-                  className="absolute w-full py-1 mb-1 bottom-full overflow-auto z-20 bg-white rounded-md shadow-lg text-sm max-h-72 ring-1 ring-gray-900 ring-opacity-5 focus:outline-none dark:shadow-gray-500/25 dark:bg-gray-600 md:text-base"
+                  className="absolute w-full py-1 mb-1 bottom-full overflow-auto z-10 bg-white rounded-md shadow-lg text-sm max-h-72 ring-1 ring-gray-900 ring-opacity-5 focus:outline-none dark:ring-gray-500 dark:bg-gray-600 md:text-base"
                 >
                   {CANDIDATE_QUEEN_SQUARES.map((square) => (
                     <Listbox.Option
@@ -84,7 +84,7 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
               </Transition>
             </div>
           </div>
-          <Listbox.Label className="ml-2 text-sm md:text-base md:ml-3">
+          <Listbox.Label className="text-sm md:text-base">
             Change queen square
           </Listbox.Label>
         </div>
