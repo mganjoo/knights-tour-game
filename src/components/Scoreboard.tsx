@@ -14,7 +14,7 @@ const Scoreboard: React.FC<ScoreboardProps> = ({ tickers }) => {
   // Reduce animation of box transition if user has enabled reduce motion
   const shouldReduceMotion = useReducedMotion()
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(4rem,1fr)_minmax(4rem,1fr))] items-start gap-x-1 md:grid-cols-2 md:gap-y-3">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(4rem,1fr)_minmax(4rem,1fr))] gap-x-1 items-start justify-self-stretch md:grid-cols-2 md:gap-y-3">
       {tickers.map(({ label, value }) => (
         <div key={label} className="flex flex-col-reverse gap-y-1 items-center">
           <span className="uppercase text-xs text-center md:text-sm">

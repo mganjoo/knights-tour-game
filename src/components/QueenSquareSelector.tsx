@@ -15,7 +15,7 @@ const QueenSquareSelector: React.FC<QueenSquareSelectorProps> = ({
   return (
     <Listbox value={selected} onChange={setSelected}>
       {({ open }) => (
-        <div className="flex justify-center items-center gap-x-2 py-2 md:gap-x-3">
+        <div className="flex justify-center items-center gap-x-2 md:gap-x-3">
           <div className="w-16 md:w-20">
             <div className="relative">
               <Listbox.Button className="relative w-full pl-3 pr-10 py-2 text-gray-900 text-sm bg-white rounded-lg text-left shadow-md cursor-default focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 dark:bg-gray-600 dark:text-white dark:shadow-none dark:focus-visible:ring-offset-gray-900 md:text-base">

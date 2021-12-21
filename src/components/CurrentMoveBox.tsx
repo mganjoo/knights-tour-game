@@ -63,53 +63,51 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
     }
   }, [stateMatches])
   return (
-    <div className="flex justify-center">
-      <motion.div
-        key={getReactKey(boxStatus, targetSquare)}
-        initial={
-          // Reduce animation of box transition if user has enabled reduce motion
-          boxStatus === "notStarted" || shouldReduceMotion
-            ? { opacity: 0, y: 0, scale: 0.9 }
-            : {
-                opacity: 0,
-                y: 50,
-                scale: 0.4,
-              }
-        }
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        className={classNames(
-          "flex px-4 py-2 text-sm font-medium items-center text-center lg:text-base",
-          boxStatus === "finished"
-            ? "bg-emerald-800 dark:bg-emerald-700 text-white"
-            : boxStatus === "attacked" || boxStatus === "captured"
-            ? "bg-red-600 text-white"
-            : boxStatus === "active"
-            ? "bg-amber-400 text-amber-900 dark:bg-amber-700 dark:text-white"
-            : "bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-100"
-        )}
-      >
-        {boxStatus === "finished" ? (
-          <>
-            <span className="mr-2" aria-hidden>
-              🎉
-            </span>
-            <span>Puzzle complete. Nicely done!</span>
-          </>
-        ) : boxStatus === "captured" ? (
-          <>Oops, game over! Try again.</>
-        ) : boxStatus === "attacked" ? (
-          <>Oops, can't go there!</>
-        ) : (
-          <>
-            <ChevronDoubleUpIcon className="w-4 h-4 mr-2" aria-hidden />
-            <span>Next square to visit</span>
-            <span className="ml-4">
-              {boxStatus === "notStarted" ? "-" : targetSquare}
-            </span>
-          </>
-        )}
-      </motion.div>
-    </div>
+    <motion.div
+      key={getReactKey(boxStatus, targetSquare)}
+      initial={
+        // Reduce animation of box transition if user has enabled reduce motion
+        boxStatus === "notStarted" || shouldReduceMotion
+          ? { opacity: 0, y: 0, scale: 0.9 }
+          : {
+              opacity: 0,
+              y: 50,
+              scale: 0.4,
+            }
+      }
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      className={classNames(
+        "px-4 py-2 flex text-sm font-medium items-center text-center lg:text-base",
+        boxStatus === "finished"
+          ? "bg-emerald-800 text-white dark:bg-emerald-700"
+          : boxStatus === "attacked" || boxStatus === "captured"
+          ? "bg-red-600 text-white"
+          : boxStatus === "active"
+          ? "bg-amber-400 text-amber-900 dark:bg-amber-700 dark:text-white"
+          : "bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-100"
+      )}
+    >
+      {boxStatus === "finished" ? (
+        <>
+          <span className="mr-2" aria-hidden>
+            🎉
+          </span>
+          <span>Puzzle complete. Nicely done!</span>
+        </>
+      ) : boxStatus === "captured" ? (
+        <>Oops, game over! Try again.</>
+      ) : boxStatus === "attacked" ? (
+        <>Oops, can't go there!</>
+      ) : (
+        <>
+          <ChevronDoubleUpIcon className="w-4 h-4 mr-2" aria-hidden />
+          <span>Next square to visit</span>
+          <span className="ml-4">
+            {boxStatus === "notStarted" ? "-" : targetSquare}
+          </span>
+        </>
+      )}
+    </motion.div>
   )
 }
 
