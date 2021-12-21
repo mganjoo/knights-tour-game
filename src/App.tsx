@@ -89,11 +89,11 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen grid place-items-center bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-white">
-      <div className="max-w-lg px-4 md:max-w-5xl md:px-6">
-        <main className="grid pt-4 pb-6 items-center md:grid-cols-3 gap-y-4 md:pt-6 md:gap-6">
-          <div className="grid place-items-center gap-x-3 grid-flow-col md:grid-flow-row md:gap-x-0 md:gap-y-4 lg:gap-y-5">
+      <div className="max-w-lg p-4 grid gap-6 md:max-w-5xl md:p-6">
+        <main className="grid place-items-center gap-6 md:grid-cols-3">
+          <div className="grid grid-flow-col place-items-center gap-x-3 md:grid-flow-row md:gap-x-0 md:gap-y-4">
             <div className="row-span-2 md:col-span-2">
-              <h1 className="text-xl font-semibold mb-2 md:text-2xl lg:text-3xl">
+              <h1 className="mb-2 text-xl font-semibold md:text-2xl lg:text-3xl">
                 Knight-Queen Tour
               </h1>
               <p className="text-sm lg:text-base">
@@ -102,19 +102,17 @@ const App: React.FC = () => {
                 the queen!
               </p>
             </div>
-            <div>
-              <button
-                className="rounded-md px-3 py-2 text-sm font-medium shadow-md text-white bg-blue-700 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 focus:ring-offset-gray-100 dark:bg-blue-600 dark:hover:bg-blue-500 dark:shadow-gray-500/25 dark:focus:ring-offset-gray-900 lg:px-4 lg:text-base"
-                onClick={start}
-              >
-                New game
-              </button>
-            </div>
-            <div className="text-base font-semibold tabular-nums md:text-lg lg:text-xl">
+            <button
+              className="px-3 py-2 rounded-md text-sm font-medium shadow-md bg-blue-700 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 focus:ring-offset-gray-100 dark:bg-blue-600 dark:shadow-gray-500/25 dark:hover:bg-blue-500 dark:focus:ring-offset-gray-900 lg:px-4 lg:text-base"
+              onClick={start}
+            >
+              New game
+            </button>
+            <p className="text-base font-semibold tabular-nums md:text-lg lg:text-xl">
               {formatMillis(elapsedMillis)}
-            </div>
+            </p>
           </div>
-          <div className="md:row-start-1 md:row-span-5 md:col-span-2">
+          <div className="justify-self-stretch md:row-start-1 md:row-span-5 md:col-span-2">
             <Board
               stateMatches={state.matches}
               knightSquare={state.context.knightSquare}
@@ -181,7 +179,7 @@ const App: React.FC = () => {
             />
           </div>
         </main>
-        <footer className="mx-5 pt-4 pb-8 flex justify-center gap-x-1 border-t border-gray-400 text-gray-700 text-xs text-center md:mx-0 md:text-sm dark:border-gray-300 dark:text-gray-200">
+        <footer className="mx-5 py-4 flex justify-center gap-x-1 border-t border-gray-400 text-gray-700 text-xs text-center md:mx-0 md:text-sm dark:border-gray-300 dark:text-gray-200">
           <span>
             By <Link href="https://github.com/mganjoo">@mganjoo</Link>
           </span>
