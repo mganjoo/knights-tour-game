@@ -97,7 +97,7 @@ const CurrentMoveBox: React.FC<CurrentMoveBoxProps> = ({
       ) : boxStatus === "captured" ? (
         <>Oops, game over! Try again.</>
       ) : boxStatus === "attacked" ? (
-        <>Oops, can't go there!</>
+        <>Oops, can&lsquo;t go there!</>
       ) : (
         <>
           <ChevronDoubleUpIcon className="w-4 h-4 mr-2" aria-hidden />

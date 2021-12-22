@@ -1,15 +1,19 @@
+import type { NextPage } from "next"
+import Head from "next/head"
 import React, { useEffect, useState, useCallback } from "react"
 import { useHarmonicIntervalFn } from "react-use"
-import useBestScores from "./components/BestScores"
-import Board from "./components/Board"
-import CurrentMoveBox from "./components/CurrentMoveBox"
-import QueenSquareSelector from "./components/QueenSquareSelector"
-import Scoreboard from "./components/Scoreboard"
-import SettingsToggle from "./components/SettingsToggle"
-import { DEFAULT_QUEEN_SQUARE, Square } from "./game/ChessLogic"
-import useGameState, { getElapsedMs } from "./game/GameState"
-import { useFlag, useQueenSquareChoice } from "./util/SettingsHelpers"
-
+import { DEFAULT_QUEEN_SQUARE, Square } from "../components/game/ChessLogic"
+import useGameState, { getElapsedMs } from "../components/game/GameState"
+import useBestScores from "../components/ui/BestScores"
+import Board from "../components/ui/Board"
+import CurrentMoveBox from "../components/ui/CurrentMoveBox"
+import QueenSquareSelector from "../components/ui/QueenSquareSelector"
+import Scoreboard from "../components/ui/Scoreboard"
+import SettingsToggle from "../components/ui/SettingsToggle"
+import {
+  useFlag,
+  useQueenSquareChoice,
+} from "../components/util/SettingsHelpers"
 /**
  * Format a millisecond timestamp as a string.
  */
@@ -36,7 +40,7 @@ const Link: React.FC<LinkArgs> = ({ href, children }) => (
   </a>
 )
 
-const App: React.FC = () => {
+const Home: NextPage = () => {
   const [queenSquare, setQueenSquare] = useQueenSquareChoice(
     "v1.loaded_queen_square",
     DEFAULT_QUEEN_SQUARE
@@ -89,6 +93,17 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen grid place-items-center bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-white">
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="description"
+          content="Visit every square on the board with the knight, avoiding squares that are controlled by the queen!"
+        />
+        <link rel="apple-touch-icon" href="/logo192.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <title>Knight-Queen Tour</title>
+      </Head>
       <div className="max-w-lg p-4 grid gap-6 md:max-w-5xl md:p-6">
         <main className="grid place-items-center gap-6 md:grid-cols-3">
           <div className="grid grid-flow-col place-items-center gap-x-3 md:grid-flow-row md:gap-x-0 md:gap-y-4">
@@ -193,4 +208,4 @@ const App: React.FC = () => {
   )
 }
 
-export default App
+export default Home

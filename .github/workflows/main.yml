@@ -22,7 +22,9 @@ jobs:
         uses: bahmutov/npm-install@v1
         env:
           CYPRESS_INSTALL_BINARY: 0
-      - name: Check and lint
-        run: npm run check
+      - name: Check types
+        run: npm run check:types
+      - name: Lint
+        run: npm run lint
       - name: Unit tests
-        run: npm test
+        run: npm test:ci
