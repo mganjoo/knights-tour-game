@@ -35,7 +35,7 @@ library as a reference).
 
 ## Running the project locally
 
-### `npm start`
+### `npm run dev`
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
@@ -45,7 +45,7 @@ You will also see any lint errors in the console.
 
 ### `npm run inspect`
 
-Runs the app (like `npm start`) but with
+Runs the app (like `npm run dev`) but with
 [XState Inspector](https://xstate.js.org/docs/packages/xstate-inspect) enabled.
 
 ### `npm test`
