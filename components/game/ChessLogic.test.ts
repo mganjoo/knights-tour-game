@@ -1,4 +1,3 @@
-import { Chessground } from "chessground"
 import * as fc from "fast-check"
 import {
   attackedByQueen,
@@ -33,46 +32,6 @@ function toSquare(rank: number, file: number): Square | undefined {
     return undefined
   }
 }
-
-describe("getPuzzleFen()", () => {
-  test("generates correct puzzle FEN with knight and queen", () => {
-    fc.assert(
-      fc.property(
-        fc.constantFrom(...SQUARES),
-        fc.option(fc.constantFrom(...SQUARES), { nil: undefined }),
-        (knightSquare, queenSquare) => {
-          // dummy element for Chessground to use
-          const wrapper = document.createElement("div")
-          const chessground = Chessground(wrapper, {
-            fen: getPuzzleFen(knightSquare, queenSquare),
-          })
-          // verify placement of pieces using Chessground internal state
-          expect(chessground.state.pieces.get(knightSquare)).toStrictEqual(
-            // If knight square and queen square are the same, queen square wins
-            knightSquare === queenSquare
-              ? { role: "queen", color: "black" }
-              : {
-                  role: "knight",
-                  color: "white",
-                }
-          )
-          expect(
-            queenSquare && chessground.state.pieces.get(queenSquare)
-          ).toStrictEqual(
-            queenSquare
-              ? {
-                  role: "queen",
-                  color: "black",
-                }
-              : undefined
-          )
-          chessground.destroy()
-          wrapper.remove()
-        }
-      )
-    )
-  })
-})
 
 test("attackedByQueen() works for squares vert, diagonally, or horizontally away", () => {
   fc.assert(
