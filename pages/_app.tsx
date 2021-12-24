@@ -2,6 +2,7 @@ import "../styles/globals.css"
 import "../styles/Board.css"
 import { inspect } from "@xstate/inspect"
 import type { AppProps } from "next/app"
+import "focus-visible"
 
 if (
   process.env.NEXT_PUBLIC_INSPECT_XSTATE === "1" &&
