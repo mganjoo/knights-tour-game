@@ -1,6 +1,7 @@
 {
   "extends": [
-    "next/core-web-vitals",
+    "react-app",
+    "react-app/jest",
     "plugin:import/recommended",
     "plugin:import/typescript",
     "prettier"

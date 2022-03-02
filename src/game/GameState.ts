@@ -601,7 +601,7 @@ export default function useGameState(args: UseGameStateArgs) {
           ? serializedGameState
           : undefined,
       }),
-    { devTools: process.env.NEXT_PUBLIC_INSPECT_XSTATE === "1" }
+    { devTools: process.env.REACT_APP_INSPECT_XSTATE === "1" }
   )
 
   // Ensure that further changes to input args are handled appopriately

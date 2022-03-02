@@ -2,7 +2,6 @@ import * as fc from "fast-check"
 import {
   attackedByQueen,
   getKnightDests,
-  getPuzzleFen,
   getPuzzleKnightPath,
   getShortestKnightPath,
   getSquareIncrement,
