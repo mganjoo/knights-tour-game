@@ -1,7 +1,7 @@
 {
   "extends": ["config:js-app", "group:allNonMajor", "schedule:weekly"],
   "enabled": true,
-  "ignoreDeps": ["chessground"],
+  "ignoreDeps": ["chessground", "xstate", "@xstate/react", "@xstate/inspect"],
   "major": {
     "dependencyDashboardApproval": true
   }
