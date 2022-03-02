@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo } from "react"
 import { getPuzzleFen, getKnightDests, Square } from "../game/ChessLogic"
 import { GameStateType } from "../game/GameState"
 import useChessground from "../util/Chessground"
+import { GChessBoard } from "../util/GChessBoard"
 
 type BoardProps = {
   /**
@@ -45,6 +46,11 @@ type BoardProps = {
    * Whether to show the initial arrows that demonstrate the knight's path.
    */
   showInitialGuideArrows?: boolean
+
+  /**
+   * Whether to use gchessboard to display board.
+   */
+  useGChessBoard?: boolean
 }
 
 // "check" from https://heroicons.com/
@@ -98,6 +104,7 @@ const Board: React.FC<BoardProps> = ({
   hideVisitedSquares,
   showTargetArrow,
   showInitialGuideArrows,
+  useGChessBoard,
 }) => {
   const shouldReduceMotion = useReducedMotion()
   const makeConfig = useCallback(
@@ -236,7 +243,7 @@ const Board: React.FC<BoardProps> = ({
     shapes,
   ])
 
-  return <div ref={el}></div>
+  return useGChessBoard ? <GChessBoard /> : <div ref={el}></div>
 }
 
 export default Board
