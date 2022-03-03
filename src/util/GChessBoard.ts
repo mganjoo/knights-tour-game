@@ -1,15 +1,16 @@
-import { createComponent } from "@lit-labs/react"
+import { provideReactWrapper } from "@microsoft/fast-react-wrapper"
 import { GChessBoardElement } from "gchessboard"
 import * as React from "react"
 
-export const GChessBoard = createComponent(
-  React,
-  "g-chess-board",
-  GChessBoardElement,
-  {
-    onmovestart: "movestart",
-    onmoveend: "moveend",
-    onmovecancel: "movecancel",
-    onmovefinished: "movefinished",
-  }
-)
+const { wrap } = provideReactWrapper(React)
+
+export const GChessBoard = wrap(GChessBoardElement, {
+  name: "g-chess-board",
+  properties: ["position", "arrows"],
+  events: {
+    onMoveStart: "movestart",
+    onMoveEnd: "moveend",
+    onMoveCancel: "movecancel",
+    onMoveFinished: "movefinished",
+  },
+})
