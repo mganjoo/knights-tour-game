@@ -1,26 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer components {
-  g-chess-board {
-    --square-color-dark: hsl(200deg 17% 61%);
-    --square-color-light: hsl(207deg 16% 89%);
-    --square-color-dark-active: hsl(200deg 96% 65%);
-    --square-color-dark-hover: hsl(200deg 96% 65%);
-    --outline-color-dark-active: hsl(200deg 96% 35%);
-    --square-color-light-active: hsl(207deg 83% 82%);
-    --square-color-light-hover: hsl(207deg 83% 82%);
-    --outline-color-light-active: hsl(207deg 83% 62%);
-    --move-target-marker-color-dark-square: hsl(217deg 94% 23%);
-    --move-target-marker-color-light-square: hsl(217deg 94% 23%);
-  }
-
-  g-chess-board::part(arrow-blue) {
-    color: hsl(219deg 100% 27% / 60%);
-  }
-
-  g-chess-board::part(arrow-yellow) {
-    color: hsl(37deg 100% 45% / 60%);
-  }
-}
