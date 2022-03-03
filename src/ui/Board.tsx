@@ -1,5 +1,5 @@
 import { useReducedMotion } from "framer-motion"
-import { GChessBoardElement } from "gchessboard"
+import { BoardArrow, GChessBoardElement } from "gchessboard"
 import { List as ImmutableList } from "immutable"
 import React, { useEffect, useMemo, useRef } from "react"
 import { getKnightDests, Square } from "../game/ChessLogic"
@@ -73,18 +73,17 @@ const Board: React.FC<BoardProps> = ({
     selectedSquare.current = undefined
     onKnightMove((e as CustomEvent).detail.to)
   }
-  const onboardingArrows: { from: Square; to: Square; brush: string }[] =
-    useMemo(
-      () =>
-        stateMatches("notStarted") && showInitialGuideArrows
-          ? [
-              { from: knightSquare, to: "a8", brush: "blue" },
-              { from: "h7", to: "a7", brush: "blue" },
-            ]
-          : [],
-      [knightSquare, showInitialGuideArrows, stateMatches]
-    )
-  const targetArrows: { from: Square; to: Square; brush: string }[] = useMemo(
+  const onboardingArrows: BoardArrow[] = useMemo(
+    () =>
+      stateMatches("notStarted") && showInitialGuideArrows
+        ? [
+            { from: knightSquare, to: "a8", brush: "blue" },
+            { from: "h7", to: "a7", brush: "blue" },
+          ]
+        : [],
+    [knightSquare, showInitialGuideArrows, stateMatches]
+  )
+  const targetArrows: BoardArrow[] = useMemo(
     () =>
       targetSquare && showTargetArrow && stateMatches({ playing: "moving" })
         ? [
@@ -97,7 +96,7 @@ const Board: React.FC<BoardProps> = ({
         : [],
     [targetSquare, knightSquare, showTargetArrow, stateMatches]
   )
-  const queenArrows: { from: Square; to: Square; brush: string }[] = useMemo(
+  const queenArrows: BoardArrow[] = useMemo(
     () =>
       stateMatches({
         playing: "knightAttacked",
