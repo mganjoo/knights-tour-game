@@ -26,7 +26,7 @@ The app is deployed to https://knights-tour-game.vercel.app/.
 
 ## Underlying libraries
 
-This app uses [Chessground](https://github.com/ornicar/chessground) for the
+This app uses [gchessboard](https://github.com/mganjoo/gchessboard) for the
 board UI and [Tailwind](https://tailwindcss.com/) for styling. For knight move
 generation and queen attack detection, I wrote some simple
 [0x88 move representation logic](https://www.chessprogramming.org/0x88) as an
