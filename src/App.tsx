@@ -44,7 +44,6 @@ function App() {
   const [hideVisited, setHideVisited] = useFlag("v1.hide_visited_squares")
   const [attackEndsGame, setAttackEndsGame] = useFlag("v1.attack_ends_game")
   const [onboardingDone, setOnboardingDone] = useFlag("v1.onboarding_done")
-  const [useGChessBoard, setUseGChessBoard] = useState(false)
   const { state, send } = useGameState({
     attackEndsGame,
     queenSquare,
@@ -132,7 +131,6 @@ function App() {
                 !onboardingDone && state.context.visitedSquares.size < 2
               }
               showInitialGuideArrows={!onboardingDone}
-              useGChessBoard={useGChessBoard}
             />
           </div>
           <CurrentMoveBox
@@ -178,11 +176,6 @@ function App() {
               label="End game if knight moves to an attacked square"
               enabled={!!attackEndsGame}
               onToggle={setAttackEndsGame}
-            />
-            <SettingsToggle
-              label="Use gchessboard"
-              enabled={useGChessBoard}
-              onToggle={setUseGChessBoard}
             />
           </div>
         </main>

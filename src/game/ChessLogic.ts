@@ -152,53 +152,6 @@ export function getKnightDests(
 }
 
 /**
- * Get FEN for knight + queen tour puzzle.
- *
- * @param knightSquare square knight is currently on
- * @param queenSquare square that queen is currently on
- * @returns FEN representation of board, or null if position is invalid
- */
-export function getPuzzleFen(
-  knightSquare: Square,
-  queenSquare?: Square
-): string {
-  const lookup: { [idx: number]: "N" | "q" } = {}
-  lookup[SQUARES_MAP[knightSquare]] = "N" // White knight
-  if (queenSquare) {
-    // Note that if queen and knight square are the same, queen takes precedence
-    lookup[SQUARES_MAP[queenSquare]] = "q" // Black queen
-  }
-
-  let empty = 0
-  let piecesRep = ""
-  for (let i = SQUARES_MAP.a8; i <= SQUARES_MAP.h1; i++) {
-    if (!(i in lookup)) {
-      empty++
-    } else {
-      let piece = lookup[i]
-      if (empty) {
-        piecesRep += empty
-        empty = 0
-      }
-      piecesRep += piece
-    }
-
-    if ((i + 1) & 0x88) {
-      if (empty > 0) {
-        piecesRep += empty
-      }
-      if (i !== SQUARES_MAP.h1) {
-        piecesRep += "/"
-      }
-      empty = 0
-      i += 8
-    }
-  }
-
-  return `${piecesRep} w - - 0 1`
-}
-
-/**
  * Returns true if square is attacked by queen.
  *
  * @param square Square that piece is on

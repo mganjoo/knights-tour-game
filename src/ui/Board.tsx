@@ -1,12 +1,9 @@
-import { Config } from "chessground/config"
-import { DrawShape } from "chessground/draw"
-import * as cg from "chessground/types"
 import { useReducedMotion } from "framer-motion"
+import { GChessBoardElement } from "gchessboard"
 import { List as ImmutableList } from "immutable"
-import React, { useCallback, useEffect, useMemo } from "react"
-import { getPuzzleFen, getKnightDests, Square } from "../game/ChessLogic"
+import React, { useEffect, useMemo, useRef } from "react"
+import { getKnightDests, Square } from "../game/ChessLogic"
 import { GameStateType } from "../game/GameState"
-import useChessground from "../util/Chessground"
 import { GChessBoard } from "../util/GChessBoard"
 
 type BoardProps = {
@@ -46,52 +43,6 @@ type BoardProps = {
    * Whether to show the initial arrows that demonstrate the knight's path.
    */
   showInitialGuideArrows?: boolean
-
-  /**
-   * Whether to use gchessboard to display board.
-   */
-  useGChessBoard?: boolean
-}
-
-// "check" from https://heroicons.com/
-const CHECK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#047857"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z" clip-rule="evenodd"/></svg>`
-
-// "chevron-double-up" from https://heroicons.com/
-const TARGET_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#B45309"><path fill-rule="evenodd" d="M4.293 15.707a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 0 1-1.414 0zm0-6a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L10 5.414 5.707 9.707a1 1 0 0 1-1.414 0z" clip-rule="evenodd"/></svg>`
-
-const EMPTY_BOARD_FEN = "8/8/8/8/8/8/8/8 w - - 0 1"
-
-/**
- * One-time configuration is set initially. Some of this
- * configuration never needs to change.
- */
-function makeInitialConfig(shouldReduceMotion: boolean | null): Config {
-  return {
-    fen: EMPTY_BOARD_FEN,
-    orientation: "white",
-    highlight: {
-      lastMove: false,
-    },
-    animation: {
-      enabled: !shouldReduceMotion,
-    },
-    movable: {
-      free: false,
-    },
-    premovable: {
-      enabled: false,
-    },
-    predroppable: {
-      enabled: false,
-    },
-    draggable: {
-      enabled: false,
-      showGhost: false,
-    },
-    drawable: {
-      enabled: false,
-    },
-  }
 }
 
 const Board: React.FC<BoardProps> = ({
@@ -104,146 +55,127 @@ const Board: React.FC<BoardProps> = ({
   hideVisitedSquares,
   showTargetArrow,
   showInitialGuideArrows,
-  useGChessBoard,
 }) => {
   const shouldReduceMotion = useReducedMotion()
-  const makeConfig = useCallback(
-    () => makeInitialConfig(shouldReduceMotion),
-    [shouldReduceMotion]
-  )
-  const { el, set } = useChessground(makeConfig)
-  const fen = useMemo<string | undefined>(
-    () => getPuzzleFen(knightSquare, queenSquare),
+  const ref = useRef<any>(null)
+  const position = useMemo(
+    () => ({
+      [knightSquare]: { pieceType: "knight", color: "white" },
+      [queenSquare]: { pieceType: "queen", color: "black" },
+    }),
     [knightSquare, queenSquare]
   )
-  const dests = useMemo<Map<cg.Key, cg.Key[]>>(
+  const knightDests = useMemo(
+    () => getKnightDests(knightSquare, { queenSquare }),
+    [knightSquare, queenSquare]
+  )
+  const handleMove = (e: Event) => {
+    selectedSquare.current = undefined
+    onKnightMove((e as CustomEvent).detail.to)
+  }
+  const onboardingArrows: { from: Square; to: Square; brush: string }[] =
+    useMemo(
+      () =>
+        stateMatches("notStarted") && showInitialGuideArrows
+          ? [
+              { from: knightSquare, to: "a8", brush: "blue" },
+              { from: "h7", to: "a7", brush: "blue" },
+            ]
+          : [],
+      [knightSquare, showInitialGuideArrows, stateMatches]
+    )
+  const targetArrows: { from: Square; to: Square; brush: string }[] = useMemo(
     () =>
-      new Map([
-        [
-          knightSquare,
-          getKnightDests(knightSquare, { queenSquare: queenSquare }),
-        ],
-      ]),
-    [knightSquare, queenSquare]
-  )
-  const handleMove = useCallback(
-    (orig: cg.Key, dest: cg.Key) => {
-      const validDests = dests.get(orig)
-      if (
-        validDests &&
-        validDests.includes(dest) &&
-        orig !== "a0" &&
-        dest !== "a0"
-      ) {
-        onKnightMove(dest)
-      }
-    },
-    [dests, onKnightMove]
-  )
-  const shapes = useMemo<DrawShape[]>(() => {
-    const onboardingShapes: DrawShape[] =
-      stateMatches("notStarted") && showInitialGuideArrows
-        ? [
-            { orig: knightSquare, dest: "a8", brush: "blue" },
-            { orig: "h7", dest: "a7", brush: "blue" },
-          ]
-        : []
-    const targetShapes: DrawShape[] =
-      targetSquare && stateMatches("playing")
-        ? [{ orig: targetSquare, customSvg: TARGET_SVG }]
-        : []
-
-    const targetArrowShapes: DrawShape[] =
       targetSquare && showTargetArrow && stateMatches({ playing: "moving" })
         ? [
             {
-              orig: knightSquare,
-              dest: targetSquare,
-              customSvg: undefined,
+              from: knightSquare,
+              to: targetSquare,
               brush: "blue",
             },
           ]
-        : []
-    const queenShapes: DrawShape[] = stateMatches({
-      playing: "knightAttacked",
-    })
-      ? [
-          { orig: queenSquare, customSvg: undefined, brush: "yellow" },
-          {
-            orig: queenSquare,
-            dest: knightSquare,
-            customSvg: undefined,
-            brush: "yellow",
-          },
-        ]
-      : []
-    const visitedShapes: DrawShape[] =
-      hideVisitedSquares || stateMatches("notStarted")
-        ? []
-        : visitedSquares
-            .map((s) => ({
-              orig: s,
-              customSvg: CHECK_SVG,
-            }))
-            .toArray()
-    return targetShapes
-      .concat(onboardingShapes)
-      .concat(targetArrowShapes)
-      .concat(queenShapes)
-      .concat(visitedShapes)
-  }, [
-    targetSquare,
-    stateMatches,
-    showTargetArrow,
-    showInitialGuideArrows,
-    knightSquare,
-    queenSquare,
-    hideVisitedSquares,
-    visitedSquares,
-  ])
+        : [],
+    [targetSquare, knightSquare, showTargetArrow, stateMatches]
+  )
+  const queenArrows: { from: Square; to: Square; brush: string }[] = useMemo(
+    () =>
+      stateMatches({
+        playing: "knightAttacked",
+      })
+        ? [
+            {
+              from: queenSquare,
+              to: knightSquare,
+              brush: "yellow",
+            },
+          ]
+        : [],
+    [stateMatches, knightSquare, queenSquare]
+  )
+  const arrows = useMemo(
+    () => onboardingArrows.concat(targetArrows).concat(queenArrows),
+    [onboardingArrows, targetArrows, queenArrows]
+  )
+  const selectedSquare = useRef<Square>()
 
   useEffect(() => {
-    // If the puzzle is ongoing, select current knight square by default
-    const selected = stateMatches({ playing: "moving" })
-      ? knightSquare
-      : undefined
-    const config: Config = {
-      fen: fen,
-      // Allow moves only in playing state
-      viewOnly: !stateMatches({ playing: "moving" }),
-      // Always white to move
-      turnColor: "white",
-      selected,
-      animation: {
-        enabled: !shouldReduceMotion,
-      },
-      movable: {
-        dests: dests,
-        color: "white",
-        events: { after: handleMove },
-      },
-      events: {
-        select: (key) => {
-          // If user clicks outside one of the allowed squares, reset selected
-          if (!dests.get(knightSquare)?.includes(key)) {
-            set({ selected })
-          }
-        },
-      },
+    if (
+      stateMatches({ playing: "moving" }) &&
+      selectedSquare.current !== knightSquare &&
+      ref.current
+    ) {
+      const board = ref.current as GChessBoardElement
+      board.startMove(knightSquare, knightDests)
+      selectedSquare.current = knightSquare
+    } else if (!stateMatches({ playing: "moving" })) {
+      selectedSquare.current = undefined
     }
-    set(config, shapes)
-  }, [
-    set,
-    fen,
-    stateMatches,
-    knightSquare,
-    shouldReduceMotion,
-    dests,
-    handleMove,
-    shapes,
-  ])
+  })
 
-  return useGChessBoard ? <GChessBoard /> : <div ref={el}></div>
+  return (
+    <GChessBoard
+      ref={ref}
+      animation-duration={shouldReduceMotion ? 10 : 50}
+      position={position}
+      interactive={stateMatches({ playing: "moving" })}
+      onMoveFinished={handleMove}
+      onMoveCancel={(e) => e.preventDefault()}
+      arrows={arrows}
+    >
+      {stateMatches("playing") && (
+        <div slot={targetSquare}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="#B45309"
+          >
+            <path
+              fillRule="evenodd"
+              d="M4.293 15.707a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 0 1-1.414 0zm0-6a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1-1.414 1.414L10 5.414 5.707 9.707a1 1 0 0 1-1.414 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
+      )}
+      {!hideVisitedSquares &&
+        !stateMatches("notStarted") &&
+        visitedSquares.map((s) => (
+          <span slot={s} key={s}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="#047857"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </span>
+        ))}
+    </GChessBoard>
+  )
 }
 
 export default Board
