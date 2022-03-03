@@ -22,9 +22,10 @@ describe("game", () => {
 
   it("updates move count when knight moves to new square", () => {
     cy.contains("New game").click()
-    cy.get(".move-dest")
-      .eq(1) // h8 -> g6
-      .realClick()
+    cy.get("g-chess-board")
+      .shadow()
+      .find('[data-square="g6"]')
+      .click()
       .then(() => {
         cy.contains("Moves").next().should("contain", "1")
       })
@@ -33,9 +34,10 @@ describe("game", () => {
   it("shows an error when knight moves to queen-attacked square", () => {
     cy.contains("End game if knight moves").click()
     cy.contains("New game").click()
-    cy.get(".move-dest")
-      .eq(0) // h8 -> f7
-      .realClick()
+    cy.get("g-chess-board")
+      .shadow()
+      .find('[data-square="f7"]')
+      .click()
       .then(() => {
         cy.contains("Oops, game over").should("exist")
         cy.contains("Moves").next().should("contain", "1")
