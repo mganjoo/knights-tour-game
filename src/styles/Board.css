@@ -9,6 +9,7 @@ g-chess-board {
   --outline-color-light-active: hsl(207deg 83% 62%);
   --move-target-marker-color-dark-square: hsl(217deg 94% 23%);
   --move-target-marker-color-light-square: hsl(217deg 94% 23%);
+  --ghost-piece-opacity: 0;
 }
 
 g-chess-board::part(arrow-blue) {
