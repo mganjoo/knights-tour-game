@@ -55,7 +55,10 @@ function App() {
     (square: Square) => send({ type: "MOVE_KNIGHT", square }),
     [send]
   )
-  const start = useCallback(() => send({ type: "START" }), [send])
+  const start = useCallback(() => {
+    send({ type: "START" })
+    setElapsedMillis(0)
+  }, [send])
 
   useEffect(() => {
     const handleVisibilityChange = () =>
