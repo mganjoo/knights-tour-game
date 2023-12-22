@@ -1,5 +1,5 @@
 import { useReducedMotion } from "framer-motion"
-import { BoardArrow, GChessBoardElement } from "gchessboard"
+import { BoardArrow, GChessBoardElement, MoveFinishedEvent } from "gchessboard"
 import { List as ImmutableList } from "immutable"
 import React, { useEffect, useMemo, useRef } from "react"
 import { getKnightDests, Square } from "../game/ChessLogic"
@@ -71,7 +71,7 @@ const Board: React.FC<BoardProps> = ({
   )
   const handleMove = (e: Event) => {
     selectedSquare.current = undefined
-    onKnightMove((e as CustomEvent).detail.to)
+    onKnightMove((e as CustomEvent<MoveFinishedEvent>).detail.to)
   }
   const onboardingArrows: BoardArrow[] = useMemo(
     () =>
