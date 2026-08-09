@@ -22,25 +22,15 @@ describe("game", () => {
 
   it("updates move count when knight moves to new square", () => {
     cy.contains("New game").click()
-    cy.get("g-chess-board")
-      .shadow()
-      .find('[data-square="g6"]')
-      .click()
-      .then(() => {
-        cy.contains("Moves").next().should("contain", "1")
-      })
+    cy.get("g-chess-board").shadow().find('[data-square="g6"]').click()
+    cy.contains("Moves").next().should("contain", "1")
   })
 
   it("shows an error when knight moves to queen-attacked square", () => {
     cy.contains("End game if knight moves").click()
     cy.contains("New game").click()
-    cy.get("g-chess-board")
-      .shadow()
-      .find('[data-square="f7"]')
-      .click()
-      .then(() => {
-        cy.contains("Oops, game over").should("exist")
-        cy.contains("Moves").next().should("contain", "1")
-      })
+    cy.get("g-chess-board").shadow().find('[data-square="f7"]').click()
+    cy.contains("Oops, game over").should("exist")
+    cy.contains("Moves").next().should("contain", "1")
   })
 })
