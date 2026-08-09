@@ -4,11 +4,10 @@ import ReactDOM from "react-dom"
 import "./styles/globals.css"
 import "./styles/Board.css"
 import App from "./App"
-import reportWebVitals from "./reportWebVitals"
 import "focus-visible"
 
 if (
-  process.env.REACT_APP_INSPECT_XSTATE === "1" &&
+  import.meta.env.VITE_INSPECT_XSTATE === "1" &&
   typeof window !== "undefined"
 ) {
   inspect({
@@ -22,8 +21,3 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById("root")
 )
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals()

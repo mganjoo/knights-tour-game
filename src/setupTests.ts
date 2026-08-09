@@ -1,5 +1,3 @@
-import "@testing-library/jest-dom"
-
 export function makeLocalStorageMock() {
   let storage: { [key: string]: string } = {}
 
@@ -26,4 +24,10 @@ export function makeLocalStorageMock() {
   }
 }
 
-global.localStorage = makeLocalStorageMock()
+// jsdom defines localStorage as a getter-only property on window, so it has to
+// be replaced rather than assigned to.
+Object.defineProperty(globalThis, "localStorage", {
+  value: makeLocalStorageMock(),
+  writable: true,
+  configurable: true,
+})
