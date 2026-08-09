@@ -267,12 +267,12 @@ export function getShortestKnightPath(
     return [start, end]
   }
 
-  let bfsQueue: Array<BfsNode<Square>> = [{ node: start, pathLength: 0 }]
-  let visited: Array<Square> = []
+  const bfsQueue: Array<BfsNode<Square>> = [{ node: start, pathLength: 0 }]
+  const visited: Array<Square> = []
 
   const constructPath = (n: BfsNode<Square>) => {
     let next = n
-    let path = [next.node]
+    const path = [next.node]
     while (next.parent) {
       next = next.parent
       path.unshift(next.node)
@@ -281,7 +281,7 @@ export function getShortestKnightPath(
   }
 
   while (bfsQueue.length) {
-    let next = bfsQueue.shift()
+    const next = bfsQueue.shift()
 
     if (next === undefined) {
       return undefined
@@ -335,7 +335,7 @@ export function getPuzzleKnightPath(
   )
 
   let start = finalStartingSquare
-  let fullPath: Array<Square> = []
+  const fullPath: Array<Square> = []
 
   while (start !== finalEndingSquare) {
     const end = incrementWhileAttacked(
