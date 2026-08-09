@@ -1,12 +1,15 @@
 {
   "name": "knights-tour-game",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "npm run start",
     "build": "react-scripts build",
     "start": "react-scripts start",
     "inspect": "REACT_APP_INSPECT_XSTATE=1 npm run dev",
-    "lint": "eslint .",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "react-scripts test",
     "test:ci": "npm run test",
     "prepare": "husky install",
@@ -24,7 +27,7 @@
     "@testing-library/react-hooks": "7.0.2",
     "@testing-library/user-event": "13.5.0",
     "@types/jest": "27.5.2",
-    "@types/node": "16.18.9",
+    "@types/node": "24.13.3",
     "@types/preval.macro": "3.0.0",
     "@types/react": "17.0.52",
     "@types/react-dom": "17.0.18",
@@ -32,10 +35,10 @@
     "@xstate/react": "1.6.3",
     "autoprefixer": "10.4.13",
     "classnames": "2.3.2",
-    "cypress": "9.7.0",
+    "cypress": "15.20.0",
     "eslint": "8.29.0",
     "eslint-config-prettier": "8.5.0",
-    "eslint-plugin-cypress": "2.12.1",
+    "eslint-plugin-cypress": "3.6.0",
     "eslint-plugin-import": "2.26.0",
     "fast-check": "2.25.0",
     "focus-visible": "5.2.0",
